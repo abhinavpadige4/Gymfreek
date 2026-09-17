@@ -1,9 +1,9 @@
 // ============================================================
 // LLM provider abstraction
 // ============================================================
-// A minimal, provider-agnostic surface for Anthropic, OpenRouter, codex-lb,
-// and the local demo provider. The active provider is selected at runtime
-// from the LLM_PROVIDER env var (see ./index).
+// A minimal, provider-agnostic surface for OpenRouter (primary), Groq
+// (fallback), and the local demo provider. The active provider is selected
+// at runtime from the LLM_PROVIDER env var (see ./index).
 
 export interface LlmMessage {
   role: 'user' | 'assistant';
@@ -16,8 +16,8 @@ export interface LlmCompletionRequest {
   system: string;
   messages: LlmMessage[];
   maxTokens?: number;
-  // Honored by providers that accept sampling params (OpenRouter). Ignored by
-  // the Anthropic provider: Claude Opus 4.7 rejects temperature/top_p/top_k.
+  // Honored by providers that accept sampling params (OpenRouter, Groq).
+  // Ignored where the API rejects them.
   temperature?: number;
 }
 
@@ -38,7 +38,7 @@ export class LlmError extends Error {
 }
 
 export interface LlmProvider {
-  readonly id: 'anthropic' | 'openrouter' | 'codex-lb' | 'demo';
+  readonly id: 'openrouter' | 'groq' | 'demo';
   // Human-friendly name and the env var holding the key, used by the UI to
   // tell the user what to configure when no key is present.
   readonly label: string;

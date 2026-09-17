@@ -2,36 +2,41 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getLlmProvider, resolveProviderId } from './index';
 
 // resolveProviderId() and getLlmProvider() select the AI provider from the
-// LLM_PROVIDER env var. We save/restore the var around every test so this
+// LLM_PROVIDER env var. We save/restore the vars around every test so this
 // suite never leaks state into the others.
 describe('lib/llm provider resolution', () => {
-  let originalValue: string | undefined;
+  let originalProvider: string | undefined;
+  let originalOpenRouterKey: string | undefined;
+  let originalGroqKey: string | undefined;
 
   beforeEach(() => {
-    originalValue = process.env.LLM_PROVIDER;
+    originalProvider = process.env.LLM_PROVIDER;
+    originalOpenRouterKey = process.env.OPENROUTER_API_KEY;
+    originalGroqKey = process.env.GROQ_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.GROQ_API_KEY;
   });
 
   afterEach(() => {
-    if (originalValue === undefined) {
-      delete process.env.LLM_PROVIDER;
-    } else {
-      process.env.LLM_PROVIDER = originalValue;
-    }
+    if (originalProvider === undefined) delete process.env.LLM_PROVIDER;
+    else process.env.LLM_PROVIDER = originalProvider;
+    if (originalOpenRouterKey === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = originalOpenRouterKey;
+    if (originalGroqKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = originalGroqKey;
   });
 
   describe('resolveProviderId', () => {
-    it('defaults to anthropic when LLM_PROVIDER is unset', () => {
+    it('defaults to openrouter when LLM_PROVIDER is unset', () => {
       delete process.env.LLM_PROVIDER;
-      expect(resolveProviderId()).toBe('anthropic');
+      expect(resolveProviderId()).toBe('openrouter');
     });
 
     it('resolves the exact known values', () => {
-      process.env.LLM_PROVIDER = 'anthropic';
-      expect(resolveProviderId()).toBe('anthropic');
       process.env.LLM_PROVIDER = 'openrouter';
       expect(resolveProviderId()).toBe('openrouter');
-      process.env.LLM_PROVIDER = 'codex-lb';
-      expect(resolveProviderId()).toBe('codex-lb');
+      process.env.LLM_PROVIDER = 'groq';
+      expect(resolveProviderId()).toBe('groq');
       process.env.LLM_PROVIDER = 'demo';
       expect(resolveProviderId()).toBe('demo');
     });
@@ -41,10 +46,8 @@ describe('lib/llm provider resolution', () => {
       expect(resolveProviderId()).toBe('demo');
       process.env.LLM_PROVIDER = 'OPENROUTER';
       expect(resolveProviderId()).toBe('openrouter');
-      process.env.LLM_PROVIDER = 'CODEX_LB';
-      expect(resolveProviderId()).toBe('codex-lb');
-      process.env.LLM_PROVIDER = 'AnThRoPiC';
-      expect(resolveProviderId()).toBe('anthropic');
+      process.env.LLM_PROVIDER = 'Groq';
+      expect(resolveProviderId()).toBe('groq');
     });
 
     it('trims surrounding whitespace', () => {
@@ -52,36 +55,40 @@ describe('lib/llm provider resolution', () => {
       expect(resolveProviderId()).toBe('demo');
       process.env.LLM_PROVIDER = '\topenrouter\n';
       expect(resolveProviderId()).toBe('openrouter');
-      process.env.LLM_PROVIDER = '  codexlb  ';
-      expect(resolveProviderId()).toBe('codex-lb');
+      process.env.LLM_PROVIDER = '  groq  ';
+      expect(resolveProviderId()).toBe('groq');
     });
 
-    it('falls back to anthropic for an unknown value', () => {
+    it('falls back to openrouter for an unknown value', () => {
       process.env.LLM_PROVIDER = 'foo';
-      expect(resolveProviderId()).toBe('anthropic');
+      expect(resolveProviderId()).toBe('openrouter');
     });
 
-    it('falls back to anthropic for an empty string', () => {
+    it('falls back to openrouter for an empty string', () => {
       process.env.LLM_PROVIDER = '';
-      expect(resolveProviderId()).toBe('anthropic');
+      expect(resolveProviderId()).toBe('openrouter');
     });
   });
 
   describe('getLlmProvider', () => {
     it('returns a provider whose id matches the resolved id', () => {
-      process.env.LLM_PROVIDER = 'anthropic';
-      expect(getLlmProvider().id).toBe('anthropic');
       process.env.LLM_PROVIDER = 'openrouter';
       expect(getLlmProvider().id).toBe('openrouter');
-      process.env.LLM_PROVIDER = 'codex-lb';
-      expect(getLlmProvider().id).toBe('codex-lb');
+      process.env.LLM_PROVIDER = 'groq';
+      expect(getLlmProvider().id).toBe('groq');
       process.env.LLM_PROVIDER = 'demo';
       expect(getLlmProvider().id).toBe('demo');
     });
 
-    it('returns the anthropic provider by default', () => {
+    it('returns the openrouter provider by default', () => {
       delete process.env.LLM_PROVIDER;
-      expect(getLlmProvider().id).toBe('anthropic');
+      expect(getLlmProvider().id).toBe('openrouter');
+    });
+
+    it('falls back to groq when openrouter has no key but groq does', () => {
+      delete process.env.LLM_PROVIDER;
+      process.env.GROQ_API_KEY = 'gsk-test';
+      expect(getLlmProvider().id).toBe('groq');
     });
   });
 });

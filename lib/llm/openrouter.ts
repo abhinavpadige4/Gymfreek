@@ -5,8 +5,10 @@ import {
   type LlmProvider,
 } from './types';
 
-// Any model exposed by OpenRouter, via its Chat Completions-compatible API.
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5';
+// Free-tier default (OpenRouter ":free" models cost nothing). Verified live
+// 2026-09-17: returns valid coach JSON. Same 120B class as the Groq fallback,
+// so fallback answers stay consistent.
+const DEFAULT_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
 const DEFAULT_MAX_TOKENS = 8000;
 
 // Optional floor on the output budget of every OpenRouter call. Reasoning
@@ -55,7 +57,7 @@ export class OpenRouterProvider implements LlmProvider {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
     this.model = process.env.OPENROUTER_MODEL?.trim() || DEFAULT_MODEL;
-    this.appName = process.env.OPENROUTER_APP_NAME ?? 'GymCoach';
+    this.appName = process.env.OPENROUTER_APP_NAME ?? 'Gymfreek';
     this.appUrl = process.env.OPENROUTER_APP_URL ?? 'http://localhost:3030';
   }
 

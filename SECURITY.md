@@ -9,11 +9,11 @@ on a fix as quickly as we reasonably can.
 
 ## Scope and notes
 
-GymCoach is self-hosted. Operators are responsible for:
+Gymfreek is self-hosted. Operators are responsible for:
 
 - Setting a strong, unique `JWT_SECRET` (at least 32 characters).
-- Keeping their LLM provider API key (`ANTHROPIC_API_KEY` or
-  `OPENROUTER_API_KEY`) secret. Note that the AI coach sends the user's
+- Keeping their LLM provider API key (`OPENROUTER_API_KEY`, with `GROQ_API_KEY`
+  as fallback) secret. Note that the AI coach sends the user's
   training data to the configured provider.
 - Running the app behind HTTPS (a reverse proxy such as Nginx, Caddy or
   Traefik) in production.

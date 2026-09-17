@@ -1,27 +1,29 @@
-import { AnthropicProvider } from './anthropic';
-import { CodexLbProvider } from './codex-lb';
 import { OpenRouterProvider } from './openrouter';
+import { GroqProvider } from './groq';
 import { DemoProvider } from './demo';
 import type { LlmProvider } from './types';
 
 export * from './types';
 export type LlmProviderId = LlmProvider['id'];
 
-// Reads LLM_PROVIDER (case-insensitive). Defaults to 'anthropic'; an
-// unrecognized value also falls back to 'anthropic'. 'demo' serves canned
-// responses (no key needed), useful to try the AI screens.
+// Reads LLM_PROVIDER (case-insensitive). Defaults to 'openrouter'; an
+// unrecognized value also falls back to 'openrouter'. 'groq' selects the
+// fallback provider directly. 'demo' serves canned responses (no key
+// needed), useful to try the AI screens.
 export function resolveProviderId(): LlmProviderId {
   const raw = process.env.LLM_PROVIDER?.trim().toLowerCase();
-  if (raw === 'codex-lb' || raw === 'codex_lb' || raw === 'codexlb') return 'codex-lb';
-  if (raw === 'openrouter') return 'openrouter';
+  if (raw === 'groq') return 'groq';
   if (raw === 'demo') return 'demo';
-  return 'anthropic';
+  return 'openrouter';
 }
 
 export function getLlmProvider(): LlmProvider {
   const id = resolveProviderId();
-  if (id === 'codex-lb') return new CodexLbProvider();
-  if (id === 'openrouter') return new OpenRouterProvider();
+  if (id === 'groq') return new GroqProvider();
   if (id === 'demo') return new DemoProvider();
-  return new AnthropicProvider();
+  const primary = new OpenRouterProvider();
+  // Automatic fallback: no OpenRouter key but a Groq key is present, so the
+  // coach keeps working instead of 503ing on every call.
+  if (!primary.isConfigured() && process.env.GROQ_API_KEY) return new GroqProvider();
+  return primary;
 }
