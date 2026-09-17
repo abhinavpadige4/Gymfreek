@@ -49,7 +49,7 @@ npm run dev               # http://localhost:3030
 Secrets stay server-side. Only `NEXT_PUBLIC_*` reaches the browser.
 
 ```
-DATABASE_URL=            # Neon pooled URL (or local docker-compose db)
+DATABASE_URL=            # Neon pooled URL (dev, test, and prod)
 JWT_SECRET=              # 32+ chars, openssl rand -base64 48
 LLM_PROVIDER=openrouter
 OPENROUTER_API_KEY=

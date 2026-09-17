@@ -10,7 +10,7 @@ re-deriving conventions.
 - **Backend**: Next.js API routes, Prisma ORM, PostgreSQL (Neon).
 - **AI**: one provider interface in `lib/llm` (Anthropic, OpenRouter, demo
   canned responses); FastAPI companion in the Gymfreek-ai repo.
-- **Infra**: Vercel + Neon; Docker Compose for local/test Postgres.
+- **Infra**: Vercel + Neon (managed Postgres for dev, test, and prod).
 
 ## Toolchain
 

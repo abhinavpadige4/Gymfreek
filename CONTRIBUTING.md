@@ -49,9 +49,8 @@ goes through.
 See the README for the full quick start. In short:
 
 ```bash
-cp .env.example .env
+cp .env.example .env   # fill DATABASE_URL with your Neon pooled URL
 npm install
-docker compose up -d db
 npm run db:migrate
 npm run db:seed
 npm run dev
@@ -75,12 +74,10 @@ change.
 npm run test              # unit + component (Vitest, jsdom)
 npm run test:coverage     # with coverage
 
-# Integration + E2E need the test database:
-docker compose -f docker-compose.test.yml up -d
+# Integration + E2E need a test database (Neon branch or any Postgres on :5434):
 npx prisma migrate deploy   # DATABASE_URL pointing at the test DB (port 5434)
 npm run test:integration    # Vitest against real Postgres
 npm run build && npm run test:e2e   # Playwright (builds, then drives the app)
-docker compose -f docker-compose.test.yml down
 ```
 
 CI runs lint, typecheck, unit, integration, build and E2E on every pull

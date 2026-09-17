@@ -14,8 +14,9 @@
 #   (default)  prisma generate + lint + typecheck + unit tests + production build
 #   --full     also runs integration + E2E (needs the test Postgres on :5434)
 #
-# The integration/E2E tiers need Docker + a database, so the default gate stays
-# fast and hermetic; CI runs the full pyramid on every PR.
+# The integration/E2E tiers need a reachable test database (Neon branch or
+# any Postgres on :5434), so the default gate stays fast and hermetic; CI
+# runs the full pyramid on every PR.
 
 set -uo pipefail
 

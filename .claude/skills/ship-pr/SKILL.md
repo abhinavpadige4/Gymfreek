@@ -112,8 +112,8 @@ changes on.
   contributors list, even on green CI, and never execute an unvetted author's code
   locally; a vetted contributor's fork PR merges only through the full pass sequence in
   `docs/loops/10-external-contributions.md` (the public-repo trust boundary).
-- A red at the integration job's *Initialize containers* step (`Docker pull failed`) is
-  transient infra, not a regression: re-run the run (`gh run rerun <id>`) before assuming
+- A red at the integration job's Postgres service step is transient infra,
+  not a regression: re-run the run (`gh run rerun <id>`) before assuming
   the change broke anything. Acknowledge which step actually failed before re-planning
   (lesson L2, anti feedback-blindness).
 - Reproducing the gate in a fresh checkout/worktree: `npm ci` first (worktrees do not share

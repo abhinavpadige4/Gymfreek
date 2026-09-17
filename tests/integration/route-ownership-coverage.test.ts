@@ -30,8 +30,6 @@ const COVERED_ELSEWHERE: Record<string, string> = {
   'app/api/gym-equipment/[id]/route.ts': 'tests/integration/gym-equipment-api.test.ts',
   'app/api/gym-equipment/[id]/image/route.ts': 'tests/integration/gym-equipment-api.test.ts',
   'app/api/gyms/[id]/equipment/route.ts': 'tests/integration/gym-equipment-api.test.ts',
-  'app/api/progress-photos/[id]/route.ts': 'tests/integration/progress-photos-route.test.ts',
-  'app/api/progress-photos/[id]/image/route.ts': 'tests/integration/progress-photos-route.test.ts',
   'app/api/goals/route.ts': 'tests/integration/goals-route.test.ts',
 };
 

@@ -19,8 +19,8 @@ Steps to reproduce the behavior:
 What you expected to happen.
 
 **Environment**
-- LLM provider: anthropic / openrouter
-- Deployment: local dev / Docker
+- LLM provider: openrouter / groq / demo
+- Deployment: local dev / Vercel
 - Browser / device:
 
 **Logs or screenshots**

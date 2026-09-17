@@ -3,8 +3,8 @@ import { db } from '@/lib/db';
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    'DATABASE_URL must point to a test database for integration tests. ' +
-      'Start it with `docker compose -f docker-compose.test.yml up -d` and run `npm run test:integration`.',
+    'DATABASE_URL must point to a test database for integration tests ' +
+      '(Neon branch or any Postgres on :5434) and run `npm run test:integration`.',
   );
 }
 

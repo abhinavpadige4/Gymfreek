@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// End to end tests. The web server runs a production build against the test
-// database (docker-compose.test.yml). Build the app and apply migrations
-// first; in CI the e2e job does both before invoking Playwright.
+// End to end tests. The web server runs a production build against a test
+// database (Neon branch or any Postgres on :5434). Build the app and apply
+// migrations first; in CI the e2e job does both before invoking Playwright.
 const PORT = 3031;
 const TEST_DB =
   process.env.E2E_DATABASE_URL ??

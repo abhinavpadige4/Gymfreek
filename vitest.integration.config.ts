@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
-// Integration tests run against a real Postgres (see docker-compose.test.yml).
+// Integration tests run against a real Postgres (Neon branch or local).
 // DATABASE_URL must point at the test database (the test:integration script
 // sets it). Kept separate from the unit/component config (jsdom).
 export default defineConfig({
