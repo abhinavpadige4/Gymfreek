@@ -17,6 +17,11 @@ const config: Config = {
     },
     extend: {
       colors: {
+        volt: {
+          DEFAULT: '#D4FF3F',
+          dim: '#9DC22E',
+          ink: '#0B0E0C',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -56,6 +61,10 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      fontFamily: {
+        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-anton)', 'ui-sans-serif', 'sans-serif'],
+      },
       minHeight: {
         // Minimum tap target, deliberately 4rem (64px) rather than the usual
         // 44px: these are pressed mid-set with gloved or chalky hands. The size
@@ -70,6 +79,30 @@ const config: Config = {
       fontSize: {
         // For the oversized rest-timer readout.
         timer: ['6rem', { lineHeight: '1', fontWeight: '700' }],
+      },
+      keyframes: {
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
+        floaty: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-14px)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { opacity: '0.5' },
+          '50%': { opacity: '1' },
+        },
+        riseIn: {
+          from: { opacity: '0', transform: 'translateY(24px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 28s linear infinite',
+        floaty: 'floaty 5s ease-in-out infinite',
+        'pulse-glow': 'pulseGlow 2.4s ease-in-out infinite',
+        'rise-in': 'riseIn 0.7s ease-out both',
       },
     },
   },

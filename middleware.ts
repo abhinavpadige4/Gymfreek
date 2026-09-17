@@ -5,6 +5,7 @@ import { verifySession, SESSION_COOKIE } from '@/lib/auth';
 // /api/auth/logout is public: replaying it without a cookie does nothing
 // harmful and lets the client clear state even if the JWT has expired.
 const PUBLIC_PATHS = new Set([
+  '/',
   '/login',
   '/signup',
   '/mcp',

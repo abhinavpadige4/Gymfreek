@@ -1,6 +1,6 @@
 # 00 — What a loop is (and what we are building)
 
-> This directory documents how the GymCoach repository is maintained, in large
+> This directory documents how the Gymfreek repository is maintained, in large
 > part, by **autonomous loops** running on Claude Code. It is written to be
 > reproducible: clone the patterns here into any repo and you get the same
 > system. This file is the conceptual baseline; the numbered files that follow

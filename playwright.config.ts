@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 3031;
 const TEST_DB =
   process.env.E2E_DATABASE_URL ??
-  'postgresql://gymcoach_test:gymcoach_test@localhost:5434/gymcoach_test';
+  'postgresql://gymfreek_test:gymfreek_test@localhost:5434/gymfreek_test';
 
 export default defineConfig({
   testDir: './tests/e2e',

@@ -7,7 +7,7 @@ import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 // and reads the claims (userId, email). Any DB lookup happens in
 // server components / API routes (Node runtime).
 
-export const SESSION_COOKIE = 'gymcoach-session';
+export const SESSION_COOKIE = 'gymfreek-session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 function getSecret(): Uint8Array {

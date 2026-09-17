@@ -1,9 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createGymCoachMcpServer, GYMCOACH_MCP_INSTRUCTIONS } from './server';
+import { createGymfreekMcpServer, GYMFREEK_MCP_INSTRUCTIONS } from './server';
 
-const openServers: Array<ReturnType<typeof createGymCoachMcpServer>> = [];
+const openServers: Array<ReturnType<typeof createGymfreekMcpServer>> = [];
 const openClients: Client[] = [];
 
 afterEach(async () => {
@@ -11,13 +11,13 @@ afterEach(async () => {
   await Promise.allSettled(openServers.splice(0).map((server) => server.close()));
 });
 
-describe('GymCoach MCP server', () => {
+describe('Gymfreek MCP server', () => {
   it('advertises agent instructions, resources, prompts and safe tool annotations', async () => {
-    const server = createGymCoachMcpServer({
+    const server = createGymfreekMcpServer({
       principal: { tokenId: 'token-1', userId: 'user-1', canWrite: true },
-      baseUrl: 'https://gymcoach.example',
+      baseUrl: 'https://gymfreek.example',
     });
-    const client = new Client({ name: 'gymcoach-test', version: '1.0.0' });
+    const client = new Client({ name: 'gymfreek-test', version: '1.0.0' });
     openServers.push(server);
     openClients.push(client);
 
@@ -35,12 +35,12 @@ describe('GymCoach MCP server', () => {
 
     const resources = await client.listResources();
     expect(resources.resources.map((resource) => resource.uri)).toContain(
-      'gymcoach://instructions/agent',
+      'gymfreek://instructions/agent',
     );
     const prompts = await client.listPrompts();
     expect(prompts.prompts.map((prompt) => prompt.name)).toContain('build-training-program');
 
-    const instructions = await client.readResource({ uri: 'gymcoach://instructions/agent' });
-    expect(instructions.contents[0]).toMatchObject({ text: GYMCOACH_MCP_INSTRUCTIONS });
+    const instructions = await client.readResource({ uri: 'gymfreek://instructions/agent' });
+    expect(instructions.contents[0]).toMatchObject({ text: GYMFREEK_MCP_INSTRUCTIONS });
   });
 });

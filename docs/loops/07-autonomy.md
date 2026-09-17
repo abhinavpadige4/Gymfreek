@@ -91,8 +91,8 @@ operator gives you in-session.
 - **Trust tiers (single source of truth: `10-external-contributions.md`).** Since
   2026-08-27 external contributions are encouraged and handled through a graduated trust
   model defined in [`10-external-contributions.md`](10-external-contributions.md). Summary
-  (the full document wins on any disagreement): **maintainers** (`author.login` in
-  `{JulienAu, Julien-Au}`; authenticated, so the login allowlist is the real control; never
+   (the full document wins on any disagreement): **maintainers** (`author.login` in
+   `{abhinavpadige4}`; authenticated, so the login allowlist is the real control; never
   gate on `authorAssociation == OWNER` - the loop's own account is a `COLLABORATOR`) keep
   full autonomy as before. **Vetted contributors** (human-granted list in that file) may
   have fork PRs auto-merged, but only after the mechanical surface gate, the multi-lens

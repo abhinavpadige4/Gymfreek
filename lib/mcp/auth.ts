@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { db } from '@/lib/db';
 
-const TOKEN_PREFIX = 'gmc_';
+const TOKEN_PREFIX = 'gfk_';
 
 export interface McpPrincipal {
   tokenId: string;
@@ -27,7 +27,7 @@ export function readMcpToken(req: Request): string | null {
     return authorization.slice(7).trim() || null;
   }
 
-  const headerToken = req.headers.get('x-gymcoach-token')?.trim();
+  const headerToken = req.headers.get('x-gymfreek-token')?.trim();
   if (headerToken) return headerToken;
 
   return new URL(req.url).searchParams.get('token')?.trim() || null;

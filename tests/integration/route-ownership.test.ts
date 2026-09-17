@@ -102,7 +102,7 @@ async function seed() {
       userId: a.id,
       name: 'cli',
       tokenHash: 'ownership-test-hash',
-      tokenPrefix: 'gmc_test.....',
+      tokenPrefix: 'gfk_test.....',
     },
   });
   const gym = await db.gym.create({ data: { userId: a.id, name: 'Home gym' } });

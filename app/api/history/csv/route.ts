@@ -8,7 +8,7 @@ import { effectiveWeight, estimate1RM, setVolume } from '@/lib/stats';
 // GET /api/history/csv?programId=...&month=YYYY-MM
 // Returns a CSV (UTF-8 + BOM for Excel) with one row per set (warmups
 // included, flagged by is_warmup). Same filters as the /history page.
-// The GymCoach CSV import (app/api/import/gymcoach/route.ts, issue #270) is
+// The Gymfreek CSV import (app/api/import/gymfreek/route.ts) is
 // the symmetric inverse of this export.
 export async function GET(req: Request) {
   try {
@@ -122,7 +122,7 @@ export async function GET(req: Request) {
 }
 
 function buildFilename(month: string | null, programId: string | null): string {
-  const parts = ['gymcoach-history'];
+  const parts = ['gymfreek-history'];
   if (month) parts.push(month);
   if (programId) parts.push(`prog-${programId.slice(0, 8)}`);
   if (parts.length === 1) parts.push(new Date().toISOString().slice(0, 10));

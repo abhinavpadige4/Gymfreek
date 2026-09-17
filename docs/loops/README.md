@@ -1,4 +1,4 @@
-# Loops: how GymCoach maintains itself
+# Loops: how Gymfreek maintains itself
 
 This repo is partly maintained by **autonomous loops** running on Claude Code: small
 programs that prompt the agent, read what it produced, verify it, and decide whether

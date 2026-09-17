@@ -57,7 +57,7 @@ async function seedFullUser(email: string) {
     data: {
       email,
       passwordHash: 'x',
-      displayName: 'Julien',
+      displayName: 'Ava',
       bodyweight: 82.5,
       sex: 'MALE',
       heightCm: 181,
@@ -313,7 +313,7 @@ describe('GET /api/backup - export completeness (issue #168)', () => {
 
     expect(dump.version).toBe(5);
     expect(dump.profile).toMatchObject({
-      displayName: 'Julien',
+      displayName: 'Ava',
       bodyweight: 82.5,
       sex: 'MALE',
       heightCm: 181,
@@ -479,7 +479,7 @@ describe('POST /api/backup - restore round trip (issue #168)', () => {
 
     // The profile (including deload state) was restored onto user B.
     const profileB = await db.user.findUnique({ where: { id: userB.id } });
-    expect(profileB?.displayName).toBe('Julien');
+    expect(profileB?.displayName).toBe('Ava');
     expect(profileB?.unit).toBe('LB');
     expect(profileB?.deloadUntil?.toISOString()).toBe('2026-07-05T00:00:00.000Z');
     const activeGymB = await db.gym.findFirst({ where: { id: profileB?.activeGymId ?? '' } });

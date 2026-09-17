@@ -1,9 +1,9 @@
-# Contributing to GymCoach
+# Contributing to Gymfreek
 
-Thanks for your interest in improving GymCoach. External issues and pull
+Thanks for your interest in improving Gymfreek. External issues and pull
 requests are welcome and encouraged. This guide covers the local setup, the
 checks your changes should pass, and - because this repo is largely maintained
-by an autonomous AI loop - an honest description of how your contribution is
+by an AI loop - an honest description of how your contribution is
 handled.
 
 ## How your contribution is handled

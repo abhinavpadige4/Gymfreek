@@ -20,7 +20,7 @@ const LIVE_SESSION_ROUTE_PREFIX = '/session/';
 // a rolling deploy can make each reload install the other service worker). One
 // update reload per window; a second one within it keeps the current bundle
 // until a natural navigation.
-export const RELOAD_GUARD_STORAGE_KEY = 'gymcoach.pwa.update-reload';
+export const RELOAD_GUARD_STORAGE_KEY = 'gymfreek.pwa.update-reload';
 export const RELOAD_GUARD_WINDOW_MS = 30_000;
 
 export function isLiveSessionRoute(pathname: string | null): boolean {

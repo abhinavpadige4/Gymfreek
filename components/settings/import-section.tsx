@@ -95,7 +95,7 @@ interface FitBatchPreview {
   skipped: number;
 }
 
-type ImportFormat = 'STRONG' | 'HEVY' | 'GYMCOACH' | 'TCX' | 'GPX' | 'FIT';
+type ImportFormat = 'STRONG' | 'HEVY' | 'GYMFREEK' | 'TCX' | 'GPX' | 'FIT';
 
 // Copy and endpoint per supported source app. Strong keeps its unit toggle
 // (its export follows the app's unit setting); Hevy always exports kg, so the
@@ -132,10 +132,10 @@ const FORMAT_META: Record<
     accept: '.csv,text/csv',
     fileKind: 'CSV',
   },
-  GYMCOACH: {
-    label: 'GymCoach',
-    source: 'a GymCoach history CSV',
-    endpoint: '/api/import/gymcoach',
+  GYMFREEK: {
+    label: 'Gymfreek',
+    source: 'a Gymfreek history CSV',
+    endpoint: '/api/import/gymfreek',
     exportHint:
       'use the CSV from the History page export, or any spreadsheet with the same columns (session_date, workout, exercise, set_number, external_load_kg, reps, ...)',
     hasUnitToggle: false,
@@ -407,7 +407,7 @@ export function ImportSection() {
               <SelectContent>
                 <SelectItem value="STRONG">Strong</SelectItem>
                 <SelectItem value="HEVY">Hevy</SelectItem>
-                <SelectItem value="GYMCOACH">GymCoach CSV</SelectItem>
+                <SelectItem value="GYMFREEK">Gymfreek CSV</SelectItem>
                 <SelectItem value="TCX">TCX file</SelectItem>
                 <SelectItem value="GPX">GPX file</SelectItem>
                 <SelectItem value="FIT">FIT file</SelectItem>

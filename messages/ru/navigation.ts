@@ -3,11 +3,13 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const navigation = {
   home: 'Главная',
+  challenges: 'Челленджи',
   history: 'История',
   progress: 'Прогресс',
   coach: 'Тренер',
   chat: 'Чат',
   programs: 'Программы',
   catalog: 'Упражнения',
+  admin: 'Админ',
   settings: 'Настройки',
 } satisfies MessageShape<typeof english>;

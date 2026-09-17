@@ -65,7 +65,7 @@ async function seedReturnScenario(page: Page) {
   const dbUrl =
     process.env.DATABASE_URL ??
     process.env.E2E_DATABASE_URL ??
-    'postgresql://gymcoach_test:gymcoach_test@localhost:5434/gymcoach_test';
+    'postgresql://gymfreek_test:gymfreek_test@localhost:5434/gymfreek_test';
   const sql = new Client({ connectionString: dbUrl });
   await sql.connect();
   try {

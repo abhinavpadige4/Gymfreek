@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Anton, Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { Toaster } from '@/components/ui/sonner';
@@ -6,18 +7,21 @@ import { ThemeProvider } from '@/components/shared/theme-provider';
 import { PwaUpdateManager } from '@/components/shared/pwa-update-manager';
 import './globals.css';
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-anton', display: 'swap' });
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('common.metadata');
 
   return {
-    title: 'GymCoach',
+    title: 'Gymfreek',
     description: t('description'),
-    applicationName: 'GymCoach',
+    applicationName: 'Gymfreek',
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
-      title: 'GymCoach',
+      title: 'Gymfreek',
     },
     icons: {
       icon: [
@@ -30,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#0B0E0C',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -45,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // or button in the header).
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className={`${inter.variable} ${anton.variable} min-h-screen bg-background font-sans text-foreground antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <PwaUpdateManager />

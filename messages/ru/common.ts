@@ -71,7 +71,7 @@ export const common = {
   language: {
     label: 'Язык',
     change: 'Изменить язык',
-    description: 'Выберите язык интерфейса GymCoach.',
+    description: 'Выберите язык интерфейса Gymfreek.',
     english: 'Английский',
     french: 'Французский',
     russian: 'Русский',

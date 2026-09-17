@@ -1,12 +1,12 @@
-# GymCoach MCP and ChatGPT
+# Gymfreek MCP and ChatGPT
 
-GymCoach exposes a Streamable HTTP MCP endpoint at `/mcp`. It lets external AI
+Gymfreek exposes a Streamable HTTP MCP endpoint at `/mcp`. It lets external AI
 agents read the trainee context and, with an explicitly write-enabled token,
 create or edit training programs.
 
 ## Connect ChatGPT
 
-1. Sign in to GymCoach and open **Settings -> ChatGPT and MCP**.
+1. Sign in to Gymfreek and open **Settings -> ChatGPT and MCP**.
 2. Create a connection. Leave write access enabled only when ChatGPT should be
    allowed to change saved programs.
 3. Copy the connector URL immediately. Its secret token is shown only once.
@@ -19,7 +19,7 @@ The public URL must use HTTPS. A local or LAN URL is not suitable for ChatGPT.
 ## Security model
 
 - Raw tokens are never stored; PostgreSQL contains only their SHA-256 hashes.
-- Tokens belong to one GymCoach user and can be revoked from Settings.
+- Tokens belong to one Gymfreek user and can be revoked from Settings.
 - Read-only tokens cannot call program-writing tools.
 - Every write tool requires an explicit `confirmed: true` argument and is
   annotated as changing saved data.
@@ -27,9 +27,9 @@ The public URL must use HTTPS. A local or LAN URL is not suitable for ChatGPT.
 - The connector URL carries the token as a query string, so treat the URL
   itself as a secret: query strings routinely end up in reverse-proxy and
   access logs and in browser history. Disable or scrub query-string logging
-  on any proxy in front of GymCoach, and prefer the `Authorization: Bearer`
-  or `X-GymCoach-Token` header (both are supported) for MCP clients that can
-  send headers.
+   on any proxy in front of Gymfreek, and prefer the `Authorization: Bearer`
+   or `X-Gymfreek-Token` header (both are supported) for MCP clients that can
+   send headers.
 
 For a shared or publicly distributed ChatGPT app, replace personal query-token
 authentication with OAuth before submission.
@@ -38,7 +38,7 @@ authentication with OAuth before submission.
 
 Resources:
 
-- `gymcoach://instructions/agent`
+- `gymfreek://instructions/agent`
 
 Prompts:
 

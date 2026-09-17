@@ -31,18 +31,14 @@ commit on an existing docs branch.
 3. **README** - the features list and roadmap checkboxes are updated EVERY batch that
    ships a user-facing capability (operator directive 2026-06-10); other README edits only
    when the loop narrative changed enough to matter. Keep edits minimal and truthful.
-4. **Demo media** (same directive, refined: periodic, not per-batch). Static screenshots
-   (`docs/screenshots/*.png`): re-shoot when a captured page (home / progress / generator /
-   catalog) visibly changed. Recorded clips (`docs/screenshots/*.gif`): re-record from time
-   to time with a staleness cap - never more than ~3 shipped feature batches of lag, and
-   never a flagship feature missing from a clip that claims to show that flow. All tooling
-   is in the repo: a throwaway Postgres (e.g. `docker run -d --name gymcoach-demo-db ...
-   -p 5435:5432 --tmpfs /var/lib/postgresql/data postgres:16-alpine`), a local gitignored
-   `.env` with `LLM_PROVIDER=demo`, `prisma migrate deploy` + `npm run db:seed` +
-   `npm run seed:demo` (extend `scripts/seed-demo-history.ts` when a new feature needs demo
-   data to be visible), `npm run build` + `npx next start -p 3032`, then
-   `node scripts/screenshots.mjs` and `node scripts/record.mjs <scenario>` + an ffmpeg
-   palette GIF conversion at 320 px / 12 fps. Tear the server and container down after. The recorder (scripts/record.mjs) self-verifies - it exits non-zero and discards the clip if the page shows an error overlay / 404 / 5xx / uncaught error (lesson L12); a `record.mjs` abort means the app is broken, not the script. Kill any stale next-server / free the port before recording (lesson L11).
+4. **Demo media** (periodic, not per-batch). Static screenshots and short clips:
+   re-shoot when a captured page visibly changed, with a staleness cap so a
+   flagship feature is never missing from media that claims to show that flow.
+   Use a throwaway Postgres, a local gitignored `.env` with `LLM_PROVIDER=demo`,
+   `prisma migrate deploy` + `npm run db:seed`, then capture against a local
+   server. Tear the server and container down after. If a capture shows an
+   error overlay / 404 / 5xx, the app is broken, not the capture - fix that
+   first. Kill any stale next-server / free the port before recording.
 5. **docs/loops/lessons.md** - harvest any lesson the run surfaced (a failure mode, a
    surprise, a fix that should not have been needed). A lesson is only "learned" when it
    **graduates**: if it is general, edit the relevant skill or `CLAUDE.md`/charter so the
@@ -84,9 +80,8 @@ commit on an existing docs branch.
 
 ## Demo freshness (after the docs PR merges)
 
-When the batch changed anything user-visible, trigger the demo redeploy
-(`gh workflow run deploy-demo.yml`, or let the Monday schedule take it) and probe
-https://demo-gymcoach.mesureprivee.com/login afterwards - the public demo is part of the
+When the batch changed anything user-visible, redeploy the demo instance and probe
+its /login afterwards - the public demo is part of the
 story and must not lag the README it advertises.
 
 ## One metric per batch

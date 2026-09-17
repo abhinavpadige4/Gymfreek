@@ -26,7 +26,7 @@ const prevUploadsDir = process.env.UPLOADS_DIR;
 beforeAll(async () => {
   // A fresh scratch dir per run so tests never touch a real uploads dir and
   // never collide with a previous run.
-  uploadsDir = await mkdtemp(path.join(os.tmpdir(), 'gymcoach-photos-test-'));
+  uploadsDir = await mkdtemp(path.join(os.tmpdir(), 'gymfreek-photos-test-'));
   process.env.UPLOADS_DIR = uploadsDir;
 });
 

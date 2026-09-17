@@ -34,7 +34,7 @@ export function mcpCorsPolicyFromEnv(
 const BASE_CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers':
-    'Content-Type, Authorization, X-GymCoach-Token, MCP-Protocol-Version, MCP-Session-Id, Last-Event-ID',
+    'Content-Type, Authorization, X-Gymfreek-Token, MCP-Protocol-Version, MCP-Session-Id, Last-Event-ID',
   'Access-Control-Expose-Headers': 'MCP-Protocol-Version, MCP-Session-Id',
 };
 

@@ -1,12 +1,12 @@
 {
-  "name": "GymCoach",
-  "short_name": "GymCoach",
-  "description": "Strength training tracker and personal AI coach.",
+  "name": "Gymfreek",
+  "short_name": "Gymfreek",
+  "description": "AI fitness coach with live form checks and the 100XU century challenge.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0B0E0C",
+  "theme_color": "#0B0E0C",
   "orientation": "portrait",
   "lang": "en",
   "icons": [

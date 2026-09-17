@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for GymCoach
+about: Suggest an idea for Gymfreek
 title: ''
 labels: enhancement
 assignees: ''

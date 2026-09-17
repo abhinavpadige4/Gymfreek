@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { generateMcpToken, hashMcpToken, readMcpToken, visibleMcpTokenPrefix } from './auth';
 
 describe('MCP token helpers', () => {
-  it('generates opaque GymCoach-prefixed tokens', () => {
+  it('generates opaque Gymfreek-prefixed tokens', () => {
     const first = generateMcpToken();
     const second = generateMcpToken();
-    expect(first).toMatch(/^gmc_[A-Za-z0-9_-]{40,}$/);
+    expect(first).toMatch(/^gfk_[A-Za-z0-9_-]{40,}$/);
     expect(second).not.toBe(first);
-    expect(visibleMcpTokenPrefix(first)).toMatch(/^gmc_.+\.\.\.$/);
+    expect(visibleMcpTokenPrefix(first)).toMatch(/^gfk_.+\.\.\.$/);
   });
 
   it('hashes tokens deterministically without retaining the token', () => {
-    const token = 'gmc_test-token';
+    const token = 'gfk_test-token';
     expect(hashMcpToken(token)).toHaveLength(64);
     expect(hashMcpToken(token)).toBe(hashMcpToken(token));
     expect(hashMcpToken(token)).not.toContain(token);
@@ -20,20 +20,20 @@ describe('MCP token helpers', () => {
   it('accepts bearer, custom header and query token authentication', () => {
     expect(
       readMcpToken(
-        new Request('https://gymcoach.example/mcp', {
-          headers: { Authorization: 'Bearer gmc_bearer' },
+        new Request('https://gymfreek.example/mcp', {
+          headers: { Authorization: 'Bearer gfk_bearer' },
         }),
       ),
-    ).toBe('gmc_bearer');
+    ).toBe('gfk_bearer');
     expect(
       readMcpToken(
-        new Request('https://gymcoach.example/mcp', {
-          headers: { 'X-GymCoach-Token': 'gmc_header' },
+        new Request('https://gymfreek.example/mcp', {
+          headers: { 'X-Gymfreek-Token': 'gfk_header' },
         }),
       ),
-    ).toBe('gmc_header');
-    expect(readMcpToken(new Request('https://gymcoach.example/mcp?token=gmc_query'))).toBe(
-      'gmc_query',
+    ).toBe('gfk_header');
+    expect(readMcpToken(new Request('https://gymfreek.example/mcp?token=gfk_query'))).toBe(
+      'gfk_query',
     );
   });
 });

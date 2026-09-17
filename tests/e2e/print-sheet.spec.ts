@@ -75,7 +75,7 @@ test('the print route renders a seeded program as fillable sheets', async ({ pag
   await expect(page.locator('[data-print-cell]')).toHaveCount(27);
   await expect(page.getByText('3 x 8-12 reps, RIR 2').first()).toBeVisible();
   // The app chrome is not part of the sheet route.
-  await expect(page.getByRole('link', { name: 'GymCoach' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Gymfreek' })).toHaveCount(0);
 
   // One workout only.
   await page.goto(`/programs/${program.id}/print?workout=${workoutIds[1]}`);

@@ -23,7 +23,7 @@ S="$(cd "$(dirname "$0")" && pwd)"
 # node_modules comes from this script's own repo root, not a hardcoded path, so
 # the gate works from any clone. It is mounted read-only and holds no credentials.
 MAIN_REPO="$(git -C "$S" rev-parse --show-toplevel)"
-ARCHIVE="${TMPDIR:-/tmp}/gymcoach-container-gate-$TAG.tar"
+ARCHIVE="${TMPDIR:-/tmp}/gymfreek-container-gate-$TAG.tar"
 
 # The contributor tree is unpacked into a throwaway directory outside the repo,
 # never into the checkout. --user below means everything the container writes is

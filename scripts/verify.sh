@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# verify.sh — the GymCoach green-gate.
+# verify.sh — the Gymfreek green-gate.
 #
 # This is the self-verification step every autonomous loop must pass before it
 # claims a task is done (see docs/loops/). It mirrors the CI "quality" + "build"
@@ -36,7 +36,7 @@ FULL=0
 fail() { echo ""; echo "❌ GREEN-GATE FAILED at: $1"; exit 1; }
 step() { echo ""; echo "▶ $1"; }
 
-echo "GymCoach green-gate — node $(node -v 2>/dev/null || echo '??'), npm $(npm -v 2>/dev/null || echo '??')"
+echo "Gymfreek green-gate — node $(node -v 2>/dev/null || echo '??'), npm $(npm -v 2>/dev/null || echo '??')"
 
 step "prisma generate"
 npx prisma generate >/dev/null || fail "prisma generate"
@@ -65,7 +65,7 @@ if [ "$FULL" = "1" ]; then
   # port is contended (lesson L16). A machine-wide lock makes the second run
   # wait instead; it is released automatically when this process exits. CI
   # never goes through this script, so it is unaffected.
-  LOCK_FILE="${TMPDIR:-/tmp}/gymcoach-test-infra.lock"
+  LOCK_FILE="${TMPDIR:-/tmp}/gymfreek-test-infra.lock"
   exec 9>"$LOCK_FILE" || fail "test-infra lock (cannot open $LOCK_FILE)"
   if ! flock --nonblock 9; then
     echo "  another verify run holds the shared test infra (:5434/:3031); waiting for the lock..."

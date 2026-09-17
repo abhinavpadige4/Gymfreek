@@ -10,7 +10,7 @@ function Greeting({ name }: { name: string }) {
 
 describe('component testing stack', () => {
   it('renders a component into the jsdom DOM', () => {
-    render(<Greeting name="GymCoach" />);
-    expect(screen.getByText('Hello GymCoach')).toBeInTheDocument();
+    render(<Greeting name="Gymfreek" />);
+    expect(screen.getByText('Hello Gymfreek')).toBeInTheDocument();
   });
 });

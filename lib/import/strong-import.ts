@@ -28,7 +28,7 @@ export interface NormalizedImportRow {
   // Absent/null on strength rows - their path is unchanged.
   durationSec?: number | null;
   distanceM?: number | null;
-  // Richer per-set data the GymCoach native CSV carries (issue #270). Absent
+  // Richer per-set data the Gymfreek native CSV carries. Absent
   // for Strong/Hevy rows - their path is unchanged.
   rir?: number | null;
   notes?: string | null;
@@ -37,7 +37,7 @@ export interface NormalizedImportRow {
   // Real session times as ISO strings, when the source export has them.
   startedAtIso?: string | null;
   finishedAtIso?: string | null;
-  // Explicit session grouping key (issue #270): the GymCoach export carries a
+  // Explicit session grouping key: the Gymfreek export carries a
   // session_id, so two same-day sessions with the same workout name stay
   // separate. Absent falls back to the historical (dateKey, workoutName) key.
   sessionKey?: string;

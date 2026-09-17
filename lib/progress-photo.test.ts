@@ -115,7 +115,7 @@ describe('photo file storage', () => {
   const prevUploadsDir = process.env.UPLOADS_DIR;
 
   beforeAll(async () => {
-    scratch = await mkdtemp(path.join(os.tmpdir(), 'gymcoach-photo-storage-'));
+    scratch = await mkdtemp(path.join(os.tmpdir(), 'gymfreek-photo-storage-'));
     process.env.UPLOADS_DIR = path.join(scratch, 'uploads');
   });
 

@@ -8,7 +8,7 @@
 // not silently restructure it).
 //
 // Loading schemes (5/3/1 percentages, GZCLP stages, nSuns waves) are expressed
-// here as set/rep/RIR targets plus explanatory notes, since GymCoach tracks
+// here as set/rep/RIR targets plus explanatory notes, since Gymfreek tracks
 // sets/reps/RIR rather than a built-in percentage engine. The notes carry the
 // "as written" intent so the user can run the program faithfully.
 

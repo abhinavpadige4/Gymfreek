@@ -61,11 +61,11 @@ export interface PendingSet {
   equipmentDroppedNotice?: string | null;
 }
 
-class GymCoachDB extends Dexie {
+class GymfreekDB extends Dexie {
   pendingSets!: Table<PendingSet, string>;
 
   constructor() {
-    super('GymCoachDB');
+    super('GymfreekDB');
     this.version(1).stores({
       // Primary key: localId. Secondary indexes: sessionId (to filter
       // a session's sets), status (to scan the pending ones).
@@ -74,13 +74,13 @@ class GymCoachDB extends Dexie {
   }
 }
 
-let _db: GymCoachDB | null = null;
+let _db: GymfreekDB | null = null;
 
-export function getDB(): GymCoachDB {
+export function getDB(): GymfreekDB {
   if (typeof window === 'undefined') {
     throw new Error('IndexedDB is only available client-side.');
   }
-  if (!_db) _db = new GymCoachDB();
+  if (!_db) _db = new GymfreekDB();
   return _db;
 }
 

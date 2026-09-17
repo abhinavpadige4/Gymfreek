@@ -13,9 +13,9 @@ import {
 } from '@/lib/prisma-client';
 import type { McpPrincipal } from '@/lib/mcp/auth';
 
-export const GYMCOACH_MCP_INSTRUCTIONS = `GymCoach stores the trainee's profile, gyms, equipment, programs, workout history, sets, RIR, goals and recovery signals.
+export const GYMFREEK_MCP_INSTRUCTIONS = `Gymfreek stores the trainee's profile, gyms, equipment, programs, workout history, sets, RIR, goals and recovery signals.
 
-Use read tools before making recommendations. Ground every recommendation in returned GymCoach data and never invent completed sets, available equipment, records or injuries. Respect the active gym's equipment constraints. Use the trainee's language.
+Use read tools before making recommendations. Ground every recommendation in returned Gymfreek data and never invent completed sets, available equipment, records or injuries. Respect the active gym's equipment constraints. Use the trainee's language.
 
 Program-writing tools change saved data. Explain the proposed change before calling a write tool. Newly created programs are inactive so the trainee can review them. Activate a program only when the trainee explicitly asks. Never delete or remove a program exercise without explicit confirmation.`;
 
@@ -38,7 +38,7 @@ function result(data: Record<string, unknown>) {
 function requireWrite(principal: McpPrincipal) {
   if (!principal.canWrite) {
     throw new Error(
-      'This GymCoach MCP token is read-only. Create a write-enabled token in Settings.',
+      'This Gymfreek MCP token is read-only. Create a write-enabled token in Settings.',
     );
   }
 }
@@ -51,30 +51,30 @@ async function getOwnedProgram(userId: string, programId?: string) {
   return program.id;
 }
 
-export function createGymCoachMcpServer({ principal, baseUrl }: ServerOptions): McpServer {
+export function createGymfreekMcpServer({ principal, baseUrl }: ServerOptions): McpServer {
   const server = new McpServer(
     {
-      name: 'GymCoach',
+      name: 'Gymfreek',
       version: '1.0.0',
       websiteUrl: baseUrl,
     },
-    { instructions: GYMCOACH_MCP_INSTRUCTIONS },
+    { instructions: GYMFREEK_MCP_INSTRUCTIONS },
   );
 
   server.registerResource(
-    'gymcoach-agent-instructions',
-    'gymcoach://instructions/agent',
+    'gymfreek-agent-instructions',
+    'gymfreek://instructions/agent',
     {
-      title: 'GymCoach agent instructions',
+      title: 'Gymfreek agent instructions',
       description: 'Rules for safely analysing and editing the trainee training data.',
       mimeType: 'text/plain',
     },
     async () => ({
       contents: [
         {
-          uri: 'gymcoach://instructions/agent',
+          uri: 'gymfreek://instructions/agent',
           mimeType: 'text/plain',
-          text: GYMCOACH_MCP_INSTRUCTIONS,
+          text: GYMFREEK_MCP_INSTRUCTIONS,
         },
       ],
     }),
@@ -83,8 +83,8 @@ export function createGymCoachMcpServer({ principal, baseUrl }: ServerOptions): 
   server.registerPrompt(
     'build-training-program',
     {
-      title: 'Build a GymCoach training program',
-      description: 'Analyse the trainee context and prepare a structured program for GymCoach.',
+      title: 'Build a Gymfreek training program',
+      description: 'Analyse the trainee context and prepare a structured program for Gymfreek.',
       argsSchema: { goal: z.string().trim().min(5).max(2000) },
     },
     async ({ goal }) => ({
@@ -233,7 +233,7 @@ export function createGymCoachMcpServer({ principal, baseUrl }: ServerOptions): 
     {
       title: 'Create training program',
       description:
-        'Creates a complete inactive GymCoach program. Explain the draft and obtain user confirmation before calling.',
+        'Creates a complete inactive Gymfreek program. Explain the draft and obtain user confirmation before calling.',
       inputSchema: { confirmed: explicitConfirmation, program: generatedProgramSchema },
       annotations: {
         readOnlyHint: false,

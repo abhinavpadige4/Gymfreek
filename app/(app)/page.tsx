@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { Dumbbell, Play, AlertCircle, Lightbulb } from 'lucide-react';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
-import { requireSession } from '@/lib/auth';
+import { getCurrentSession, requireSession } from '@/lib/auth';
+import { LandingPage } from '@/components/landing/landing-page';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,11 @@ const DAY_KEYS = [
 ] as const;
 
 export default async function DashboardPage() {
+  // Public landing for visitors, dashboard for members. The middleware lets
+  // logged-out traffic reach /; every other (app) route still redirects.
+  if (!(await getCurrentSession())) {
+    return <LandingPage />;
+  }
   const t = await getTranslations('dashboard');
   const common = await getTranslations('common');
   const format = await getFormatter();
@@ -55,10 +61,29 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-3">
           <Dumbbell className="size-8" />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">GymCoach</h1>
-            <p className="text-xs text-muted-foreground">{session.email}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Gymfreek</h1>
+            <p className="text-xs text-muted-foreground">
+              AI form coach - {session.email}
+            </p>
           </div>
         </div>
+
+        <Card className="border-primary/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">100XU Challenge</CardTitle>
+            <CardDescription>
+              100 days, daily tasks, live AI form checks. Start with onboarding, then join.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/onboarding">Training profile</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/challenges">View challenges</Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         {insight && (
           <Link href={insight.href} className="block">

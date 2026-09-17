@@ -1,5 +1,5 @@
 # ============================================================
-# GymCoach - Dockerfile production multi-stage
+# Gymfreek - Dockerfile production multi-stage
 # ============================================================
 # Stages : deps -> builder -> prod-deps -> runner
 # Utilise `output: 'standalone'` de next.config.js, complete par un node_modules

@@ -1,5 +1,5 @@
 /**
- * Demo seed for GymCoach (open-source edition).
+ * Demo seed for Gymfreek.
  *
  * Loads a neutral dataset to help you explore the application:
  * - A demo account (email/password configurable via .env)

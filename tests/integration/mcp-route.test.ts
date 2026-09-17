@@ -21,7 +21,7 @@ describe('MCP route method handling', () => {
     const res = await GET(
       new Request('http://test.local/mcp', {
         headers: {
-          authorization: 'Bearer gmc_not_a_real_token',
+          authorization: 'Bearer gfk_not_a_real_token',
           accept: 'text/event-stream',
         },
       }),

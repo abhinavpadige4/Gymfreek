@@ -1,5 +1,4 @@
-// GymCoach - Database schema
-// Single-user, weightlifting tracking and Claude AI coach.
+// Gymfreek - Database schema
 
 generator client {
   provider     = "prisma-client"
@@ -54,6 +53,15 @@ model User {
   mcpAccessTokens   McpAccessToken[]
   activeGymId       String?
   activeGym         Gym?               @relation("ActiveGym", fields: [activeGymId], references: [id], onDelete: SetNull)
+  role              UserRole           @default(USER)
+  dateOfBirth       DateTime?
+  medicalConditions String?
+  injuries          String?
+  experienceLevel   ExperienceLevel?
+  onboardingCompleted Boolean          @default(false)
+  enrollments       Enrollment[]
+  payments          Payment[]
+  workoutSessions   WorkoutSession[]
 }
 
 // Personal access tokens for remote MCP clients such as ChatGPT. Only a
@@ -82,6 +90,18 @@ enum Sex {
 enum WeightUnit {
   KG
   LB
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ATHLETE
 }
 
 enum TrainingGoal {
@@ -529,4 +549,146 @@ model ReadinessCheckin {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// Generic challenge system: 100XU ships as one row here so future challenges
+// reuse the same tables and admin UI. Results only, never video.
+model Challenge {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  title       String
+  description String?
+  pricePaise  Int            @default(0)
+  currency    String         @default("INR")
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  days        ChallengeDay[]
+  enrollments Enrollment[]
+  workoutSessions WorkoutSession[]
+}
+
+model ChallengeDay {
+  id          String          @id @default(cuid())
+  challengeId String
+  challenge   Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  title       String
+  focus       String?
+  tasks       ChallengeTask[]
+  workoutSessions WorkoutSession[]
+
+  @@unique([challengeId, dayNumber])
+  @@index([challengeId, dayNumber])
+}
+
+model ChallengeTask {
+  id           String       @id @default(cuid())
+  dayId        String
+  day          ChallengeDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  exerciseName String
+  targetReps   Int
+  rounds       Int          @default(1)
+  loadKg       Float?
+  // Prescribed load as written in the program (ranges like "Dual 10-15 kg DBs"
+  // do not fit a number, so the label is stored verbatim for display).
+  loadLabel    String?
+  instructions String?
+  // Optional demo-video URL (admin-pasted, e.g. unlisted YouTube/MP4 link).
+  // Never user uploads, never raw video storage.
+  demoVideoUrl String?
+  order        Int          @default(0)
+
+  @@index([dayId, order])
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Enrollment {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId String
+  challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  status      EnrollmentStatus @default(PENDING)
+  currentDay  Int              @default(1)
+  startDate   DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  payments    Payment[]
+
+  @@unique([userId, challengeId])
+  @@index([userId, status])
+}
+
+enum PaymentStatus {
+  CREATED
+  CAPTURED
+  FAILED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentId      String
+  enrollment        Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  amountPaise       Int
+  currency          String        @default("INR")
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?
+  status            PaymentStatus @default(CREATED)
+  createdAt         DateTime      @default(now())
+
+  @@index([enrollmentId, createdAt])
+}
+
+// AI-engine results: structured summaries only, never video. A WorkoutSession
+// is one completed live workout (free or challenge day); each ExerciseResult
+// is one exercise's counted/scored sets; FormIssue rows are the flagged cues.
+model WorkoutSession {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId    String?
+  challenge      Challenge?       @relation(fields: [challengeId], references: [id], onDelete: SetNull)
+  challengeDayId String?
+  challengeDay   ChallengeDay?    @relation(fields: [challengeDayId], references: [id], onDelete: SetNull)
+  startedAt      DateTime         @default(now())
+  completedAt    DateTime?
+  durationSec    Int?
+  results        ExerciseResult[]
+
+  @@index([userId, startedAt])
+}
+
+model ExerciseResult {
+  id           String         @id @default(cuid())
+  sessionId    String
+  session      WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseName String
+  reps         Int
+  goodReps     Int
+  badReps      Int
+  averageScore Float
+  durationSec  Int?
+  issues       FormIssue[]
+
+  @@index([sessionId])
+}
+
+model FormIssue {
+  id         String         @id @default(cuid())
+  resultId   String
+  result     ExerciseResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  issueType  String
+  count      Int
+  severity   String?
+
+  @@index([resultId])
 }

@@ -20,7 +20,7 @@ describe('McpSection', () => {
           {
             id: 'token-1',
             name: 'ChatGPT',
-            tokenPrefix: 'gmc_test',
+            tokenPrefix: 'gfk_test',
             canWrite: true,
             createdAt: '2026-01-01T00:00:00.000Z',
             lastUsedAt: '2026-01-02T23:30:00.000Z',

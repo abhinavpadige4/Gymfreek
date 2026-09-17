@@ -164,9 +164,9 @@ describe('buildStrongImportPlan - cardio sets', () => {
   });
 });
 
-describe('buildStrongImportPlan - GymCoach extras (issue #270)', () => {
-  // Rows shaped like the GymCoach CSV parser emits: the shared normalized row
-  // with the issue #270 extras (sessionKey, rir, notes, heart rate).
+describe('buildStrongImportPlan - Gymfreek extras', () => {
+  // Rows shaped like the Gymfreek CSV parser emits: the shared normalized row
+  // with the native extras (sessionKey, rir, notes, heart rate).
   function nrow(over: Partial<NormalizedImportRow> = {}): NormalizedImportRow {
     return { ...row(), ...over };
   }

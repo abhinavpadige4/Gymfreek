@@ -25,7 +25,7 @@ changes on.
    `gh pr view <n> --json number,title,headRefName,isCrossRepository,author,isDraft,mergeable,reviewDecision,state`.
    This repo is public, so gate as an **allowlist, not a blocklist**, per the tiered
    policy in `docs/loops/10-external-contributions.md` (single source of truth):
-   - `author.login` in `{JulienAu, Julien-Au}` and not a fork: the normal pipeline below.
+    - `author.login` in `{abhinavpadige4}` and not a fork: the normal pipeline below.
      GitHub authorship is authenticated; the login allowlist is the real control. Do NOT
      gate on `authorAssociation == OWNER` (the loop's account is a `COLLABORATOR`; an
      OWNER check would break its autonomy).

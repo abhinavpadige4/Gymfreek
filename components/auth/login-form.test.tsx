@@ -33,8 +33,8 @@ describe('LoginForm demo banner', () => {
 
   it('shows the demo credentials and logs in with one click when demo mode is on', async () => {
     vi.stubEnv('NEXT_PUBLIC_DEMO_MODE', 'true');
-    vi.stubEnv('NEXT_PUBLIC_DEMO_EMAIL', 'demo@gymcoach.app');
-    vi.stubEnv('NEXT_PUBLIC_DEMO_PASSWORD', 'gymcoachdemo');
+    vi.stubEnv('NEXT_PUBLIC_DEMO_EMAIL', 'demo@gymfreek.app');
+    vi.stubEnv('NEXT_PUBLIC_DEMO_PASSWORD', 'gymfreekdemo');
     const fetchMock = vi
       .fn()
       .mockResolvedValue({ ok: true, json: async () => ({}) });
@@ -44,7 +44,7 @@ describe('LoginForm demo banner', () => {
 
     expect(screen.getByText('Demo account')).toBeInTheDocument();
     expect(
-      screen.getByText('demo@gymcoach.app / gymcoachdemo'),
+      screen.getByText('demo@gymfreek.app / gymfreekdemo'),
     ).toBeInTheDocument();
 
     await userEvent.click(
@@ -56,8 +56,8 @@ describe('LoginForm demo banner', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
-          email: 'demo@gymcoach.app',
-          password: 'gymcoachdemo',
+          email: 'demo@gymfreek.app',
+          password: 'gymfreekdemo',
         }),
       }),
     );

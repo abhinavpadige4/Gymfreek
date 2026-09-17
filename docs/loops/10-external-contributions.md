@@ -16,7 +16,7 @@ below and recorded in `autonomy-log.md`.
 
 ## Trust tiers
 
-1. **Maintainers** - `author.login` in `{JulienAu, Julien-Au}`. Unchanged: the
+1. **Maintainers** - `author.login` in `{abhinavpadige4}`. Unchanged: the
    loop auto-implements and auto-merges its own work under the charter. GitHub
    authorship is authenticated, so the login allowlist is a real control. Do
    NOT gate on `authorAssociation == OWNER` (the loop's own account is a

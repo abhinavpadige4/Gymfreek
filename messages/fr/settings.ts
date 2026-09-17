@@ -149,7 +149,7 @@ export const settings = {
   mcp: {
     title: 'ChatGPT et MCP',
     description:
-      'Connectez un agent IA externe à vos données GymCoach. Les jetons peuvent être révoqués à tout moment.',
+      'Connectez un agent IA externe à vos données Gymfreek. Les jetons peuvent être révoqués à tout moment.',
     keyName: 'Nom de la connexion',
     create: 'Créer la connexion',
     created: 'Connexion MCP créée.',

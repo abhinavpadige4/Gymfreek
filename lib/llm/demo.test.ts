@@ -41,7 +41,7 @@ describe('demo provider', () => {
     expect(program.text).toContain('"workouts"');
 
     const chat = await p.complete({
-      system: 'You are GymCoach, a conversational coach.',
+      system: 'You are Gymfreek, a conversational coach.',
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(chat.text.toLowerCase()).toContain('volume');
@@ -57,7 +57,7 @@ describe('demo provider', () => {
       // Mimics the chat route: stable prompt (mentions currentSession without
       // quotes) + JSON payload where the quoted key appears.
       system:
-        'You are GymCoach. When the JSON contains a currentSession section...\n{ "currentSession": { "workoutName": "Push" } }',
+        'You are Gymfreek. When the JSON contains a currentSession section...\n{ "currentSession": { "workoutName": "Push" } }',
       messages: [{ role: 'user', content: 'shoulder feels off' }],
     });
     expect(inSession.text).toContain('live session');
@@ -66,7 +66,7 @@ describe('demo provider', () => {
     // Without the quoted JSON key (prompt prose alone) it stays the normal
     // chat answer - the marker must not false-positive on the stable prompt.
     const normal = await p.complete({
-      system: 'You are GymCoach. When the JSON contains a currentSession section...',
+      system: 'You are Gymfreek. When the JSON contains a currentSession section...',
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(normal.text.toLowerCase()).toContain('volume');

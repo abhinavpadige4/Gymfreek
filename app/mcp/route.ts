@@ -1,7 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { authenticateMcpRequest } from '@/lib/mcp/auth';
 import { corsHeadersFor, mcpCorsPolicyFromEnv } from '@/lib/mcp/cors';
-import { createGymCoachMcpServer } from '@/lib/mcp/server';
+import { createGymfreekMcpServer } from '@/lib/mcp/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,7 +44,7 @@ async function handle(req: Request): Promise<Response> {
         }
       : {}),
   });
-  const server = createGymCoachMcpServer({
+  const server = createGymfreekMcpServer({
     principal,
     baseUrl: new URL(req.url).origin,
   });

@@ -13,6 +13,12 @@ const PROFILE_SELECT = {
   weeklyFrequency: true,
   coachNote: true,
   unit: true,
+  role: true,
+  dateOfBirth: true,
+  medicalConditions: true,
+  injuries: true,
+  experienceLevel: true,
+  onboardingCompleted: true,
 } as const;
 
 export async function GET() {
@@ -48,6 +54,17 @@ export async function PATCH(req: Request) {
           ? { coachNote: data.coachNote ? data.coachNote : null }
           : {}),
         ...(data.unit !== undefined ? { unit: data.unit } : {}),
+        ...(data.dateOfBirth !== undefined ? { dateOfBirth: data.dateOfBirth } : {}),
+        ...(data.medicalConditions !== undefined
+          ? { medicalConditions: data.medicalConditions ? data.medicalConditions : null }
+          : {}),
+        ...(data.injuries !== undefined
+          ? { injuries: data.injuries ? data.injuries : null }
+          : {}),
+        ...(data.experienceLevel !== undefined ? { experienceLevel: data.experienceLevel } : {}),
+        ...(data.onboardingCompleted !== undefined
+          ? { onboardingCompleted: data.onboardingCompleted }
+          : {}),
       },
       select: PROFILE_SELECT,
     });

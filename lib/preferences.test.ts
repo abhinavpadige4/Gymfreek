@@ -9,7 +9,7 @@ import {
   plateConfigForUnit,
 } from './preferences';
 
-const STORAGE_KEY = 'gymcoach.prefs.v1';
+const STORAGE_KEY = 'gymfreek.prefs.v1';
 
 describe('preferences', () => {
   beforeEach(() => {
