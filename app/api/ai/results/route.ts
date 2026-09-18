@@ -2,19 +2,38 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
 import { workoutResultsSchema } from '@/lib/schemas/ai';
+import { advanceEnrollment } from '@/lib/challenge-progress';
 
 // POST /api/ai/results: stores one completed live workout - session, per-exercise
 // counts/scores and form issues. Structured JSON only; video is never accepted.
+// When the workout belongs to a challenge day, the enrollment advances
+// (currentDay forward, COMPLETED on the last day) - the single writer for it.
 export async function POST(req: Request) {
   try {
     const userId = await requireApiUserId();
     const data = await parseJsonBody(req, workoutResultsSchema);
 
+    let advance: { id: string; status: 'ACTIVE' | 'COMPLETED'; currentDay: number } | null =
+      null;
     if (data.challengeDayId) {
       const day = await db.challengeDay.findUnique({ where: { id: data.challengeDayId } });
       if (!day) throw new ApiError(404, 'Not found.');
       if (data.challengeId && day.challengeId !== data.challengeId) {
         throw new ApiError(400, 'Day does not belong to the challenge.');
+      }
+      const [totalDays, enrollment] = await Promise.all([
+        db.challengeDay.count({ where: { challengeId: day.challengeId } }),
+        db.enrollment.findUnique({
+          where: { userId_challengeId: { userId, challengeId: day.challengeId } },
+        }),
+      ]);
+      if (enrollment) {
+        const next = advanceEnrollment(
+          { status: enrollment.status, currentDay: enrollment.currentDay },
+          day.dayNumber,
+          totalDays,
+        );
+        if (next) advance = { id: enrollment.id, ...next };
       }
     }
 
@@ -46,7 +65,22 @@ export async function POST(req: Request) {
       },
       select: { id: true, results: { select: { id: true } } },
     });
-    return NextResponse.json({ id: session.id, results: session.results.length }, { status: 201 });
+    if (advance) {
+      await db.enrollment.update({
+        where: { id: advance.id },
+        data: { status: advance.status, currentDay: advance.currentDay },
+      });
+    }
+    return NextResponse.json(
+      {
+        id: session.id,
+        results: session.results.length,
+        enrollment: advance
+          ? { status: advance.status, currentDay: advance.currentDay }
+          : undefined,
+      },
+      { status: 201 },
+    );
   } catch (err) {
     return handleApiError(err);
   }

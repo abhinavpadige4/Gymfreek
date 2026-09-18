@@ -101,9 +101,10 @@ describe('cue throttle', () => {
 });
 
 describe('registry', () => {
-  it('resolves squat, nothing else yet', () => {
+  it('resolves squat and pushup, nothing else yet', () => {
     expect(createAnalyzer('squat')).not.toBeNull();
     expect(createAnalyzer(' Squat ')).not.toBeNull();
-    expect(createAnalyzer('pushup')).toBeNull();
+    expect(createAnalyzer('push-up')).not.toBeNull();
+    expect(createAnalyzer('lunge')).toBeNull();
   });
 });

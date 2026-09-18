@@ -4,6 +4,7 @@ export const RULE_PHRASES: Record<string, string> = {
   forward_lean: 'Keep your chest upright.',
   knee_inward: 'Keep your knees aligned.',
   insufficient_depth: 'Go a little deeper.',
+  hip_sag: 'Keep your body in one line.',
 };
 
 // Throttle: same cue at most every 4s, any cue at least 1.2s apart.

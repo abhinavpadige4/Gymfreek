@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { createAnalyzer } from '@/lib/form-engine/registry';
+import { createAnalyzer, type ExerciseAnalyzer } from '@/lib/form-engine/registry';
 import { CueThrottle } from '@/lib/form-engine/feedback';
 import { loadPoseLandmarker, toPoints } from '@/lib/form-engine/pose';
 import { voiceService } from '@/lib/form-engine/voice';
-import type { SquatAnalyzer } from '@/lib/form-engine/squat';
 
 type Status = 'idle' | 'loading' | 'running' | 'saving' | 'done' | 'error';
 
@@ -32,7 +31,7 @@ export function LiveWorkout({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const analyzerRef = useRef<SquatAnalyzer | null>(null);
+  const analyzerRef = useRef<ExerciseAnalyzer | null>(null);
   const startedAtRef = useRef(0);
   const stopRef = useRef(false);
   const [status, setStatus] = useState<Status>('idle');
