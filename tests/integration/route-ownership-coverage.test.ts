@@ -42,8 +42,6 @@ const COVERED_ELSEWHERE: Record<string, string> = {
 const BODY_ADDRESSED_ROUTES: string[] = [
   'app/api/sessions/route.ts', // workoutId
   'app/api/goals/route.ts', // exerciseId
-  'app/api/sets/parse/route.ts', // exerciseId
-  'app/api/coach/chat/route.ts', // conversationId
   'app/api/gyms/route.ts', // exerciseConfigs[].exerciseId
 ];
 

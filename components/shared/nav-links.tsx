@@ -10,8 +10,6 @@ const LINKS = [
   { href: '/challenges', label: 'challenges' },
   { href: '/history', label: 'history' },
   { href: '/progress', label: 'progress' },
-  { href: '/coach', label: 'coach' },
-  { href: '/chat', label: 'chat' },
   { href: '/programs', label: 'programs' },
   { href: '/exercises', label: 'catalog' },
   { href: '/admin', label: 'admin' },

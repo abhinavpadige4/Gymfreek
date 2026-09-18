@@ -20,7 +20,6 @@ import { Label } from '@/components/ui/label';
 import { suggestNextWeight, weightIncrement, type ReadinessSignal } from '@/lib/progression';
 import { formatDuration, MAX_DISTANCE_M, parseDurationToSec } from '@/lib/cardio';
 import { parseSetShorthand, rpeToRir } from '@/lib/set-shorthand';
-import type { SetParseResult } from '@/lib/schemas/set-parse';
 import { PlateCalculator } from '@/components/session/plate-calculator';
 import { WarmupCalculator } from '@/components/session/warmup-calculator';
 import type { PendingSet } from '@/lib/indexeddb';
@@ -73,10 +72,6 @@ interface FormState {
 
 const RIR_OPTIONS = [0, 1, 2, 3];
 
-// The validated parse the API returns (issue #210). Re-using the schema's type
-// keeps the client's narrowing in lockstep with the server contract.
-type ParsedSetFill = SetParseResult;
-
 export function SetInput({
   programExercise,
   existingSets,
@@ -108,12 +103,6 @@ export function SetInput({
   const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
-  // Opt-in AI free-text parse (issue #210): a DELIBERATE action that fills the
-  // form for the user to confirm. The deterministic shorthand above stays the
-  // primary fast path; this never auto-logs and never blocks normal logging.
-  const [aiText, setAiText] = useState('');
-  const [aiParsing, setAiParsing] = useState(false);
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [gymEquipmentId, setGymEquipmentId] = useState('');
 
   // Re-init when the exercise changes or a set changes.
@@ -131,8 +120,6 @@ export function SetInput({
       ),
     );
     setQuickEntry('');
-    setAiText('');
-    setAiHint(null);
     const recentEquipmentId = existingSets.at(-1)?.gymEquipmentId ?? '';
     setGymEquipmentId(
       equipmentOptions.some((equipment) => equipment.id === recentEquipmentId)
@@ -191,69 +178,6 @@ export function SetInput({
   }
 
   const quickEntryInvalid = quickEntry.trim() !== '' && parseSetShorthand(quickEntry) === null;
-
-  // Opt-in AI parse: POST the free text, then FILL the form from the validated
-  // result for the user to confirm. Never logs. On any failure (null parse,
-  // wrong shape, network error) it fills nothing and shows a small hint - the
-  // model output is untrusted, so the UI degrades gracefully and never crashes.
-  async function handleAiParse() {
-    const text = aiText.trim();
-    if (!text || aiParsing) return;
-    setAiParsing(true);
-    setAiHint(null);
-    try {
-      const res = await fetch('/api/sets/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exerciseId: programExercise.exercise.id, text }),
-      });
-      if (!res.ok) {
-        setAiHint(t('parseError'));
-        return;
-      }
-      const data = (await res.json()) as { parsed: ParsedSetFill | null };
-      const parsed = data.parsed;
-      if (!parsed) {
-        setAiHint(t('parseError'));
-        return;
-      }
-      if (parsed.kind === 'cardio') {
-        if (!isCardio) {
-          setAiHint(t('parseError'));
-          return;
-        }
-        setForm((f) => ({
-          ...f,
-          durationInput: formatDuration(parsed.durationSec),
-          distanceInput:
-            parsed.distanceM != null && parsed.distanceM > 0
-              ? String(+(parsed.distanceM / 1000).toFixed(2))
-              : '',
-        }));
-      } else {
-        if (isCardio) {
-          setAiHint(t('parseError'));
-          return;
-        }
-        setForm((f) => ({
-          ...f,
-          // The model returns the weight in the user's display unit, like the
-          // shorthand parser; convert to the kg the form stores.
-          weight: fromDisplayWeight(parsed.weight, unit),
-          reps: parsed.reps,
-          // Clamp the parsed RIR to the selectable button range so a model
-          // value of 4-5 maps to the closest option instead of leaving no
-          // button highlighted (the set API still accepts 0-5).
-          rir:
-            parsed.rir != null ? Math.min(parsed.rir, RIR_OPTIONS[RIR_OPTIONS.length - 1]!) : f.rir,
-        }));
-      }
-    } catch {
-      setAiHint(t('parseError'));
-    } finally {
-      setAiParsing(false);
-    }
-  }
 
   // Cardio mode (issue #133): the logger swaps weight/reps for duration and
   // optional distance. The set is stored with weight = 0 / reps = 1 (the API
@@ -323,44 +247,6 @@ export function SetInput({
             </p>
           </div>
         )}
-        {/* Opt-in AI free-text parse (issue #210): fills the form below from a
-            plain-language description. Deliberate action, never auto-logs. */}
-        <div className="space-y-1">
-          <Label
-            htmlFor="ai-parse"
-            className="text-xs uppercase tracking-wide text-muted-foreground"
-          >
-            {t('describe')}
-          </Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="ai-parse"
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              value={aiText}
-              onChange={(e) => {
-                setAiText(e.target.value);
-                if (aiHint) setAiHint(null);
-              }}
-              placeholder={isCardio ? t('cardioExample') : t('strengthExample')}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleAiParse}
-              disabled={aiParsing || aiText.trim() === ''}
-              className="shrink-0"
-            >
-              {aiParsing ? t('parsing') : t('parse')}
-            </Button>
-          </div>
-          {aiHint ? (
-            <p className="text-xs text-muted-foreground">{aiHint}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">{t('parseHelp')}</p>
-          )}
-        </div>
 
         {equipmentOptions.length > 0 && (
           <div className="space-y-1">

@@ -39,9 +39,10 @@ npm run dev               # http://localhost:3030
 - `/onboarding` - full training profile (DOB, health, injuries, experience)
 - `/challenges` - challenge catalog, day detail with loads/cues/demo videos, Razorpay join flow
 - `/admin` - challenge management, enrollments, users (role `ADMIN` or `ADMIN_EMAILS`)
-- `/coach`, `/chat` - LLM coach on your training data (OpenRouter, server-side only)
+- `/workout/live` - camera workout: MediaPipe pose, rep counting, voice cues
 - `/api/payments/create-order|verify|webhook` - Razorpay, server-verified only
-- `lib/` - stats, progression, coach payload, form-engine home (Phase 4)
+- `/api/ai/results|summary` - structured workout results in, LLM coaching out (via Gymfreek-ai)
+- `lib/form-engine` - angles, squat FSM, feedback throttle, browser voice
 - Companion AI service: [Gymfreek-ai](https://github.com/abhinavpadige4/Gymfreek-ai) (FastAPI, structured JSON only)
 
 ## Environment

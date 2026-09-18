@@ -1,59 +1,8 @@
 import { db } from '@/lib/db';
-import { getLlmProvider, LlmError } from '@/lib/llm';
-import { PROGRAM_GEN_SYSTEM_PROMPT } from '@/lib/prompts/program-system-prompt';
-import { parseGeneratedProgram, type GeneratedProgram } from '@/lib/schemas/program-generation';
+import { type GeneratedProgram } from '@/lib/schemas/program-generation';
 import { defaultIntraSetConfig } from '@/lib/intra-set-autoregulation';
 
-// Generates a structured program draft from a natural-language goal. Does not
-// persist anything: the result is previewed (and edited) before saving.
-export async function generateProgram(userId: string, goal: string): Promise<GeneratedProgram> {
-  const provider = getLlmProvider();
-
-  const [user, exercises] = await Promise.all([
-    db.user.findUnique({
-      where: { id: userId },
-      select: {
-        sex: true,
-        heightCm: true,
-        bodyweight: true,
-        goal: true,
-        weeklyFrequency: true,
-      },
-    }),
-    db.exercise.findMany({
-      where: { userId },
-      select: { name: true, muscleGroup: true, category: true, equipmentType: true },
-      orderBy: { name: 'asc' },
-    }),
-  ]);
-
-  const context = {
-    profile: {
-      sex: user?.sex ?? null,
-      heightCm: user?.heightCm ?? null,
-      bodyweight: user?.bodyweight ?? null,
-      goal: user?.goal ?? null,
-      weeklyFrequency: user?.weeklyFrequency ?? null,
-    },
-    availableExercises: exercises,
-  };
-
-  const userMessage = `User goal:\n${goal}\n\nContext (JSON):\n${JSON.stringify(context, null, 2)}`;
-
-  const { text } = await provider.complete({
-    system: PROGRAM_GEN_SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
-    maxTokens: 8000,
-  });
-
-  const parsed = parseGeneratedProgram(text);
-  if (!parsed.ok) {
-    throw new LlmError(502, `The generated program could not be parsed: ${parsed.error}`);
-  }
-  return parsed.program;
-}
-
-// Persists a (possibly user-edited) generated program in a single transaction.
+// Persists a (possibly user-edited) template program in a single transaction.
 // New exercises are created on the fly; existing ones are reused by name.
 // Returns the new program id. The program is created inactive.
 export async function buildProgramFromGenerated(

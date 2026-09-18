@@ -6,8 +6,6 @@ export const navigation = {
   challenges: 'Défis',
   history: 'Historique',
   progress: 'Progrès',
-  coach: 'Coach',
-  chat: 'Chat',
   programs: 'Programmes',
   catalog: 'Catalogue',
   admin: 'Admin',

@@ -6,8 +6,6 @@ export const navigation = {
   challenges: 'Челленджи',
   history: 'История',
   progress: 'Прогресс',
-  coach: 'Тренер',
-  chat: 'Чат',
   programs: 'Программы',
   catalog: 'Упражнения',
   admin: 'Админ',

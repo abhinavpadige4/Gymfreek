@@ -28,19 +28,14 @@ import {
   PUT as putProgramExercise,
   DELETE as deleteProgramExercise,
 } from '@/app/api/program-exercises/[id]/route';
-import { GET as getChat, DELETE as deleteChat } from '@/app/api/coach/chat/[id]/route';
 import { POST as activateProgram } from '@/app/api/programs/[id]/activate/route';
 import { POST as addWorkout } from '@/app/api/programs/[id]/workouts/route';
 import { POST as addProgramExercise } from '@/app/api/workouts/[id]/program-exercises/route';
 import { POST as addSet } from '@/app/api/sessions/[id]/sets/route';
 import { POST as activateGym } from '@/app/api/gyms/[id]/activate/route';
 import { POST as startSession } from '@/app/api/sessions/route';
-import { POST as parseSet } from '@/app/api/sets/parse/route';
-import { POST as postChat } from '@/app/api/coach/chat/route';
 import { POST as createGym } from '@/app/api/gyms/route';
-import { DELETE as deleteMcpToken } from '@/app/api/mcp-tokens/[id]/route';
 import { PUT as putGym, DELETE as deleteGym } from '@/app/api/gyms/[id]/route';
-import { POST as postCoachApply } from '@/app/api/coach/[id]/apply/route';
 import { GET as getHistoryCsv } from '@/app/api/history/csv/route';
 
 function actAs(userId: string) {
@@ -93,28 +88,7 @@ async function seed() {
       restSec: 120,
     },
   });
-  const conversation = await db.conversation.create({ data: { userId: a.id } });
-  await db.message.create({
-    data: { conversationId: conversation.id, role: 'USER', content: 'private words' },
-  });
-  const mcpToken = await db.mcpAccessToken.create({
-    data: {
-      userId: a.id,
-      name: 'cli',
-      tokenHash: 'ownership-test-hash',
-      tokenPrefix: 'gfk_test.....',
-    },
-  });
   const gym = await db.gym.create({ data: { userId: a.id, name: 'Home gym' } });
-  const coachSession = await db.coachSession.create({
-    data: {
-      userId: a.id,
-      weekStart: new Date('2026-08-17'),
-      weekEnd: new Date('2026-08-23'),
-      prompt: 'p',
-      response: 'r',
-    },
-  });
   return {
     a,
     b,
@@ -125,10 +99,7 @@ async function seed() {
     program,
     workout,
     programExercise,
-    conversation,
-    mcpToken,
     gym,
-    coachSession,
   };
 }
 
@@ -316,53 +287,6 @@ describe('route ownership: /api/program-exercises/[id]', () => {
   });
 });
 
-describe('route ownership: /api/coach/chat/[id]', () => {
-  it('lets the owner read their conversation', async () => {
-    const { a, conversation } = await seed();
-    actAs(a.id);
-    const res = await getChat(new Request('http://t/api'), idParams(conversation.id));
-    expect(res.status).toBe(200);
-    expect((await res.json()).messages).toHaveLength(1);
-  });
-
-  it('returns 404 to a stranger on GET and DELETE and keeps the conversation', async () => {
-    const { b, conversation } = await seed();
-    actAs(b.id);
-    expect((await getChat(new Request('http://t/api'), idParams(conversation.id))).status).toBe(404);
-    expect(
-      (await deleteChat(new Request('http://t/api', { method: 'DELETE' }), idParams(conversation.id)))
-        .status,
-    ).toBe(404);
-    expect(await db.conversation.findUnique({ where: { id: conversation.id } })).not.toBeNull();
-  });
-});
-
-describe('route ownership: DELETE /api/mcp-tokens/[id]', () => {
-  it('lets the owner revoke their token', async () => {
-    const { a, mcpToken } = await seed();
-    actAs(a.id);
-    const res = await deleteMcpToken(
-      new Request('http://t/api', { method: 'DELETE' }),
-      idParams(mcpToken.id),
-    );
-    expect(res.status).toBe(200);
-    expect(
-      (await db.mcpAccessToken.findUnique({ where: { id: mcpToken.id } }))?.revokedAt,
-    ).not.toBeNull();
-  });
-
-  it("returns 404 and leaves the token active when a stranger tries to revoke it", async () => {
-    const { b, mcpToken } = await seed();
-    actAs(b.id);
-    const res = await deleteMcpToken(
-      new Request('http://t/api', { method: 'DELETE' }),
-      idParams(mcpToken.id),
-    );
-    expect(res.status).toBe(404);
-    expect((await db.mcpAccessToken.findUnique({ where: { id: mcpToken.id } }))?.revokedAt).toBeNull();
-  });
-});
-
 describe('route ownership: /api/gyms/[id]', () => {
   it('lets the owner rename their gym', async () => {
     const { a, gym } = await seed();
@@ -380,21 +304,6 @@ describe('route ownership: /api/gyms/[id]', () => {
       (await deleteGym(new Request('http://t/api', { method: 'DELETE' }), idParams(gym.id))).status,
     ).toBe(404);
     expect((await db.gym.findUnique({ where: { id: gym.id } }))?.name).toBe('Home gym');
-  });
-});
-
-describe('route ownership: POST /api/coach/[id]/apply', () => {
-  it("returns 404 and does not mark the debrief applied for a stranger", async () => {
-    const { b, coachSession } = await seed();
-    actAs(b.id);
-    const res = await postCoachApply(
-      jsonReq('POST', { adjustments: [{ exerciseName: 'Bench', summary: 'go up' }] }),
-      idParams(coachSession.id),
-    );
-    expect(res.status).toBe(404);
-    expect(
-      (await db.coachSession.findUnique({ where: { id: coachSession.id } }))?.appliedAt,
-    ).toBeNull();
   });
 });
 
@@ -502,15 +411,6 @@ describe('route ownership: body-addressed resource ids', () => {
     expect(await db.session.count({ where: { userId: b.id } })).toBe(0);
   });
 
-  it("returns 404 when a stranger parses a set against someone else's exercise", async () => {
-    const { b, exercise } = await seed();
-    actAs(b.id);
-    // The ownership check runs before any provider call, so this never
-    // reaches the LLM layer.
-    const res = await parseSet(jsonReq('POST', { exerciseId: exercise.id, text: '100x8' }));
-    expect(res.status).toBe(404);
-  });
-
   it("rejects a gym configured against someone else's exercise, and creates nothing", async () => {
     const { b, exercise } = await seed();
     actAs(b.id);
@@ -522,17 +422,6 @@ describe('route ownership: body-addressed resource ids', () => {
     );
     expect(res.status).toBe(400);
     expect(await db.gym.count({ where: { userId: b.id } })).toBe(0);
-  });
-
-  it("returns 404 when a stranger posts into someone else's conversation", async () => {
-    const { b, conversation } = await seed();
-    actAs(b.id);
-    const res = await postChat(
-      jsonReq('POST', { conversationId: conversation.id, message: 'let me in' }),
-    );
-    expect(res.status).toBe(404);
-    // The foreign conversation gained no message.
-    expect(await db.message.count({ where: { conversationId: conversation.id } })).toBe(1);
   });
 });
 

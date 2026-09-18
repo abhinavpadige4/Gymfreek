@@ -85,10 +85,10 @@ its own scripts, skills, dependencies, or this very policy.
 - `prisma/schema.prisma`, `prisma/migrations/**` (all migrations, not just
   "destructive" ones - destructiveness is a judgment call and this gate is
   mechanical)
-- Auth and security surface: `lib/auth*`, `lib/mcp/**`, `lib/api.ts`,
-  `lib/rate-limit*`, `app/api/mcp-tokens/**`
+- Auth and security surface: `lib/auth*`, `lib/api.ts`,
+  `lib/rate-limit*`
 - Bulk-data surface: `app/api/backup/**`, `app/api/history/csv/**`
-- LLM surface: `lib/llm/**` (the one legitimate egress point),
+- LLM surface: `lib/ai-service.ts` (the one legitimate egress point),
   `lib/prompts/**` (prompt supply chain into every user's coach)
 - `messages/**` and `i18n/**` (locale and i18n files are executable TS modules
   imported by the unit test setup, `next.config.js`, and `middleware.ts`)
