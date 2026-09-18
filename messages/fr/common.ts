@@ -78,6 +78,7 @@ export const common = {
     system: 'Système',
     switchToDark: 'Passer en mode sombre',
     switchToLight: 'Passer en mode clair',
+    toggle: 'Changer de thème',
   },
   offline: {
     offline: 'Hors ligne',

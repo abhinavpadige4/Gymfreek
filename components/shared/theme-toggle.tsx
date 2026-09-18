@@ -16,13 +16,17 @@ export function ThemeToggle() {
 
   const current = theme === 'system' ? resolvedTheme : theme;
   const next = current === 'dark' ? 'light' : 'dark';
+  // The label must also wait for mount: next-themes resolves the real theme
+  // client-side, so an SSR-computed label mismatches on hydration (the icon
+  // above already follows this pattern).
+  const label = !mounted ? t('toggle') : next === 'dark' ? t('switchToDark') : t('switchToLight');
 
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={() => setTheme(next)}
-      aria-label={next === 'dark' ? t('switchToDark') : t('switchToLight')}
+      aria-label={label}
     >
       {!mounted ? (
         <Sun className="size-4" />

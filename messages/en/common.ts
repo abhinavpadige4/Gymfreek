@@ -75,6 +75,7 @@ export const common = {
     system: 'System',
     switchToDark: 'Switch to dark mode',
     switchToLight: 'Switch to light mode',
+    toggle: 'Toggle theme',
   },
   offline: {
     offline: 'Offline',

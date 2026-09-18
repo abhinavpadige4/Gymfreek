@@ -83,6 +83,7 @@ export const common = {
     system: 'Системная',
     switchToDark: 'Включить тёмную тему',
     switchToLight: 'Включить светлую тему',
+    toggle: 'Переключить тему',
   },
   offline: {
     offline: 'Нет сети',
