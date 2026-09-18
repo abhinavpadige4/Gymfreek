@@ -21,7 +21,6 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset",
     "db:seed": "prisma db seed",
-    "seed:demo": "tsx scripts/seed-demo-history.ts",
     "db:seed:challenge": "tsx scripts/seed-challenge.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",

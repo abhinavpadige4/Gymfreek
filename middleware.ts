@@ -47,7 +47,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Exclude static resources and PWA assets.
-    '/((?!_next/static|_next/image|icons|manifest.json|favicon.ico|sw.js|workbox-).*)',
+    // Exclude static resources, PWA assets, and public exercise demos
+    // (they must load without a session, e.g. on the login-adjacent flows).
+    '/((?!_next/static|_next/image|icons|manifest.json|favicon.ico|sw.js|workbox-|exercise-media).*)',
   ],
 };

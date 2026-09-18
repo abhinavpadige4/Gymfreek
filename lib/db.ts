@@ -17,7 +17,9 @@ function createClient(): PrismaClient {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
   return new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    // Query logging off even in dev: it spams the terminal on Neon latency
+    // and never caught a bug that tests missed. Errors still surface.
+    log: ['error', 'warn'],
   });
 }
 
