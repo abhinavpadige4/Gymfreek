@@ -19,8 +19,8 @@ const config: Config = {
     extend: {
       colors: {
         volt: {
-          DEFAULT: '#D4FF3F',
-          dim: '#9DC22E',
+          DEFAULT: '#FF5A1F',
+          dim: '#C74312',
           ink: '#0B0E0C',
         },
         border: 'hsl(var(--border))',

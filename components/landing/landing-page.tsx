@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Stat, TiltCard } from '@/components/landing/hero-visual';
+import { TextHoverEffect } from '@/components/ui/text-hover-effect';
+import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+import { LandingFooter } from '@/components/landing/landing-footer';
 
 const MOVEMENTS = [
   'Kettlebell Swings',
@@ -65,35 +68,30 @@ export function LandingPage() {
       {/* HERO */}
       <section className="bg-grid-volt relative">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-14 sm:pt-20 lg:grid-cols-2 lg:items-center">
-          <div className="flex flex-col items-start gap-6">
+        <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-14 sm:pt-20">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
             <Badge className="animate-rise-in bg-volt text-volt-ink hover:bg-volt">
               100XU Century Challenge - entries open
             </Badge>
-            <h1
-              className="font-display animate-rise-in text-6xl leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl"
-              style={{ animationDelay: '80ms' }}
-            >
-              TRAIN LIKE
-              <br />
-              <span className="text-volt text-glow-volt">A FREEK</span>
-            </h1>
+            <div className="animate-rise-in w-full" style={{ animationDelay: '80ms' }}>
+              <TextHoverEffect text="100XU" />
+            </div>
             <p
-              className="animate-rise-in max-w-md text-base text-muted-foreground sm:text-lg"
+              className="animate-rise-in max-w-xl text-base text-muted-foreground sm:text-lg"
               style={{ animationDelay: '160ms' }}
             >
               100 days. 1,000 reps a day. Live AI form checks on every rep, voice cues
               mid-set, and a coach debrief when you finish.
             </p>
             <div
-              className="animate-rise-in flex flex-wrap gap-3"
+              className="animate-rise-in flex flex-wrap justify-center gap-3"
               style={{ animationDelay: '240ms' }}
             >
               <Button asChild size="lg" className="min-h-tap text-base">
                 <Link href="/signup">Start Day 1</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
-                <Link href="#challenge">See the program</Link>
+                <Link href="/login">Log in</Link>
               </Button>
             </div>
             <div className="grid w-full max-w-md grid-cols-2 gap-x-4 gap-y-6 pt-2 sm:grid-cols-4">
@@ -104,10 +102,16 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* 3D workout card */}
-          <TiltCard>
-            <div className="relative mx-auto w-full max-w-sm">
-              <div className="animate-floaty rounded-2xl border border-volt/30 bg-card/90 p-5 shadow-[0_0_80px_-20px_hsl(79_100%_62%/0.5)] backdrop-blur">
+          <ContainerScroll
+            title={
+              <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                Scroll - your workout, live
+              </p>
+            }
+          >
+            <TiltCard>
+              <div className="relative mx-auto w-full max-w-sm">
+                <div className="animate-floaty rounded-2xl border border-volt/30 bg-card/90 p-5 shadow-[0_0_80px_-20px_hsl(22_100%_60%/0.5)] backdrop-blur">
                 <div className="flex items-center justify-between">
                   <p className="font-display text-2xl tracking-wide">DAY 17</p>
                   <Badge className="bg-volt text-volt-ink hover:bg-volt">LIVE</Badge>
@@ -150,6 +154,15 @@ export function LandingPage() {
               </div>
             </div>
           </TiltCard>
+          </ContainerScroll>
+          <div className="flex flex-wrap justify-center gap-3 pb-14">
+            <Button asChild size="lg" className="min-h-tap text-base">
+              <Link href="/signup">Start Day 1 - Rs 2,999</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
+              <Link href="/login">Log in to train</Link>
+            </Button>
+          </div>
         </div>
 
         {/* marquee */}
@@ -253,7 +266,7 @@ export function LandingPage() {
           <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
             ONE PRICE. <span className="text-volt">100 DAYS.</span>
           </h2>
-          <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(79_100%_62%/0.6)]">
+          <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_100%_60%/0.6)]">
             <CardContent className="flex flex-col items-center gap-4 p-8">
               <p className="font-display text-6xl">
                 Rs 2,999 <span className="text-lg text-muted-foreground">one-time</span>
@@ -275,12 +288,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row">
-          <p className="font-display tracking-wider text-foreground">GYMFREEK</p>
-          <p>100 days. 100,000 reps. Zero excuses.</p>
-        </div>
-      </footer>
+      <LandingFooter />
     </main>
   );
 }

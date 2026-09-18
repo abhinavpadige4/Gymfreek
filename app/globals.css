@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Gymfreek identity: volt primary on near-black. English-only codebase. */
+/* 100XU identity: ember-orange primary on near-black, white type. */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -11,19 +11,19 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 79 100% 42%;
+    --primary: 22 100% 50%;
     --primary-foreground: 240 10% 4%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 79 60% 92%;
+    --accent: 22 90% 93%;
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 79 100% 42%;
+    --ring: 22 100% 50%;
     --radius: 0.75rem;
   }
 
@@ -34,19 +34,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 150 10% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 79 100% 62%;
+    --primary: 22 100% 60%;
     --primary-foreground: 240 10% 4%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 79 70% 12%;
-    --accent-foreground: 79 100% 62%;
+    --accent: 22 80% 14%;
+    --accent-foreground: 22 100% 60%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 79 100% 62%;
+    --ring: 22 100% 60%;
   }
 }
 
@@ -72,12 +72,12 @@
     mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   }
   .text-glow-volt {
-    text-shadow: 0 0 24px hsl(79 100% 62% / 0.45);
+    text-shadow: 0 0 24px hsl(22 100% 60% / 0.45);
   }
   .bg-grid-volt {
     background-image:
-      linear-gradient(hsl(79 100% 62% / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(79 100% 62% / 0.07) 1px, transparent 1px);
+      linear-gradient(hsl(22 100% 60% / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(22 100% 60% / 0.07) 1px, transparent 1px);
     background-size: 44px 44px;
   }
 }
