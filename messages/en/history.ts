@@ -1,5 +1,7 @@
 export const history = {
   title: 'History',
+  eyebrow: 'CONSISTENCY',
+  subtitle: 'Review every session and track your consistency.',
   noFiltered: 'No finished session matches these filters.',
   emptyTitle: 'No sessions logged yet',
   emptyDescription:
@@ -20,6 +22,7 @@ export const history = {
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     today: 'Today',
+    selectedDay: 'SELECTED DAY',
     workoutCount: '{count, plural, one {# workout} other {# workouts}}',
     noSessions: 'No completed workouts on this date.',
   },

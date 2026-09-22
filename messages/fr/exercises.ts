@@ -2,7 +2,12 @@ import { exercises as english } from '../en/exercises';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const exercises = {
-  title: 'Catalogue d’exercices',
+  title: 'Bibliothèque d’exercices',
+  eyebrow: 'BIBLIOTHÈQUE',
+  subtitle: 'Gérez les exercices, les consignes et les données IA.',
+  all: 'Tous',
+  aiTracking: 'Suivi IA',
+  aiReady: 'IA PRÊTE',
   savedCount:
     '{count, plural, =0 {Aucun exercice enregistré.} one {# exercice enregistré.} other {# exercices enregistrés.}}',
   search: 'Rechercher un exercice par nom',
@@ -35,6 +40,25 @@ export const exercises = {
   media: {
     button: 'Technique',
     open: 'Voir la technique pour {name}',
+    howToPerform: 'Exécution',
+    uploadedAlt: 'Photo technique importée pour {name}',
+    uploadedBadge: 'Photo coach',
+    uploadTitle: 'Photo technique',
+    uploadHint: 'Admins uniquement. Une photo par mouvement, visible par tous. JPEG, PNG ou WebP, 5 Mo max.',
+    choosePhoto: 'Importer une photo',
+    removePhoto: 'Supprimer la photo',
+    saving: 'Enregistrement...',
+    invalidType: 'Choisissez une photo JPEG, PNG ou WebP.',
+    tooLarge: 'La photo doit peser moins de 5 Mo.',
+    uploadError: 'Enregistrement de la photo impossible.',
+    demoVideo: 'Vidéo démo',
+    videoHint: 'Liens recommandés - YouTube, Vimeo ou mp4. Les fichiers jusqu’à 25 Mo restent dans la base et peuvent charger lentement.',
+    videoLinkPlaceholder: 'Collez un lien YouTube, Vimeo ou mp4...',
+    attachLink: 'Joindre le lien',
+    uploadVideoFile: 'Importer une vidéo',
+    removeVideo: 'Supprimer la vidéo',
+    invalidVideoType: 'Choisissez une vidéo MP4 ou WebM.',
+    videoTooLarge: 'La vidéo doit peser moins de 25 Mo.',
     description:
       'Les positions de départ et d’arrivée alternent automatiquement. Mettez en pause pour examiner chaque position.',
     start: 'Départ',
@@ -98,6 +122,7 @@ export const exercises = {
     cable: 'Poulie',
     bodyweight: 'Poids de corps',
     cardio: 'Matériel cardio',
+    kettlebell: 'Kettlebell',
     other: 'Autre / sans contrainte',
   },
   equipmentTypesShort: {
@@ -107,6 +132,7 @@ export const exercises = {
     cable: 'Poulie',
     bodyweight: 'Poids de corps',
     cardio: 'Machine cardio',
+    kettlebell: 'Kettlebell',
     other: 'Tout matériel',
   },
 } satisfies MessageShape<typeof english>;

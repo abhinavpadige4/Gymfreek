@@ -45,6 +45,9 @@ export function LandingFooter() {
           <p className="font-display text-3xl tracking-wide">
             100<span className="text-volt">X</span>U
           </p>
+          <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+            Train. Track. Improve. Transform.
+          </p>
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
             100 days. 100,000 reps. Live AI form checks on every rep.
           </p>

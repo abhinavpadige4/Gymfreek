@@ -8,7 +8,7 @@
 // not silently restructure it).
 //
 // Loading schemes (5/3/1 percentages, GZCLP stages, nSuns waves) are expressed
-// here as set/rep/RIR targets plus explanatory notes, since Gymfreek tracks
+// here as set/rep/RIR targets plus explanatory notes, since 100XU tracks
 // sets/reps/RIR rather than a built-in percentage engine. The notes carry the
 // "as written" intent so the user can run the program faithfully.
 
@@ -842,10 +842,91 @@ const FULL_BODY_3X: ProgramTemplate = {
   },
 };
 
+// 100XU Starter: Block 01 Day 1 taster. The simplest way to begin - five
+// blueprint movements at 10 reps x 10 rounds. Listed first so beginners
+// meet one clear default instead of eleven dense options.
+const STARTER_100XU: ProgramTemplate = {
+  slug: '100xu-starter',
+  name: '100XU Starter (Recommended)',
+  summary: 'Block 01 Day 1 taster: 5 movements, 10 reps x 10 rounds. Start here.',
+  attribution:
+    '100XU Athletic Performance System, Block 01 Day 1. Run 10 reps x 10 rounds per movement with 60-90s rests between rounds.',
+  program: {
+    name: '100XU Starter - Block 01 Taster',
+    description:
+      'First 5 movements of Block 01 Day 1: swings, box jumps, front squats, push-ups, farmer carry. 10 reps x 10 rounds.',
+    phase: 'Foundation',
+    workouts: [
+      {
+        name: 'Block 01 - Day 1 Taster',
+        dayOfWeek: 1,
+        exercises: [
+          {
+            name: 'Russian kettlebell swings',
+            muscleGroup: 'HAMSTRINGS',
+            category: 'COMPOUND',
+            equipmentType: 'KETTLEBELL',
+            targetSets: 10,
+            targetRepsMin: 10,
+            targetRepsMax: 10,
+            targetRIR: 2,
+            restSec: 90,
+          },
+          {
+            name: 'Plyo box jumps with step down',
+            muscleGroup: 'QUADS',
+            category: 'COMPOUND',
+            equipmentType: 'BODYWEIGHT',
+            targetSets: 10,
+            targetRepsMin: 10,
+            targetRepsMax: 10,
+            targetRIR: 2,
+            restSec: 90,
+          },
+          {
+            name: 'Dual dumbbell front squats',
+            muscleGroup: 'QUADS',
+            category: 'COMPOUND',
+            equipmentType: 'DUMBBELL',
+            targetSets: 10,
+            targetRepsMin: 10,
+            targetRepsMax: 10,
+            targetRIR: 2,
+            restSec: 90,
+          },
+          {
+            name: 'Strict hand-release push-ups',
+            muscleGroup: 'CHEST',
+            category: 'COMPOUND',
+            equipmentType: 'BODYWEIGHT',
+            targetSets: 10,
+            targetRepsMin: 10,
+            targetRepsMax: 10,
+            targetRIR: 2,
+            restSec: 75,
+          },
+          {
+            name: 'Heavy kettlebell carry paces',
+            muscleGroup: 'FOREARMS',
+            category: 'COMPOUND',
+            equipmentType: 'KETTLEBELL',
+            targetSets: 10,
+            targetRepsMin: 10,
+            targetRepsMax: 10,
+            targetRIR: 2,
+            restSec: 90,
+          },
+        ],
+      },
+    ],
+  },
+};
+
 // The public catalog. Validated at module load (see programTemplates) so a
 // malformed template fails fast in tests and the build, never at runtime for a
 // user.
 const RAW_TEMPLATES: ProgramTemplate[] = [
+  STARTER_100XU,
   FIVE_THREE_ONE,
   GZCLP,
   PPL,

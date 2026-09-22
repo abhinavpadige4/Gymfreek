@@ -1,10 +1,10 @@
 /**
- * Demo seed for Gymfreek.
+ * Demo seed for 100XU.
  *
  * Loads a neutral dataset to help you explore the application:
  * - A demo account (email/password configurable via .env)
- * - The default exercise catalog (see lib/exercise-catalog.ts)
- * - A demo program "Hypertrophy - Phase 1" (Upper / Lower / Full Body)
+ * - The 100XU blueprint exercise catalog (see lib/exercise-catalog.ts)
+ * - A starter program "100XU Starter - Block 01 Taster" (Block 01 Day 1)
  * No sample sessions: charts start empty until the user trains.
  *
  * No personal data here: feel free to adapt the catalog and the program.
@@ -16,10 +16,11 @@ import { PrismaClient, Sex, TrainingGoal } from '@/prisma/generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { seedExerciseCatalog } from '../lib/exercise-catalog';
+import { normalizeDatabaseUrl } from '../lib/db-url';
 
 // Prisma 7 requires a driver adapter to connect (the Rust engine was removed).
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  adapter: new PrismaPg({ connectionString: normalizeDatabaseUrl(process.env.DATABASE_URL) }),
 });
 
 async function main() {
@@ -51,13 +52,13 @@ async function main() {
   console.log(`Seed: demo account -> ${user.email}`);
 
   // ============================================================
-  // 2. EXERCISE CATALOG (shared with the registration flow)
+  // 2. EXERCISE CATALOG (100XU blueprint movements)
   // ============================================================
   const exerciseMap = await seedExerciseCatalog(prisma, user.id);
   console.log(`Seed: ${exerciseMap.size} exercises`);
 
   // ============================================================
-  // 3. DEMO PROGRAM
+  // 3. STARTER PROGRAM (Block 01 Day 1 taster)
   // ============================================================
   await prisma.program.updateMany({
     where: { userId: user.id, isActive: true },
@@ -67,105 +68,54 @@ async function main() {
   const program = await prisma.program.create({
     data: {
       userId: user.id,
-      name: 'Hypertrophy - Phase 1',
+      name: '100XU Starter - Block 01 Taster',
       description:
-        'Upper / Lower / Full Body split, frequency 2x per muscle group per week. Hypertrophy phase (8 to 12 reps, RIR 2 to 3).',
-      phase: 'Hypertrophy',
+        'First 5 movements of Block 01 Day 1: swings, box jumps, front squats, push-ups, farmer carry. 10 reps x 10 rounds.',
+      phase: 'Foundation',
       isActive: true,
       startDate: new Date('2026-01-06'),
     },
   });
   console.log(`Seed: program -> ${program.name}`);
 
-  // Compact definition of the 3 sessions.
-  const workouts: Array<{
+  // Block 01 Day 1 taster: the same 5 movements as the free trial.
+  const exercises: Array<{
     name: string;
-    dayOfWeek: number;
-    order: number;
-    exercises: Array<{
-      name: string;
-      targetSets: number;
-      targetRepsMin: number;
-      targetRepsMax: number;
-      targetRIR: number;
-      restSec: number;
-      tempo?: string;
-    }>;
+    targetSets: number;
+    targetRepsMin: number;
+    targetRepsMax: number;
+    targetRIR: number;
+    restSec: number;
   }> = [
-    {
-      name: 'Upper - Upper body',
-      dayOfWeek: 1,
-      order: 1,
-      exercises: [
-        { name: 'Pronated pull-ups (weighted if possible)', targetSets: 4, targetRepsMin: 6, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '2-1-2-0' },
-        { name: 'Incline dumbbell press (30 deg)', targetSets: 4, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '3-0-1-0' },
-        { name: 'Bent-over barbell row', targetSets: 4, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '2-0-1-1' },
-        { name: 'Seated dumbbell overhead press', targetSets: 3, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 90, tempo: '2-0-1-0' },
-        { name: 'Cable lateral raises', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60, tempo: '1-1-3-0' },
-        { name: 'EZ-bar curl', targetSets: 3, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 75, tempo: '2-0-1-1' },
-        { name: 'Machine dips or parallel bars', targetSets: 3, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 75, tempo: '2-0-1-0' },
-        { name: 'Cable crunch (kneeling)', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '2-2-2-0' },
-      ],
-    },
-    {
-      name: 'Lower - Lower body',
-      dayOfWeek: 3,
-      order: 2,
-      exercises: [
-        { name: 'Barbell hip thrust (or machine)', targetSets: 4, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '1-1-1-0' },
-        { name: 'Machine squat (or Hack squat)', targetSets: 4, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 150, tempo: '3-0-1-0' },
-        { name: 'Dumbbell Romanian Deadlift', targetSets: 3, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '3-1-1-0' },
-        { name: 'Leg extension', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 75, tempo: '1-1-2-0' },
-        { name: 'Hip adduction machine', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '2-1-1-0' },
-        { name: 'Standing calf raise (or machine)', targetSets: 4, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60, tempo: '2-1-1-1' },
-        { name: 'Hanging leg raises', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60, tempo: '2-0-1-0' },
-      ],
-    },
-    {
-      name: 'Full Body - Upper-focused',
-      dayOfWeek: 5,
-      order: 3,
-      exercises: [
-        { name: 'Barbell bench press', targetSets: 4, targetRepsMin: 6, targetRepsMax: 8, targetRIR: 2, restSec: 150, tempo: '3-0-1-0' },
-        { name: 'Pronated pull-ups (weighted if possible)', targetSets: 4, targetRepsMin: 8, targetRepsMax: 10, targetRIR: 2, restSec: 120, tempo: '2-1-2-0' },
-        { name: 'Pec deck (or cable fly)', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 75, tempo: '1-1-2-1' },
-        { name: 'Seated cable row (close handles)', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 90, tempo: '2-1-1-0' },
-        { name: 'Cable lateral raises', targetSets: 4, targetRepsMin: 10, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '1-1-3-0' },
-        { name: 'Machine rear delt fly', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '1-1-2-1' },
-        { name: 'Incline dumbbell curl (bench 60 deg)', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 75, tempo: '3-1-1-1' },
-        { name: 'Triceps pushdown (rope)', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60, tempo: '2-0-1-1' },
-        { name: 'Seated calf raise machine', targetSets: 4, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '3-1-1-1' },
-        { name: 'Cable crunch (kneeling)', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60, tempo: '2-2-2-0' },
-      ],
-    },
+    { name: 'Russian kettlebell swings', targetSets: 10, targetRepsMin: 10, targetRepsMax: 10, targetRIR: 2, restSec: 90 },
+    { name: 'Plyo box jumps with step down', targetSets: 10, targetRepsMin: 10, targetRepsMax: 10, targetRIR: 2, restSec: 90 },
+    { name: 'Dual dumbbell front squats', targetSets: 10, targetRepsMin: 10, targetRepsMax: 10, targetRIR: 2, restSec: 90 },
+    { name: 'Strict hand-release push-ups', targetSets: 10, targetRepsMin: 10, targetRepsMax: 10, targetRIR: 2, restSec: 75 },
+    { name: 'Heavy kettlebell carry paces', targetSets: 10, targetRepsMin: 10, targetRepsMax: 10, targetRIR: 2, restSec: 90 },
   ];
 
-  let fullBodyWorkoutId = '';
-  for (const w of workouts) {
-    const workout = await prisma.workout.create({
-      data: { programId: program.id, name: w.name, dayOfWeek: w.dayOfWeek, order: w.order },
+  const workout = await prisma.workout.create({
+    data: { programId: program.id, name: 'Block 01 - Day 1 Taster', dayOfWeek: 1, order: 1 },
+  });
+  let order = 1;
+  for (const ex of exercises) {
+    const exerciseId = exerciseMap.get(ex.name);
+    if (!exerciseId) throw new Error(`Exercise not found: ${ex.name}`);
+    await prisma.programExercise.create({
+      data: {
+        workoutId: workout.id,
+        exerciseId,
+        order: order++,
+        targetSets: ex.targetSets,
+        targetRepsMin: ex.targetRepsMin,
+        targetRepsMax: ex.targetRepsMax,
+        targetRIR: ex.targetRIR,
+        restSec: ex.restSec,
+        tempo: null,
+      },
     });
-    if (w.order === 3) fullBodyWorkoutId = workout.id;
-    let order = 1;
-    for (const ex of w.exercises) {
-      const exerciseId = exerciseMap.get(ex.name);
-      if (!exerciseId) throw new Error(`Exercise not found: ${ex.name}`);
-      await prisma.programExercise.create({
-        data: {
-          workoutId: workout.id,
-          exerciseId,
-          order: order++,
-          targetSets: ex.targetSets,
-          targetRepsMin: ex.targetRepsMin,
-          targetRepsMax: ex.targetRepsMax,
-          targetRIR: ex.targetRIR,
-          restSec: ex.restSec,
-          tempo: ex.tempo ?? null,
-        },
-      });
-    }
-    console.log(`Seed: workout "${w.name}" (${w.exercises.length} exercises)`);
   }
+  console.log(`Seed: workout "${workout.name}" (${exercises.length} exercises)`);
 
   console.log('Seed: done.');
 }

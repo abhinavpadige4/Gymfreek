@@ -3,6 +3,8 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const history = {
   title: 'История',
+  eyebrow: 'РЕГУЛЯРНОСТЬ',
+  subtitle: 'Просматривайте каждую тренировку и следите за регулярностью.',
   noFiltered: 'Завершённых тренировок по этим фильтрам нет.',
   emptyTitle: 'История пока пуста',
   emptyDescription:
@@ -23,6 +25,7 @@ export const history = {
     previousMonth: 'Предыдущий месяц',
     nextMonth: 'Следующий месяц',
     today: 'Сегодня',
+    selectedDay: 'ВЫБРАННЫЙ ДЕНЬ',
     workoutCount:
       '{count, plural, one {# тренировка} few {# тренировки} many {# тренировок} other {# тренировки}}',
     noSessions: 'В этот день завершённых тренировок нет.',

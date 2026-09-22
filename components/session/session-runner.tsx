@@ -156,6 +156,9 @@ export function SessionRunner({
   const [currentIdx, setCurrentIdx] = useState(initialExerciseIndex);
   const [mode, setMode] = useState<Mode>({ kind: 'input' });
   const [closing, setClosing] = useState(false);
+  // Latest camera rep count from the card's form-check overlay. Pre-fills
+  // the next set's reps field; cleared on submit or exercise change.
+  const [cameraReps, setCameraReps] = useState<number | null>(null);
   // Readiness auto-regulation can be turned off in settings (issue #61). The
   // preference lives in localStorage, so it is read after mount; until then we
   // assume the default (on) so the first render matches the server output.
@@ -352,6 +355,7 @@ export function SessionRunner({
     if (!currentPE || !currentTarget) return;
     const existing = setsByExercise.get(currentPE.exerciseId) ?? [];
     const setNumber = (existing.at(-1)?.setNumber ?? 0) + 1;
+    setCameraReps(null);
 
     // Optimistic write: immediate insert into IndexedDB (status pending),
     // instant display via useLiveQuery, and a background POST attempt.
@@ -509,6 +513,7 @@ export function SessionRunner({
     const next = programExercises[index];
     if (!next) return;
     setCurrentIdx(index);
+    setCameraReps(null);
     window.history.replaceState(window.history.state, '', sessionExercisePath(session.id, next.id));
   }
 
@@ -648,6 +653,7 @@ export function SessionRunner({
 
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-4">
         <ExerciseCard
+          key={currentPE.id}
           programExercise={currentPE}
           lastPerformance={lastPerf}
           readiness={effectiveReadiness}
@@ -655,6 +661,7 @@ export function SessionRunner({
           unit={unit}
           gymName={session.gym?.name ?? null}
           loadConstraints={loadConstraintsFor(currentPE)}
+          onCameraReps={(reps) => setCameraReps(reps)}
         />
         <ReturnToTrainingNotice
           recommendation={currentReturnRecommendation}
@@ -681,6 +688,7 @@ export function SessionRunner({
             recommendation={currentRecommendation}
             loadConstraints={loadConstraintsFor(currentTarget)}
             priorSets={lastPerf?.sets}
+            suggestedReps={cameraReps}
             equipmentOptions={(session.gym?.equipment ?? []).filter(
               (item) =>
                 !droppedEquipmentIds.includes(item.id) &&
@@ -705,6 +713,7 @@ export function SessionRunner({
             deloadActive={deloadActive}
             unit={unit}
             returnRecommendation={currentReturnRecommendation}
+            suggestedReps={cameraReps}
             loadConstraints={loadConstraintsFor(currentTarget)}
             equipmentOptions={(session.gym?.equipment ?? []).filter(
               (item) =>

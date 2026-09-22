@@ -2,7 +2,12 @@ import { exercises as english } from '../en/exercises';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const exercises = {
-  title: 'Каталог упражнений',
+  title: 'Библиотека упражнений',
+  eyebrow: 'БИБЛИОТЕКА',
+  subtitle: 'Управляйте упражнениями, инструкциями и данными для ИИ.',
+  all: 'Все',
+  aiTracking: 'ИИ-трекинг',
+  aiReady: 'ИИ ГОТОВ',
   savedCount:
     '{count, plural, =0 {Нет сохранённых упражнений.} one {Сохранено # упражнение.} few {Сохранено # упражнения.} many {Сохранено # упражнений.} other {Сохранено # упражнения.}}',
   search: 'Поиск упражнений по названию',
@@ -34,6 +39,25 @@ export const exercises = {
   media: {
     button: 'Техника',
     open: 'Посмотреть технику: {name}',
+    howToPerform: 'Техника',
+    uploadedAlt: 'Загруженное фото техники: {name}',
+    uploadedBadge: 'Фото тренера',
+    uploadTitle: 'Фото техники',
+    uploadHint: 'Только для админов. Одно фото на движение, видно всем. JPEG, PNG или WebP до 5 МБ.',
+    choosePhoto: 'Загрузить фото',
+    removePhoto: 'Удалить фото',
+    saving: 'Сохранение...',
+    invalidType: 'Выберите фото JPEG, PNG или WebP.',
+    tooLarge: 'Фото должно быть меньше 5 МБ.',
+    uploadError: 'Не удалось сохранить фото.',
+    demoVideo: 'Демо-видео',
+    videoHint: 'Рекомендуются ссылки - YouTube, Vimeo или mp4. Файлы до 25 МБ хранятся в базе и могут медленно грузиться.',
+    videoLinkPlaceholder: 'Вставьте ссылку YouTube, Vimeo или mp4...',
+    attachLink: 'Прикрепить ссылку',
+    uploadVideoFile: 'Загрузить видео',
+    removeVideo: 'Удалить видео',
+    invalidVideoType: 'Выберите видео MP4 или WebM.',
+    videoTooLarge: 'Видео должно быть меньше 25 МБ.',
     description:
       'Начальный и конечный кадры переключаются автоматически. Поставьте на паузу, чтобы рассмотреть положение.',
     start: 'Старт',
@@ -97,6 +121,7 @@ export const exercises = {
     cable: 'Блочный тренажёр',
     bodyweight: 'Собственный вес',
     cardio: 'Кардиооборудование',
+    kettlebell: 'Гиря',
     other: 'Другое / без ограничений',
   },
   equipmentTypesShort: {
@@ -106,6 +131,7 @@ export const exercises = {
     cable: 'Блок',
     bodyweight: 'Свой вес',
     cardio: 'Кардиотренажёр',
+    kettlebell: 'Гиря',
     other: 'Любое оборудование',
   },
 } satisfies MessageShape<typeof english>;

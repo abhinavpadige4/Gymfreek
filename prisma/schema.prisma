@@ -1,4 +1,4 @@
-// Gymfreek - Database schema
+// 100XU - Database schema
 
 generator client {
   provider     = "prisma-client"
@@ -173,6 +173,7 @@ enum EquipmentType {
   CABLE
   BODYWEIGHT
   CARDIO
+  KETTLEBELL
   OTHER
 }
 
@@ -668,4 +669,16 @@ model FormIssue {
   severity   String?
 
   @@index([resultId])
+}
+
+// Admin-uploaded technique photo, shared across users by exercise name
+// (catalog rows are per-user copies, so a per-row upload would help nobody).
+model ExerciseMediaUpload {
+  name          String   @unique
+  imageData     Bytes?
+  imageMimeType String?
+  videoUrl      String?
+  videoData     Bytes?
+  videoMimeType String?
+  updatedAt     DateTime @updatedAt
 }

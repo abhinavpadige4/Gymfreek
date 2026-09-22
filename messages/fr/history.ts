@@ -3,6 +3,8 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const history = {
   title: 'Historique',
+  eyebrow: 'RÉGULARITÉ',
+  subtitle: 'Passez en revue chaque séance et suivez votre régularité.',
   noFiltered: 'Aucune séance terminée ne correspond à ces filtres.',
   emptyTitle: 'Aucune séance enregistrée',
   emptyDescription:
@@ -23,6 +25,7 @@ export const history = {
     previousMonth: 'Mois précédent',
     nextMonth: 'Mois suivant',
     today: 'Aujourd’hui',
+    selectedDay: 'JOUR SÉLECTIONNÉ',
     workoutCount: '{count, plural, one {# séance} other {# séances}}',
     noSessions: 'Aucune séance terminée à cette date.',
   },

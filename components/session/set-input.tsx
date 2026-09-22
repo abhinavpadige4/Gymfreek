@@ -44,6 +44,9 @@ interface Props {
   returnRecommendation?: ReturnRecommendation | null;
   loadConstraints?: GymLoadConstraints | null;
   equipmentOptions?: { id: string; name: string }[];
+  // Camera rep count from the card's form-check overlay (strength only).
+  // Overrides the pre-filled reps; weight/RIR stay on the suggestion.
+  suggestedReps?: number | null;
   onSubmit: (values: {
     weight: number;
     reps: number;
@@ -83,40 +86,49 @@ export function SetInput({
   returnRecommendation = null,
   loadConstraints = null,
   equipmentOptions = [],
+  suggestedReps = null,
   onSubmit,
 }: Props) {
   const t = useTranslations('session.input');
   const autoT = useTranslations('session.autoregulation');
   const common = useTranslations('common');
   // Pre-fill: last set of this exercise in the current session,
-  // otherwise the last performance, otherwise defaults.
-  const initial = computeInitial(
-    programExercise,
-    existingSets,
-    lastPerformance,
-    readiness,
-    deloadActive,
-    recommendation,
-    returnRecommendation,
-    loadConstraints,
+  // otherwise the last performance, otherwise defaults. A camera count
+  // overrides only the reps (strength exercises; cardio hides the field).
+  const isStrength = programExercise.exercise.category !== 'CARDIO';
+  const withCameraReps = (form: FormState): FormState =>
+    suggestedReps != null && isStrength ? { ...form, reps: suggestedReps } : form;
+  const initial = withCameraReps(
+    computeInitial(
+      programExercise,
+      existingSets,
+      lastPerformance,
+      readiness,
+      deloadActive,
+      recommendation,
+      returnRecommendation,
+      loadConstraints,
+    ),
   );
   const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
   const [gymEquipmentId, setGymEquipmentId] = useState('');
 
-  // Re-init when the exercise changes or a set changes.
+  // Re-init when the exercise changes, a set changes, or a camera count lands.
   useEffect(() => {
     setForm(
-      computeInitial(
-        programExercise,
-        existingSets,
-        lastPerformance,
-        readiness,
-        deloadActive,
-        recommendation,
-        returnRecommendation,
-        loadConstraints,
+      withCameraReps(
+        computeInitial(
+          programExercise,
+          existingSets,
+          lastPerformance,
+          readiness,
+          deloadActive,
+          recommendation,
+          returnRecommendation,
+          loadConstraints,
+        ),
       ),
     );
     setQuickEntry('');
@@ -127,7 +139,7 @@ export function SetInput({
         : '',
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [programExercise.id, existingSets.length]);
+  }, [programExercise.id, existingSets.length, suggestedReps]);
 
   // A selected machine the gym no longer offers (issue #326: the server dropped
   // it from a saved set and the runner withdrew it) must not be resent.

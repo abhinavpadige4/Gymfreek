@@ -37,6 +37,7 @@ export const equipmentTypeMessageKeys = {
   CABLE: 'cable',
   BODYWEIGHT: 'bodyweight',
   CARDIO: 'cardio',
+  KETTLEBELL: 'kettlebell',
   OTHER: 'other',
 } as const satisfies Record<EquipmentType, string>;
 

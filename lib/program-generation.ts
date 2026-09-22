@@ -2,27 +2,34 @@ import { db } from '@/lib/db';
 import { type GeneratedProgram } from '@/lib/schemas/program-generation';
 import { defaultIntraSetConfig } from '@/lib/intra-set-autoregulation';
 
-// Persists a (possibly user-edited) template program in a single transaction.
+// Persists a (possibly user-edited) template program.
 // New exercises are created on the fly; existing ones are reused by name.
 // Returns the new program id. The program is created inactive.
+//
+// Deliberately NOT wrapped in an interactive transaction: those fail on
+// pooled Postgres (PgBouncer transaction mode, e.g. the Neon pooled URL)
+// with P2028 "unable to start a transaction". Instead the program row is
+// created first and deleted as compensation if a later write fails, so a
+// failed build never leaves a half-written program behind. Newly upserted
+// catalog rows are kept on failure - they are ordinary catalog entries.
 export async function buildProgramFromGenerated(
   userId: string,
   program: GeneratedProgram,
 ): Promise<string> {
-  return db.$transaction(async (tx) => {
-    const created = await tx.program.create({
-      data: {
-        userId,
-        name: program.name,
-        description: program.description ?? null,
-        phase: program.phase,
-        isActive: false,
-      },
-    });
+  const created = await db.program.create({
+    data: {
+      userId,
+      name: program.name,
+      description: program.description ?? null,
+      phase: program.phase,
+      isActive: false,
+    },
+  });
 
+  try {
     let workoutOrder = 1;
     for (const w of program.workouts) {
-      const workout = await tx.workout.create({
+      const workout = await db.workout.create({
         data: {
           programId: created.id,
           name: w.name,
@@ -33,7 +40,7 @@ export async function buildProgramFromGenerated(
 
       let exerciseOrder = 1;
       for (const ex of w.exercises) {
-        const exercise = await tx.exercise.upsert({
+        const exercise = await db.exercise.upsert({
           where: { userId_name: { userId, name: ex.name } },
           update: {},
           create: {
@@ -49,7 +56,7 @@ export async function buildProgramFromGenerated(
         });
 
         const autoregDefaults = defaultIntraSetConfig(exercise);
-        await tx.programExercise.create({
+        await db.programExercise.create({
           data: {
             workoutId: workout.id,
             exerciseId: exercise.id,
@@ -69,7 +76,11 @@ export async function buildProgramFromGenerated(
         });
       }
     }
+  } catch (err) {
+    // Deleting the program cascades its workouts and program exercises.
+    await db.program.delete({ where: { id: created.id } }).catch(() => {});
+    throw err;
+  }
 
-    return created.id;
-  });
+  return created.id;
 }

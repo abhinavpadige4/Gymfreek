@@ -38,8 +38,7 @@ describe('ExerciseMediaDialog', () => {
     expect(screen.getByText('Similar variant')).toBeInTheDocument();
   });
 
-  it('offers a Commons search for an unknown custom exercise', async () => {
-    const user = userEvent.setup();
+  it('offers a Commons search for an unknown custom exercise', async () => {    const user = userEvent.setup();
     render(
       <ExerciseMediaDialog
         exerciseName="Future custom movement"
@@ -54,5 +53,41 @@ describe('ExerciseMediaDialog', () => {
       'href',
       expect.stringContaining('title=Special:MediaSearch'),
     );
+  });
+
+  it('searches the movement family for a mapped variation', async () => {
+    // Exact variation names find nothing on Commons; the family term does.
+    const user = userEvent.setup();
+    render(
+      <ExerciseMediaDialog
+        exerciseName="Dual dumbbell front squats"
+        displayName="Dual dumbbell front squats"
+        equipmentType="DUMBBELL"
+      />,
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'View technique for Dual dumbbell front squats' }),
+    );
+    expect(screen.getByRole('link', { name: /search wikimedia commons/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining(encodeURIComponent('Barbell squat')),
+    );
+  });
+
+  it('shows the technique cue card for a movement without frames', async () => {
+    const user = userEvent.setup();
+    render(
+      <ExerciseMediaDialog
+        exerciseName="Full chest-to-deck burpees"
+        displayName="Full chest-to-deck burpees"
+        equipmentType="BODYWEIGHT"
+        notes="Chest and thighs touch deck, snap feet forward wide, vertical jump with clap. Load: Bodyweight."
+      />,
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'View technique for Full chest-to-deck burpees' }),
+    );
+    expect(screen.getByText('How to perform')).toBeInTheDocument();
+    expect(screen.getByText(/snap feet forward wide/)).toBeInTheDocument();
   });
 });

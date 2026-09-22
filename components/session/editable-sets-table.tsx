@@ -37,6 +37,9 @@ interface Props {
   equipmentOptions?: { id: string; name: string }[];
   priorSets?: { weight: number; reps: number }[];
   disabled?: boolean;
+  // Camera rep count from the card's form-check overlay. Overrides only the
+  // reps of the next draft; weight/RIR stay on the suggestion.
+  suggestedReps?: number | null;
   onSubmit: (values: {
     weight: number;
     reps: number;
@@ -102,6 +105,10 @@ function initialDraft(
   };
 }
 
+function applyCameraReps(draft: DraftSet, cameraReps: number | null): DraftSet {
+  return cameraReps != null ? { ...draft, reps: cameraReps } : draft;
+}
+
 export function EditableSetsTable({
   programExercise,
   sets,
@@ -114,6 +121,7 @@ export function EditableSetsTable({
   equipmentOptions = [],
   priorSets = [],
   disabled = false,
+  suggestedReps = null,
   onSubmit,
   onDeleteSet,
   onUpdateSet,
@@ -122,7 +130,10 @@ export function EditableSetsTable({
   const inputT = useTranslations('session.input');
   const locale = useLocale();
   const [draft, setDraft] = useState<DraftSet>(() =>
-    initialDraft(programExercise, sets, lastPerformance, readiness, deloadActive, loadConstraints),
+    applyCameraReps(
+      initialDraft(programExercise, sets, lastPerformance, readiness, deloadActive, loadConstraints),
+      suggestedReps,
+    ),
   );
   const [submitting, setSubmitting] = useState(false);
   const [editingSet, setEditingSet] = useState<{ set: PendingSet; draft: DraftSet } | null>(null);
@@ -164,13 +175,16 @@ export function EditableSetsTable({
     } else {
       parkedDrafts.current.delete(programExercise.id);
       setDraft(
-        initialDraft(
-          programExercise,
-          sets,
-          lastPerformance,
-          readiness,
-          deloadActive,
-          loadConstraints,
+        applyCameraReps(
+          initialDraft(
+            programExercise,
+            sets,
+            lastPerformance,
+            readiness,
+            deloadActive,
+            loadConstraints,
+          ),
+          suggestedReps,
         ),
       );
     }
@@ -183,9 +197,10 @@ export function EditableSetsTable({
         ? recentEquipmentId
         : '',
     );
-    // Re-seed when the active exercise or logged working-set count changes.
+    // Re-seed when the active exercise, logged working-set count, or camera
+    // count changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [programExercise.id, workingSets.length]);
+  }, [programExercise.id, workingSets.length, suggestedReps]);
 
   useEffect(() => {
     if (gymEquipmentId && !equipmentOptions.some((equipment) => equipment.id === gymEquipmentId)) {

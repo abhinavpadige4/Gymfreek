@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { angleAt, kneeAngle, kneeDrift, torsoLean, type Point } from './angles';
 import { SquatAnalyzer } from './squat';
-import { CueThrottle, RULE_PHRASES } from './feedback';
+import { CueThrottle, RULE_PHRASES, topIssues } from './feedback';
 import { createAnalyzer } from './registry';
 
 // Synthetic side-view landmarks for an exact knee angle. Hip above knee,
@@ -100,11 +100,108 @@ describe('cue throttle', () => {
   });
 });
 
+describe('topIssues', () => {
+  it('returns the highest-count keys first, capped at the limit', () => {
+    expect(topIssues({ forward_lean: 7, knee_inward: 2, hip_sag: 5 })).toEqual([
+      'forward_lean',
+      'hip_sag',
+    ]);
+    expect(topIssues({ forward_lean: 1 }, 5)).toEqual(['forward_lean']);
+    expect(topIssues({})).toEqual([]);
+  });
+});
+
 describe('registry', () => {
-  it('resolves squat and pushup, nothing else yet', () => {
+  it('resolves squat, pushup and hinge', () => {
     expect(createAnalyzer('squat')).not.toBeNull();
     expect(createAnalyzer(' Squat ')).not.toBeNull();
     expect(createAnalyzer('push-up')).not.toBeNull();
+    expect(createAnalyzer('Russian kettlebell swings')).not.toBeNull();
     expect(createAnalyzer('lunge')).toBeNull();
+  });
+
+  it('maps bilateral squat-pattern variations to the squat counter', () => {
+    for (const name of [
+      'Dual dumbbell front squats',
+      'Kettlebell goblet squats with pause',
+      'Dual dumbbell thrusters',
+      'Heavy dual dumbbell thrusters',
+      'Wall-ball simulator thrusters',
+      'Kettlebell clean to squat',
+      'Kettlebell clean, squat and press',
+      'Back Squat',
+      'Front Squat',
+      'Goblet squat',
+    ]) {
+      expect(createAnalyzer(name)?.constructor.name).toBe('SquatAnalyzer');
+    }
+  });
+
+  it('maps blueprint push-up-pattern variations to the push-up counter', () => {
+    for (const name of [
+      'Strict hand-release push-ups',
+      'Deficit push-ups on hex dumbbells',
+      'Spiderman push-ups on dumbbells',
+      'Dumbbell push-up to snatch',
+      'Dumbbell renegade row to push-up',
+    ]) {
+      expect(createAnalyzer(name)?.constructor.name).toBe('PushupAnalyzer');
+    }
+  });
+
+  it('maps hinge-family variations to the hinge counter', () => {
+    for (const name of [
+      'Russian kettlebell swings',
+      'American kettlebell overhead swings',
+      'Double kettlebell swings',
+      'Dumbbell Romanian deadlifts',
+      'Kettlebell goblet sumo deadlifts',
+      'Sumo deadlift high pulls',
+      'Alternating dumbbell snatch',
+      'Ski-pull simulator dumbbell hinge drives',
+    ]) {
+      expect(createAnalyzer(name)?.constructor.name).toBe('HingeAnalyzer');
+    }
+    // Overlaps keep their earlier counter: squat before hinge, pushup first.
+    expect(createAnalyzer('Kettlebell clean to squat')?.constructor.name).toBe('SquatAnalyzer');
+    expect(createAnalyzer('Dumbbell push-up to snatch')?.constructor.name).toBe(
+      'PushupAnalyzer',
+    );
+    // Single-leg deadlifts stay unmapped like all single-leg work.
+    expect(createAnalyzer('Single-leg dumbbell Romanian deadlift')).toBeNull();
+  });
+
+  it('maps press/row-family variations to the press counter', () => {
+    for (const name of [
+      'Dumbbell push press',
+      'Single-arm dumbbell push press',
+      'Dumbbell devil press',
+      'Dumbbell floor press with bridge hold',
+      'Dumbbell renegade rows',
+      'Kettlebell gorilla rows',
+      'Sled pull simulator bent kettlebell rows',
+      'Hollow body dumbbell pullover',
+      'Wall-sit dumbbell bicep curls',
+      'Kettlebell clean and push press',
+    ]) {
+      expect(createAnalyzer(name)?.constructor.name).toBe('PressAnalyzer');
+    }
+  });
+
+  it('leaves single-leg work, carries, burpees and jumps without a counter', () => {
+    // Single-leg patterns average a bent leg with a straight one and never
+    // reach the bottom threshold, so no counter is offered instead of a
+    // miscounting one.
+    for (const name of [
+      'Forward alternating dumbbell lunges',
+      'Dumbbell Bulgarian split squats',
+      'Weighted dumbbell box step-ups',
+      'Suitcase walking lunges',
+      "Heavy kettlebell carry paces",
+      'Full chest-to-deck burpees',
+      'Plyo box jumps with step down',
+    ]) {
+      expect(createAnalyzer(name)).toBeNull();
+    }
   });
 });

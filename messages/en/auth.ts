@@ -1,9 +1,11 @@
 export const auth = {
   login: {
-    title: 'Sign in',
-    description: 'Access your training log.',
+    title: 'Welcome back',
+    description: 'Sign in to continue your training.',
     submit: 'Sign in',
     submitting: 'Signing in...',
+    emailPlaceholder: 'Enter your email',
+    passwordPlaceholder: 'Enter your password',
     demoTitle: 'Demo account',
     demoSubmit: 'Log in as demo',
     noAccount: 'No account yet?',
@@ -15,6 +17,9 @@ export const auth = {
     description: 'Start tracking your training.',
     submit: 'Create account',
     submitting: 'Creating account...',
+    namePlaceholder: 'Enter your name',
+    emailPlaceholder: 'Enter your email',
+    passwordPlaceholder: 'Create a password',
     hasAccount: 'Already have an account?',
     signIn: 'Sign in',
     error: 'Registration error.',

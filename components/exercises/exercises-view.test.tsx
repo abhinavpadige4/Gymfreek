@@ -120,3 +120,22 @@ describe('ExercisesView catalog card at mobile width (issue #330)', () => {
     expect(withoutMedia.querySelector('img')).toBeNull();
   });
 });
+
+describe('ExercisesView kettlebell equipment', () => {
+  it('renders kettlebell rows without a missing-message crash', () => {
+    render(
+      <ExercisesView
+        exercises={[
+          exercise({
+            id: 'e1',
+            name: 'Russian kettlebell swings',
+            muscleGroup: 'HAMSTRINGS',
+            equipmentType: 'KETTLEBELL',
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText('Russian kettlebell swings')).toBeInTheDocument();
+    expect(screen.getByText('Kettlebell')).toBeInTheDocument();
+  });
+});

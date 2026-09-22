@@ -1,5 +1,10 @@
 export const exercises = {
-  title: 'Exercise catalog',
+  title: 'Exercise Library',
+  eyebrow: 'LIBRARY',
+  subtitle: 'Manage exercises, movement instructions and AI-ready training data.',
+  all: 'All',
+  aiTracking: 'AI tracking',
+  aiReady: 'AI READY',
   savedCount:
     '{count, plural, =0 {No exercises saved.} one {# exercise saved.} other {# exercises saved.}}',
   search: 'Search exercises by name',
@@ -31,6 +36,25 @@ export const exercises = {
   media: {
     button: 'Technique',
     open: 'View technique for {name}',
+    howToPerform: 'How to perform',
+    uploadedAlt: 'Admin-uploaded technique photo for {name}',
+    uploadedBadge: 'Coach photo',
+    uploadTitle: 'Technique photo',
+    uploadHint: 'Admins only. One photo per movement, shown to every user. JPEG, PNG, or WebP up to 5 MB.',
+    choosePhoto: 'Upload photo',
+    removePhoto: 'Remove photo',
+    saving: 'Saving...',
+    invalidType: 'Choose a JPEG, PNG, or WebP photo.',
+    tooLarge: 'Photo must be under 5 MB.',
+    uploadError: 'Could not save the photo.',
+    demoVideo: 'Demo video',
+    videoHint: 'Links recommended - YouTube, Vimeo, or mp4. Files up to 25 MB stay in the database and may buffer on slow phones.',
+    videoLinkPlaceholder: 'Paste a YouTube, Vimeo, or mp4 link...',
+    attachLink: 'Attach link',
+    uploadVideoFile: 'Upload video file',
+    removeVideo: 'Remove video',
+    invalidVideoType: 'Choose an MP4 or WebM video.',
+    videoTooLarge: 'Video must be under 25 MB.',
     description:
       'Start and finish frames alternate automatically. Pause to inspect either position.',
     start: 'Start',
@@ -94,6 +118,7 @@ export const exercises = {
     cable: 'Cable stack',
     bodyweight: 'Bodyweight',
     cardio: 'Cardio equipment',
+    kettlebell: 'Kettlebell',
     other: 'Other / unrestricted',
   },
   // Compact forms for the catalog card, where the label shares a line with
@@ -105,6 +130,7 @@ export const exercises = {
     cable: 'Cable',
     bodyweight: 'Bodyweight',
     cardio: 'Cardio machine',
+    kettlebell: 'Kettlebell',
     other: 'Any equipment',
   },
 };

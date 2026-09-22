@@ -1,8 +1,8 @@
 {
-  "name": "gymfreek",
+  "name": "100xu",
   "version": "0.1.0",
   "private": true,
-  "description": "Gymfreek - AI fitness coach with live form checks and the 100XU century challenge",
+  "description": "100XU - AI fitness coach with live form checks and the century challenge",
   "license": "MIT",
   "scripts": {
     "dev": "next dev -p 3030",
@@ -30,7 +30,6 @@
     "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^3.10.0",
     "@mediapipe/tasks-vision": "^1.0.1",
-    "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",

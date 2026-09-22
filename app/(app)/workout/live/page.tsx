@@ -1,9 +1,9 @@
 import { requireSession } from '@/lib/auth';
 import { LiveWorkout } from '@/components/workout/live-workout';
-import { SUPPORTED_EXERCISES } from '@/lib/form-engine/registry';
+import { createAnalyzer } from '@/lib/form-engine/registry';
 
 // Live AI workout: ?exercise=squat (&challengeId= &challengeDayId= for
-// challenge days). Only registry-supported exercises start the camera.
+// challenge days). Any registry-mapped exercise starts the camera.
 export default async function LiveWorkoutPage({
   searchParams,
 }: {
@@ -11,12 +11,8 @@ export default async function LiveWorkoutPage({
 }) {
   await requireSession();
   const params = await searchParams;
-  const requested = (params.exercise ?? 'squat').trim().toLowerCase();
-  const exercise = (
-    SUPPORTED_EXERCISES as readonly string[]
-  ).includes(requested)
-    ? requested
-    : 'squat';
+  const requested = (params.exercise ?? 'squat').trim();
+  const exercise = createAnalyzer(requested) !== null ? requested : 'squat';
 
   return (
     <main className="flex-1 px-4 py-6">

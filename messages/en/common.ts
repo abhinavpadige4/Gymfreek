@@ -63,7 +63,7 @@ export const common = {
   language: {
     label: 'Language',
     change: 'Change language',
-    description: 'Choose the language used by the Gymfreek interface.',
+    description: 'Choose the language used by the 100XU interface.',
     english: 'English',
     french: 'French',
     russian: 'Russian',

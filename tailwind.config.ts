@@ -19,9 +19,9 @@ const config: Config = {
     extend: {
       colors: {
         volt: {
-          DEFAULT: '#FF5A1F',
-          dim: '#C74312',
-          ink: '#0B0E0C',
+          DEFAULT: '#D94A05',
+          dim: '#8F3203',
+          ink: '#E8E7E8',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -98,12 +98,17 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(24px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        authIn: {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         marquee: 'marquee 28s linear infinite',
         floaty: 'floaty 5s ease-in-out infinite',
         'pulse-glow': 'pulseGlow 2.4s ease-in-out infinite',
         'rise-in': 'riseIn 0.7s ease-out both',
+        'auth-in': 'authIn 0.25s ease-out both',
       },
     },
   },

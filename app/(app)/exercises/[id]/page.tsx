@@ -4,6 +4,7 @@ import { ChevronLeft, Dumbbell, History, TrendingUp } from 'lucide-react';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { requireAdminUserId } from '@/lib/admin';
 import { getExerciseDisplayName } from '@/i18n/exercise-names';
 import {
   equipmentTypeMessageKeys,
@@ -13,6 +14,7 @@ import {
 import { estimate1RM } from '@/lib/stats';
 import { formatWeight } from '@/lib/units';
 import { ExerciseMediaDialog } from '@/components/exercises/exercise-media-dialog';
+import { ExerciseImageUpload } from '@/components/exercises/exercise-image-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { safeSessionReturnPath } from '@/lib/session-exercise-navigation';
@@ -52,6 +54,15 @@ export default async function ExerciseDetailPage({ params, searchParams }: Props
   const returnTo = safeSessionReturnPath(requestedReturnTo);
   const displayName = getExerciseDisplayName(exercise.name, locale);
   const unit = user?.unit ?? 'KG';
+  // Admin-only upload card. requireAdminUserId covers both the role and the
+  // env-allowlist fallback; anything thrown means a regular member view.
+  let isAdmin = false;
+  try {
+    await requireAdminUserId();
+    isAdmin = true;
+  } catch {
+    isAdmin = false;
+  }
   const sessions = new Map<string, { id: string; startedAt: Date; sets: typeof exercise.sets }>();
   for (const set of exercise.sets) {
     const existing = sessions.get(set.session.id);
@@ -89,6 +100,7 @@ export default async function ExerciseDetailPage({ params, searchParams }: Props
               exerciseName={exercise.name}
               displayName={displayName}
               equipmentType={exercise.equipmentType}
+              notes={exercise.notes}
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -135,6 +147,8 @@ export default async function ExerciseDetailPage({ params, searchParams }: Props
             </p>
           )}
         </section>
+
+        {isAdmin && <ExerciseImageUpload exerciseName={exercise.name} />}
 
         <section className="space-y-3 border-t border-border pt-5">
           <div className="flex items-center justify-between gap-3">

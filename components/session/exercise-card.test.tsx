@@ -202,6 +202,20 @@ function renderCardioCard(cardio: SerializedLastPerformance['cardio'] | undefine
   );
 }
 
+describe('ExerciseCard form-check overlay', () => {
+  it('shows the form-check button for a supported exercise', () => {
+    renderCard(null);
+    expect(screen.getByRole('button', { name: 'Live form check' })).toBeInTheDocument();
+  });
+
+  it('hides the form-check button when no analyzer exists', () => {
+    // 'Running' matches neither the squat nor the pushup pattern, so the
+    // camera overlay is not offered instead of a dead separate page.
+    renderCardioCard({ durationSec: 1500, distanceM: 0, avgHr: null });
+    expect(screen.queryByRole('button', { name: 'Live form check' })).not.toBeInTheDocument();
+  });
+});
+
 describe('ExerciseCard cardio last-performance', () => {
   it('shows duration, distance and avgHr for a cardio exercise with history', () => {
     renderCardioCard({ durationSec: 1800, distanceM: 5000, avgHr: 152 });

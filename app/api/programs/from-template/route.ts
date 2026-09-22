@@ -13,13 +13,28 @@ export async function POST(req: Request) {
     const data = await parseJsonBody(req, generatedProgramSchema);
 
     const programId = await buildProgramFromGenerated(userId, data);
-    await db.$transaction([
-      db.program.updateMany({
-        where: { userId, isActive: true, id: { not: programId } },
-        data: { isActive: false },
-      }),
-      db.program.update({ where: { id: programId }, data: { isActive: true } }),
-    ]);
+    // Sequential, not a $transaction: array/interactive transactions fail on
+    // pooled Postgres (PgBouncer transaction mode). On activation failure the
+    // previously active programs are restored best-effort.
+    const previouslyActive = await db.program.findMany({
+      where: { userId, isActive: true, id: { not: programId } },
+      select: { id: true },
+    });
+    await db.program.updateMany({
+      where: { userId, isActive: true, id: { not: programId } },
+      data: { isActive: false },
+    });
+    try {
+      await db.program.update({ where: { id: programId }, data: { isActive: true } });
+    } catch (err) {
+      await db.program
+        .updateMany({
+          where: { userId, id: { in: previouslyActive.map((p) => p.id) } },
+          data: { isActive: true },
+        })
+        .catch(() => {});
+      throw err;
+    }
 
     return NextResponse.json({ id: programId }, { status: 201 });
   } catch (err) {

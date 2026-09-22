@@ -46,14 +46,20 @@ export function TemplatePicker({ templates }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {templates.map((template) => {
+      {templates.map((template, index) => {
         const dayCount = template.program.workouts.length;
         return (
-          <Card key={template.slug}>
+          <Card
+            key={template.slug}
+            className={index === 0 ? 'border-volt/50' : undefined}
+          >
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-base font-semibold">{template.name}</h2>
+                  <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold">
+                    {template.name}
+                    {index === 0 && <Badge>{t('recommended')}</Badge>}
+                  </h2>
                   <p className="mt-1 text-sm text-muted-foreground">{template.summary}</p>
                 </div>
                 <Badge variant="secondary" className="shrink-0">

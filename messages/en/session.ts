@@ -188,6 +188,7 @@ export const session = {
   },
   exerciseCard: {
     notAvailable: 'Not available in this gym',
+    liveFormCheck: 'Live form check',
     cardioPrescription: '{sets, plural, one {# set} other {# sets}} · Rest {seconds}s',
     strengthPrescription:
       '{sets} sets × {reps} reps · RIR {rir} · Rest {seconds}s{tempo, select, none {} other { · Tempo {tempo}}}',

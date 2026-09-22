@@ -125,6 +125,28 @@ describe('SetInput first working set', () => {
     );
     expect(screen.getByRole('switch', { name: /drop set/i })).toBeDisabled();
   });
+
+  it('pre-fills reps from the camera count, keeping the suggested load', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SetInput
+        programExercise={pe}
+        existingSets={[]}
+        lastPerformance={lastPerformance}
+        readiness={null}
+        deloadActive={false}
+        unit="KG"
+        suggestedReps={9}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /log the set/i }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ weight: 100, reps: 9, rir: 2, isDropSet: false }),
+    );
+  });
 });
 
 describe('SetInput quick entry', () => {

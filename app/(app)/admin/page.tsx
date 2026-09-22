@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { EXERCISE_CATALOG } from '@/lib/exercise-catalog';
+import { buildExerciseReadiness } from '@/lib/exercise-readiness';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ReadinessTable } from '@/components/admin/readiness-table';
+import { AdminUsers } from '@/components/admin/admin-users';
 
 export default async function AdminPage() {
   const session = await requireSession();
@@ -13,12 +17,16 @@ export default async function AdminPage() {
     return (
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto max-w-2xl">
-          <Card>
-            <CardHeader>
-              <CardTitle>Admin only</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Ask an admin to grant access or set ADMIN_EMAILS.
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
+              <p className="font-display text-3xl">Restricted area</p>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                This dashboard is for 100XU admins. Ask an admin to grant access
+                or set ADMIN_EMAILS.
+              </p>
+              <Link href="/" className="text-sm font-medium text-volt hover:underline">
+                Back to training
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -26,7 +34,9 @@ export default async function AdminPage() {
     );
   }
 
-  const [challenges, users, enrollments] = await Promise.all([
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  const [challenges, users, enrollments, userCount, workoutsToday, uploads] = await Promise.all([
     db.challenge.findMany({
       orderBy: { createdAt: 'asc' },
       include: { _count: { select: { days: true, enrollments: true } } },
@@ -41,12 +51,63 @@ export default async function AdminPage() {
       take: 20,
       include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
     }),
+    db.user.count(),
+    db.session.count({ where: { startedAt: { gte: dayStart } } }),
+    db.exerciseMediaUpload.findMany({
+      select: { name: true, imageMimeType: true, videoUrl: true, videoMimeType: true },
+    }),
   ]);
+
+  const uploadFlags = new Map(
+    uploads.map((u) => [
+      u.name,
+      {
+        hasPhoto: u.imageMimeType != null,
+        hasVideo: u.videoUrl != null || u.videoMimeType != null,
+      },
+    ]),
+  );
+  const readiness = buildExerciseReadiness(uploadFlags);
+  const readyCount = readiness.filter((r) => r.ready).length;
+  const photoCount = uploads.filter((u) => u.imageMimeType != null).length;
+  const videoCount = uploads.filter((u) => u.videoUrl != null || u.videoMimeType != null).length;
+
+  const overview = [
+    { label: 'Users', value: String(userCount) },
+    { label: 'Active challenges', value: String(challenges.filter((c) => c.isActive).length) },
+    { label: 'Workouts today', value: String(workoutsToday) },
+    { label: 'Catalog movements', value: String(EXERCISE_CATALOG.length) },
+    { label: 'Exercise media', value: `${photoCount} photos · ${videoCount} videos` },
+    { label: 'Movements ready', value: `${readyCount}/${readiness.length}` },
+  ];
 
   return (
     <main className="flex-1 px-4 py-6">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
+      <div className="mx-auto flex max-w-5xl flex-col gap-6">
+        <div>
+          <p className="font-display text-sm tracking-[0.3em] text-volt">100XU CONTROL</p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
+            Admin Dashboard
+          </h1>
+          <p className="mt-2 text-muted-foreground">Manage the 100XU fitness ecosystem.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {overview.map((s) => (
+            <Card key={s.label}>
+              <CardContent className="flex flex-col gap-1 p-4">
+                <span className="font-display text-2xl text-volt">{s.value}</span>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground">
+                  {s.label}
+                </span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <ReadinessTable rows={readiness} />
+
+        <AdminUsers users={users} currentUserId={session.userId} />
 
         <Card>
           <CardHeader>
@@ -80,22 +141,6 @@ export default async function AdminPage() {
               <div key={e.id} className="flex items-center justify-between gap-2">
                 <span>{e.user.email} - {e.challenge.title}</span>
                 <Badge variant="secondary">{e.status} d{e.currentDay}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Users</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            {users.map((u) => (
-              <div key={u.id} className="flex items-center justify-between gap-2">
-                <span>
-                  {u.displayName ?? u.email} <span className="text-muted-foreground">{u.email}</span>
-                </span>
-                <Badge variant="secondary">{u.role}</Badge>
               </div>
             ))}
           </CardContent>

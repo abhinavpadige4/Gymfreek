@@ -194,6 +194,7 @@ export const session = {
   },
   exerciseCard: {
     notAvailable: 'Indisponible dans cette salle',
+    liveFormCheck: 'Contrôle caméra',
     cardioPrescription: '{sets, plural, one {# série} other {# séries}} · Repos {seconds} s',
     strengthPrescription:
       '{sets} séries × {reps} reps · RIR {rir} · Repos {seconds} s{tempo, select, none {} other { · Tempo {tempo}}}',

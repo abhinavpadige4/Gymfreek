@@ -1,6 +1,6 @@
-# Contributing to Gymfreek
+# Contributing to 100XU
 
-Thanks for your interest in improving Gymfreek. External issues and pull
+Thanks for your interest in improving 100XU. External issues and pull
 requests are welcome and encouraged. This guide covers the local setup, the
 checks your changes should pass, and - because this repo is largely maintained
 by an AI loop - an honest description of how your contribution is

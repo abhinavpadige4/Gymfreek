@@ -1,12 +1,12 @@
 {
-  "name": "Gymfreek",
-  "short_name": "Gymfreek",
+  "name": "100XU",
+  "short_name": "100XU",
   "description": "AI fitness coach with live form checks and the 100XU century challenge.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0B0E0C",
-  "theme_color": "#0B0E0C",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "orientation": "portrait",
   "lang": "en",
   "icons": [

@@ -158,8 +158,13 @@ export function HistoryCalendar({
   }
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={isPending}>
-      <Card className={cn('overflow-hidden transition-opacity', isPending && 'opacity-60')}>
+    <div className="grid gap-4 lg:grid-cols-5" aria-busy={isPending}>
+      <Card
+        className={cn(
+          'overflow-hidden rounded-xl transition-opacity lg:col-span-2 lg:self-start',
+          isPending && 'opacity-60',
+        )}
+      >
         <CardContent className="p-3 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <Button
@@ -231,7 +236,7 @@ export function HistoryCalendar({
                   aria-pressed={isSelected}
                   onClick={() => selectDay(cell.dateKey!)}
                   className={cn(
-                    'relative flex aspect-square min-h-11 flex-col items-center justify-center rounded-lg border border-transparent text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'relative flex aspect-square min-h-11 flex-col items-center justify-center rounded-md border border-transparent text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     isToday && 'border-primary font-semibold',
                     isSelected && 'bg-primary text-primary-foreground hover:bg-primary/90',
                   )}
@@ -255,29 +260,39 @@ export function HistoryCalendar({
         </CardContent>
       </Card>
 
-      {filteredEmpty && (
-        <Card>
-          <CardContent className="py-4 text-center text-sm text-muted-foreground">
-            {history('noFiltered')}
-          </CardContent>
-        </Card>
-      )}
-
-      <section className="flex flex-col gap-2" aria-labelledby="selected-day-heading">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="size-5 text-muted-foreground" />
-          <h2 id="selected-day-heading" className="text-lg font-semibold capitalize">
-            {selectedDateLabel}
-          </h2>
-        </div>
-
-        {selectedSessions.length === 0 ? (
+      <div className="flex flex-col gap-4 lg:col-span-3">
+        {filteredEmpty && (
           <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              {t('noSessions')}
+            <CardContent className="py-4 text-center text-sm text-muted-foreground">
+              {history('noFiltered')}
             </CardContent>
           </Card>
-        ) : (
+        )}
+
+        <section className="flex flex-col gap-2" aria-labelledby="selected-day-heading">
+          <div>
+            <p className="font-display text-xs tracking-[0.3em] text-volt">
+              {t('selectedDay')}
+            </p>
+            <div className="mt-1 flex items-center gap-2">
+              <CalendarDays className="size-5 text-muted-foreground" />
+              <h2 id="selected-day-heading" className="text-lg font-semibold capitalize">
+                {selectedDateLabel}
+              </h2>
+            </div>
+          </div>
+
+          {selectedSessions.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
+                <CalendarDays className="size-7 text-muted-foreground" />
+                <p className="text-sm font-medium">{t('noSessions')}</p>
+                <p className="max-w-xs text-xs text-muted-foreground">
+                  {history('emptyDescription')}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
           <ul className="flex flex-col gap-2">
             {selectedSessions.map((session) => {
               const returnParams = new URLSearchParams({ month: monthKey, day: selectedDate });
@@ -289,7 +304,7 @@ export function HistoryCalendar({
                     href={`/history/${session.id}?${returnParams.toString()}`}
                     className="block"
                   >
-                    <Card className="transition-colors hover:bg-accent/40">
+                    <Card className="transition-colors hover:border-volt/50">
                       <CardContent className="flex items-center justify-between gap-3 p-4">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-base font-medium">{session.title}</p>
@@ -338,6 +353,7 @@ export function HistoryCalendar({
           </ul>
         )}
       </section>
+      </div>
     </div>
   );
 }

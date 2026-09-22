@@ -1,6 +1,6 @@
-# CLAUDE.md — working agreement for agents on Gymfreek
+# CLAUDE.md — working agreement for agents on 100XU
 
-Gymfreek is an AI fitness coach with live form checks and the 100XU century
+100XU is an AI fitness coach with live form checks and the 100XU century
 challenge. This file tells any coding agent how to work in this repo without
 re-deriving conventions.
 

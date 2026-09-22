@@ -3,10 +3,12 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const auth = {
   login: {
-    title: 'Connexion',
-    description: 'Accédez à votre carnet d’entraînement.',
+    title: 'Bon retour',
+    description: 'Connectez-vous pour reprendre votre entraînement.',
     submit: 'Se connecter',
     submitting: 'Connexion...',
+    emailPlaceholder: 'Entrez votre email',
+    passwordPlaceholder: 'Entrez votre mot de passe',
     demoTitle: 'Compte démo',
     demoSubmit: 'Entrer en démo',
     noAccount: 'Pas encore de compte ?',
@@ -18,6 +20,9 @@ export const auth = {
     description: 'Commencez à suivre vos entraînements.',
     submit: 'Créer le compte',
     submitting: 'Création du compte...',
+    namePlaceholder: 'Entrez votre nom',
+    emailPlaceholder: 'Entrez votre email',
+    passwordPlaceholder: 'Créez un mot de passe',
     hasAccount: 'Déjà un compte ?',
     signIn: 'Se connecter',
     error: 'Erreur lors de l’inscription.',

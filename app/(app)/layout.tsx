@@ -1,4 +1,3 @@
-import { Dumbbell } from 'lucide-react';
 import { LogoutButton } from '@/components/auth/logout-button';
 import { NavLinks } from '@/components/shared/nav-links';
 import { OfflineIndicator } from '@/components/shared/offline-indicator';
@@ -19,8 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
           <div className="flex items-center justify-between px-4 py-3">
             <Link href="/" className="flex items-center gap-2">
-              <Dumbbell className="size-5 text-volt" />
-              <span className="font-display text-base tracking-wide">GYMFREEK</span>
+              <span className="font-display text-base tracking-wide">100XU</span>
             </Link>
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost">
@@ -42,8 +40,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <Dumbbell className="size-5" />
-            <span className="text-base font-semibold">Gymfreek</span>
+            <span className="font-display text-base tracking-wide">
+              100<span className="text-volt">X</span>U
+            </span>
           </Link>
           <div className="flex items-center gap-2">
             <OfflineIndicator />

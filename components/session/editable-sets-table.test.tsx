@@ -23,6 +23,30 @@ beforeAll(() => {
 });
 
 describe('EditableSetsTable', () => {
+  it('pre-fills the draft reps from the camera count', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <EditableSetsTable
+        programExercise={programExercise}
+        sets={[]}
+        lastPerformance={undefined}
+        readiness={null}
+        deloadActive={false}
+        unit="KG"
+        suggestedReps={9}
+        onSubmit={onSubmit}
+        onDeleteSet={vi.fn()}
+        onUpdateSet={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    // No history: the default would be mid-range (10); the camera count wins.
+    fireEvent.click(screen.getByRole('button', { name: /confirm set 1/i }));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ reps: 9 })),
+    );
+  });
+
   it('edits and confirms the active set row through value pickers', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);

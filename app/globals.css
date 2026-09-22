@@ -2,51 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 100XU identity: ember-orange primary on near-black, white type. */
+/* 100XU identity: 100XU orange on deep black, gray text scale, semaphore accents. */
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 0 0% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 0 0% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 22 100% 50%;
-    --primary-foreground: 240 10% 4%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 22 90% 93%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 24 95% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 24 90% 95%;
+    --accent-foreground: 24 95% 32%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 22 100% 50%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 24 95% 44%;
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 150 12% 4%;
-    --foreground: 0 0% 98%;
-    --card: 150 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 150 10% 6%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 22 100% 60%;
-    --primary-foreground: 240 10% 4%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 22 80% 14%;
-    --accent-foreground: 22 100% 60%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 91%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 91%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 91%;
+    --primary: 24 95% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 5%;
+    --secondary-foreground: 0 0% 91%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 24 80% 12%;
+    --accent-foreground: 24 95% 60%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 22 100% 60%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 22 92% 49%;
   }
 }
 
@@ -72,17 +72,31 @@
     mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   }
   .text-glow-volt {
-    text-shadow: 0 0 24px hsl(22 100% 60% / 0.45);
+    text-shadow: 0 0 24px hsl(22 92% 49% / 0.45);
   }
   .bg-grid-volt {
     background-image:
-      linear-gradient(hsl(22 100% 60% / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(22 100% 60% / 0.07) 1px, transparent 1px);
+      linear-gradient(hsl(22 92% 49% / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(22 92% 49% / 0.07) 1px, transparent 1px);
     background-size: 44px 44px;
+  }
+  .bg-stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      hsl(22 92% 49%) 0 14px,
+      transparent 14px 28px
+    );
   }
 }
 
 /* Printable sheets (issue #333): A4 portrait, black on white, no app chrome. */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-auth-in {
+    animation: none;
+  }
+}
+
 @media print {
   @page {
     size: A4 portrait;

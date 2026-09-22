@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# verify.sh — the Gymfreek green-gate.
+# verify.sh — the 100XU green-gate.
 #
 # This is the self-verification step every autonomous loop must pass before it
 # claims a task is done (see docs/loops/). It mirrors the CI "quality" + "build"
@@ -37,7 +37,7 @@ FULL=0
 fail() { echo ""; echo "❌ GREEN-GATE FAILED at: $1"; exit 1; }
 step() { echo ""; echo "▶ $1"; }
 
-echo "Gymfreek green-gate — node $(node -v 2>/dev/null || echo '??'), npm $(npm -v 2>/dev/null || echo '??')"
+echo "100XU green-gate — node $(node -v 2>/dev/null || echo '??'), npm $(npm -v 2>/dev/null || echo '??')"
 
 step "prisma generate"
 npx prisma generate >/dev/null || fail "prisma generate"

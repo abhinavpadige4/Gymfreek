@@ -9,7 +9,7 @@ on a fix as quickly as we reasonably can.
 
 ## Scope and notes
 
-Gymfreek is self-hosted. Operators are responsible for:
+100XU is self-hosted. Operators are responsible for:
 
 - Setting a strong, unique `JWT_SECRET` (at least 32 characters).
 - Keeping their LLM provider API key (`OPENROUTER_API_KEY`, with `GROQ_API_KEY`

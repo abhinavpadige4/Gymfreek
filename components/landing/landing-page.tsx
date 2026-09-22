@@ -1,14 +1,12 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, BarChart3, Dumbbell, Play, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Stat, TiltCard } from '@/components/landing/hero-visual';
-import { TextHoverEffect } from '@/components/ui/text-hover-effect';
-import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import { LandingFooter } from '@/components/landing/landing-footer';
 
-const MOVEMENTS = [
-  'Kettlebell Swings',
+const MOVEMENTS = [  'Kettlebell Swings',
   'Box Jumps',
   'Thrusters',
   'Burpees',
@@ -35,12 +33,27 @@ const BLOCKS = [
   'Grandmaster Century Summit',
 ];
 
-const DAY_PREVIEW = [
-  ['V1', 'Russian Kettlebell Swings', '16-24 kg'],
-  ['V2', 'Plyo Box Jumps', '24 in box'],
-  ['V3', 'Dual DB Front Squats', '2 x 12.5 kg'],
-  ['V4', 'Hand-Release Push-Ups', 'bodyweight'],
-  ['V5', "Farmer's Carry Paces", '2 x 24 kg'],
+const FEATURES = [
+  {
+    icon: Dumbbell,
+    title: 'AI Workout Tracking',
+    body: 'Accurate rep counting and form analysis.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Track Your Progress',
+    body: 'See real improvements over time.',
+  },
+  {
+    icon: Zap,
+    title: 'Stay Consistent',
+    body: 'Daily workouts, streaks and milestones.',
+  },
+  {
+    icon: Users,
+    title: 'Be Part of a Community',
+    body: 'Challenge yourself with thousands of others.',
+  },
 ];
 
 const BRAINS = [
@@ -67,101 +80,96 @@ export function LandingPage() {
     <main className="flex-1 overflow-x-clip">
       {/* HERO */}
       <section className="bg-grid-volt relative">
+        <div className="bg-stripes h-2.5 w-full" aria-hidden="true" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-14 sm:pt-20">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
-            <Badge className="animate-rise-in bg-volt text-volt-ink hover:bg-volt">
-              100XU Century Challenge - entries open
-            </Badge>
-            <div className="animate-rise-in w-full" style={{ animationDelay: '80ms' }}>
-              <TextHoverEffect text="100XU" />
-            </div>
-            <p
-              className="animate-rise-in max-w-xl text-base text-muted-foreground sm:text-lg"
-              style={{ animationDelay: '160ms' }}
-            >
-              100 days. 1,000 reps a day. Live AI form checks on every rep, voice cues
-              mid-set, and a coach debrief when you finish.
-            </p>
-            <div
-              className="animate-rise-in flex flex-wrap justify-center gap-3"
-              style={{ animationDelay: '240ms' }}
-            >
-              <Button asChild size="lg" className="min-h-tap text-base">
-                <Link href="/signup">Start Day 1</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
-                <Link href="/login">Log in</Link>
-              </Button>
-            </div>
-            <div className="grid w-full max-w-md grid-cols-2 gap-x-4 gap-y-6 pt-2 sm:grid-cols-4">
-              <Stat value={100} suffix="" label="days" />
-              <Stat value={100000} suffix="" label="total reps" />
-              <Stat value={1000} suffix="" label="reps daily" />
-              <Stat value={10} suffix="" label="blocks" />
-            </div>
-          </div>
-
-          <ContainerScroll
-            title={
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                Scroll - your workout, live
+        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-14 sm:pt-20">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div className="flex flex-col items-start gap-6 text-left">
+              <p
+                className="animate-rise-in font-display text-sm tracking-[0.3em] text-muted-foreground"
+              >
+                100 DAYS. A STRONGER YOU.
               </p>
-            }
-          >
-            <TiltCard>
-              <div className="relative mx-auto w-full max-w-sm">
-                <div className="animate-floaty rounded-2xl border border-volt/30 bg-card/90 p-5 shadow-[0_0_80px_-20px_hsl(22_100%_60%/0.5)] backdrop-blur">
-                <div className="flex items-center justify-between">
-                  <p className="font-display text-2xl tracking-wide">DAY 17</p>
-                  <Badge className="bg-volt text-volt-ink hover:bg-volt">LIVE</Badge>
-                </div>
-                <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
-                  Thruster engine - round 6 of 10
-                </p>
-                <ul className="mt-4 flex flex-col gap-2">
-                  {DAY_PREVIEW.map(([v, name, load]) => (
-                    <li
-                      key={v}
-                      className="flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm"
-                    >
-                      <span>
-                        <span className="mr-2 font-display text-volt">{v}</span>
-                        {name}
-                      </span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{load}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 flex items-center justify-between rounded-lg border border-volt/30 bg-volt/10 px-3 py-2 text-sm">
-                  <span>Rep 7 - form score 84</span>
-                  <span className="animate-pulse-glow font-semibold text-volt">
-                    Keep your chest up
-                  </span>
-                </div>
-              </div>
-              <div
-                className="absolute -right-3 -top-4 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
-                style={{ transform: 'translateZ(60px)' }}
+              <h1
+                className="animate-rise-in font-display text-6xl leading-[0.95] tracking-tight sm:text-7xl"
+                style={{ animationDelay: '80ms' }}
               >
-                1,000 reps today
-              </div>
-              <div
-                className="absolute -left-4 bottom-10 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
-                style={{ transform: 'translateZ(40px)' }}
+                TRAIN.
+                <br />
+                TRACK.
+                <br />
+                IMPROVE.
+                <br />
+                <span className="text-volt">TRANSFORM.</span>
+              </h1>
+              <p
+                className="animate-rise-in max-w-md text-base text-muted-foreground sm:text-lg"
+                style={{ animationDelay: '160ms' }}
               >
-                voice cue on
+                Join the 100XU challenge and build a stronger, healthier, more
+                confident you - one day at a time.
+              </p>
+              <div
+                className="animate-rise-in flex flex-wrap gap-3"
+                style={{ animationDelay: '240ms' }}
+              >
+                <Button asChild size="lg" className="min-h-tap text-base">
+                  <Link href="/signup">
+                    Start the 100-Day Challenge
+                    <ArrowRight className="size-5" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
+                  <Link href="/#how">
+                    <Play className="size-5" />
+                    See how it works
+                  </Link>
+                </Button>
+              </div>
+              <div className="grid w-full max-w-md grid-cols-2 gap-x-4 gap-y-6 pt-2 sm:grid-cols-4">
+                <Stat value={100} suffix="" label="days" />
+                <Stat value={100000} suffix="" label="total reps" />
+                <Stat value={1000} suffix="" label="reps daily" />
+                <Stat value={10} suffix="" label="blocks" />
               </div>
             </div>
-          </TiltCard>
-          </ContainerScroll>
-          <div className="flex flex-wrap justify-center gap-3 pb-14">
-            <Button asChild size="lg" className="min-h-tap text-base">
-              <Link href="/signup">Start Day 1 - Rs 2,999</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
-              <Link href="/login">Log in to train</Link>
-            </Button>
+
+            <TiltCard>
+              <div className="relative mx-auto w-full max-w-md">
+                <div className="animate-floaty overflow-hidden rounded-2xl border border-volt/30 shadow-[0_0_80px_-20px_hsl(22_92%_49%/0.5)]">
+                  <Image
+                    src="/landing/hero-girl.png"
+                    alt="Athlete ready to train for the 100XU challenge"
+                    width={1024}
+                    height={1365}
+                    priority
+                    className="h-auto w-full object-cover"
+                  />
+                </div>
+                <div
+                  className="absolute -right-3 -top-4 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
+                  style={{ transform: 'translateZ(60px)' }}
+                >
+                  1,000 reps today
+                </div>
+                <div
+                  className="absolute -left-4 bottom-10 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
+                  style={{ transform: 'translateZ(40px)' }}
+                >
+                  form score 84
+                </div>
+                <p
+                  className="absolute -right-2 top-1/3 rotate-6 font-display text-2xl leading-tight text-volt sm:text-3xl"
+                  style={{ transform: 'translateZ(50px) rotate(6deg)' }}
+                >
+                  BETTER
+                  <br />
+                  THAN
+                  <br />
+                  YESTERDAY
+                </p>
+              </div>
+            </TiltCard>
           </div>
         </div>
 
@@ -177,9 +185,23 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* FEATURES */}
+      <section className="border-b border-border">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="flex flex-col items-center gap-2 text-center">
+              <f.icon className="size-8 text-volt" strokeWidth={1.5} />
+              <p className="font-semibold">{f.title}</p>
+              <p className="max-w-[16rem] text-sm text-muted-foreground">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="how" className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+        <p className="font-display text-sm tracking-[0.3em] text-volt">FIELD MANUAL - 01</p>
+        <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
           HOW IT <span className="text-volt">WORKS</span>
         </h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -216,7 +238,71 @@ export function LandingPage() {
       {/* CHALLENGE */}
       <section id="challenge" className="border-y border-border bg-card/40">
         <div className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <TiltCard>
+              <div className="relative mx-auto w-full max-w-md">
+                <div className="animate-floaty overflow-hidden rounded-2xl border border-volt/30 shadow-[0_0_80px_-20px_hsl(22_92%_49%/0.5)]">
+                  <Image
+                    src="/landing/challenge-boy.png"
+                    alt="Athlete wearing the 100XU vest"
+                    width={1024}
+                    height={1365}
+                    loading="lazy"
+                    className="h-auto w-full object-cover"
+                  />
+                </div>
+                <div
+                  className="absolute -right-3 top-8 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
+                  style={{ transform: 'translateZ(60px)' }}
+                >
+                  DAY 47 / 100
+                </div>
+                <div
+                  className="absolute -left-4 bottom-10 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
+                  style={{ transform: 'translateZ(40px)' }}
+                >
+                  streak 12 days
+                </div>
+              </div>
+            </TiltCard>
+            <div className="flex flex-col items-start gap-4">
+              <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
+                THE 100-DAY CHALLENGE
+              </p>
+              <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+                DISCIPLINE
+                <br />
+                BUILDS <span className="text-volt">FREEDOM.</span>
+              </h2>
+              <p className="max-w-md text-muted-foreground">
+                Structured workouts, intelligent tracking and real coaching to
+                help you show up, stay consistent and see real results in 100 days.
+              </p>
+              <div className="grid w-full max-w-md grid-cols-2 gap-6 pt-2 sm:grid-cols-4">
+                {[
+                  ['100', 'Days'],
+                  ['30+', 'Exercises'],
+                  ['AI', 'Form Analysis'],
+                  ['Stronger', 'You'],
+                ].map(([v, label]) => (
+                  <div key={label} className="flex flex-col border-l border-border pl-3">
+                    <span className="font-display text-2xl">{v}</span>
+                    <span className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <Button asChild size="lg" className="min-h-tap mt-2 text-base">
+                <Link href="/signup">
+                  Start the 100-Day Challenge
+                  <ArrowRight className="size-5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+          <p className="mt-16 font-display text-sm tracking-[0.3em] text-volt">THE PROGRAM - 02</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
             10 BLOCKS. <span className="text-volt">100 DAYS.</span>
           </h2>
           <p className="mt-3 max-w-xl text-muted-foreground">
@@ -240,7 +326,8 @@ export function LandingPage() {
 
       {/* AI ENGINE */}
       <section id="ai" className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+        <p className="font-display text-sm tracking-[0.3em] text-volt">THE MACHINE - 03</p>
+        <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
           FOUR BRAINS. <span className="text-volt">ONE COACH.</span>
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -260,13 +347,37 @@ export function LandingPage() {
         </p>
       </section>
 
+      {/* CTA BANNER */}
+      <section className="relative overflow-hidden border-t border-border">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(22_92%_49%/0.22),transparent_65%)]" />
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-20 text-center">
+          <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
+            READY TO TRANSFORM?
+          </p>
+          <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+            YOUR STRONGER SELF STARTS <span className="text-volt">TODAY.</span>
+          </h2>
+          <p className="max-w-xl text-muted-foreground">
+            Join the 100XU challenge and take the first step towards a
+            healthier, stronger you.
+          </p>
+          <Button asChild size="lg" className="min-h-tap mt-2 text-base">
+            <Link href="/signup">
+              Get Started Now
+              <ArrowRight className="size-5" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="pricing" className="border-t border-border">
         <div className="mx-auto max-w-xl px-4 py-16 text-center">
-          <h2 className="font-display text-4xl tracking-tight sm:text-5xl">
+          <p className="font-display text-sm tracking-[0.3em] text-volt">ENLIST - 04</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
             ONE PRICE. <span className="text-volt">100 DAYS.</span>
           </h2>
-          <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_100%_60%/0.6)]">
+          <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
             <CardContent className="flex flex-col items-center gap-4 p-8">
               <p className="font-display text-6xl">
                 Rs 2,999 <span className="text-lg text-muted-foreground">one-time</span>
@@ -288,6 +399,7 @@ export function LandingPage() {
         </div>
       </section>
 
+      <div className="bg-stripes h-2.5 w-full" aria-hidden="true" />
       <LandingFooter />
     </main>
   );

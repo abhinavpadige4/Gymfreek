@@ -3,6 +3,8 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const programs = {
   title: 'Программы',
+  subtitle: 'Структурные тренировки под ваши цели.',
+  sessionsProgressLabel: 'занятий',
   count:
     '{count, plural, =0 {Нет программ} one {# программа} few {# программы} many {# программ} other {# программы}}.',
   generateWithAi: 'Создать с ИИ',
@@ -10,6 +12,7 @@ export const programs = {
   noProgram: 'Нет программ',
   noProgramDescription: 'Создайте первую программу, чтобы начать тренировку.',
   active: 'Активна',
+  recommended: 'Рекомендуем',
   startedOn: '{phase} · начало: {date}',
   listSummary:
     '{workouts, plural, one {# тренировка} few {# тренировки} many {# тренировок} other {# тренировки}} · {logged, plural, one {# выполненная} few {# выполненные} many {# выполненных} other {# выполненные}}',

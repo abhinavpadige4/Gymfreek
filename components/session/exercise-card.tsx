@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { ChevronDown, ChevronUp, HelpCircle, Lightbulb, TrendingUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, HelpCircle, Lightbulb, TrendingUp, Video } from 'lucide-react';
 import type { Exercise, ProgramExercise, WeightUnit } from '@/lib/prisma-client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LiveWorkout } from '@/components/workout/live-workout';
+import { createAnalyzer } from '@/lib/form-engine/registry';
 import { exerciseCategoryMessageKeys, muscleGroupMessageKeys } from '@/i18n/enum-keys';
 import {
   suggestNextWeight,
@@ -38,6 +41,10 @@ interface Props {
   unit: WeightUnit;
   gymName?: string | null;
   loadConstraints?: GymLoadConstraints | null;
+  // Session-runner callback: receives the camera rep count when the
+  // form-check overlay finishes. Absent (tests, other hosts), the overlay
+  // runs standalone exactly like the /workout/live page.
+  onCameraReps?: (reps: number) => void;
 }
 
 export function ExerciseCard({
@@ -48,6 +55,7 @@ export function ExerciseCard({
   unit,
   gymName = null,
   loadConstraints = null,
+  onCameraReps,
 }: Props) {
   const t = useTranslations('session.exerciseCard');
   const exerciseT = useTranslations('exercises');
@@ -56,7 +64,11 @@ export function ExerciseCard({
   const format = useFormatter();
   const [notesOpen, setNotesOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [camOpen, setCamOpen] = useState(false);
   const exo = programExercise.exercise;
+  // Form check lives in an overlay on this page, not on a separate page:
+  // the camera counts, closing hands the reps to the set form below.
+  const camSupported = createAnalyzer(exo.name) !== null;
   // Cardio exercises (issue #133) are duration/distance based: the weight x
   // reps targets, load suggestion and last-performance load make no sense for
   // them, so those blocks are hidden.
@@ -144,7 +156,34 @@ export function ExerciseCard({
           exerciseName={exo.name}
           displayName={exerciseName(exo.name)}
           equipmentType={exo.equipmentType}
+          notes={exo.notes}
         />
+        {camSupported && (
+          <>
+            <Button variant="outline" size="sm" className="mt-2" onClick={() => setCamOpen(true)}>
+              <Video className="size-4" />
+              <span className="ml-2">{t('liveFormCheck')}</span>
+            </Button>
+            <Dialog open={camOpen} onOpenChange={setCamOpen}>
+              <DialogContent className="max-h-[90dvh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{t('liveFormCheck')}</DialogTitle>
+                </DialogHeader>
+                <LiveWorkout
+                  exercise={exo.name}
+                  onCount={
+                    onCameraReps
+                      ? (reps) => {
+                          setCamOpen(false);
+                          onCameraReps(reps);
+                        }
+                      : undefined
+                  }
+                />
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
         {/* Exercise cue (issue #224): when the exercise carries a technique
             note, surface it as an always-visible muted line right under the
             header so the form reminder is there exactly while logging the set.

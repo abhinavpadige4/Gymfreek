@@ -1,6 +1,6 @@
-# Gymfreek
+# 100XU
 
-AI fitness coach with live form checks and the 100XU century challenge. Train 100 days, 1,000 reps a day, with your camera as the referee and AI as the coach.
+AI fitness coach with live form checks and the century challenge. Train 100 days, 1,000 reps a day, with your camera as the referee and AI as the coach.
 
 [![CI](https://github.com/abhinavpadige4/Gymfreek/actions/workflows/ci.yml/badge.svg)](https://github.com/abhinavpadige4/Gymfreek/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

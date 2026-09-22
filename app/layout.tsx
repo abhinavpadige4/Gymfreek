@@ -14,27 +14,27 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('common.metadata');
 
   return {
-    title: 'Gymfreek',
+    title: '100XU',
     description: t('description'),
-    applicationName: 'Gymfreek',
+    applicationName: '100XU',
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
       statusBarStyle: 'black-translucent',
-      title: 'Gymfreek',
+      title: '100XU',
     },
     icons: {
       icon: [
-        { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        { url: '/icons/icon-192.png?v=2', sizes: '192x192', type: 'image/png' },
+        { url: '/icons/icon-512.png?v=2', sizes: '512x512', type: 'image/png' },
       ],
-      apple: '/icons/apple-touch-icon.png',
+      apple: '/icons/apple-touch-icon.png?v=2',
     },
   };
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0B0E0C',
+  themeColor: '#050505',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

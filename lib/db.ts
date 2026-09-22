@@ -1,5 +1,6 @@
 import { PrismaClient } from '@/prisma/generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { normalizeDatabaseUrl } from './db-url';
 
 // Singleton pattern recommended by Prisma in dev (avoids
 // multiple connections on Next.js hot-reload).
@@ -14,7 +15,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createClient(): PrismaClient {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg({ connectionString: normalizeDatabaseUrl(process.env.DATABASE_URL) });
   return new PrismaClient({
     adapter,
     // Query logging off even in dev: it spams the terminal on Neon latency

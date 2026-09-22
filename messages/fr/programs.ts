@@ -3,12 +3,15 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const programs = {
   title: 'Programmes',
+  subtitle: 'Un entraînement structuré autour de vos objectifs.',
+  sessionsProgressLabel: 'séances',
   count: '{count, plural, =0 {Aucun programme} one {# programme} other {# programmes}}.',
   generateWithAi: 'Générer avec l’IA',
   create: 'Créer',
   noProgram: 'Aucun programme',
   noProgramDescription: 'Créez votre premier programme pour pouvoir démarrer une séance.',
   active: 'Actif',
+  recommended: 'Recommandé',
   startedOn: '{phase} · démarré le {date}',
   listSummary:
     '{workouts, plural, one {# séance} other {# séances}} · {logged, plural, one {# séance enregistrée} other {# séances enregistrées}}',

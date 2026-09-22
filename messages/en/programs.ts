@@ -1,11 +1,14 @@
 export const programs = {
   title: 'Programs',
+  subtitle: 'Structured training built around your goals.',
+  sessionsProgressLabel: 'sessions',
   count: '{count, plural, =0 {No programs} one {# program} other {# programs}}.',
   generateWithAi: 'Generate with AI',
   create: 'Create',
   noProgram: 'No program',
   noProgramDescription: 'Create your first program so you can start a session.',
   active: 'Active',
+  recommended: 'Recommended',
   startedOn: '{phase} · started on {date}',
   listSummary:
     '{workouts, plural, one {# session} other {# sessions}} · {logged, plural, one {# logged session} other {# logged sessions}}',

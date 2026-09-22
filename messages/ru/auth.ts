@@ -3,10 +3,12 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const auth = {
   login: {
-    title: 'Вход',
-    description: 'Откройте свой дневник тренировок.',
+    title: 'С возвращением',
+    description: 'Войдите, чтобы продолжить тренировки.',
     submit: 'Войти',
     submitting: 'Вход...',
+    emailPlaceholder: 'Введите email',
+    passwordPlaceholder: 'Введите пароль',
     demoTitle: 'Демо-аккаунт',
     demoSubmit: 'Войти в демо',
     noAccount: 'Ещё нет аккаунта?',
@@ -18,6 +20,9 @@ export const auth = {
     description: 'Начните вести дневник тренировок.',
     submit: 'Создать аккаунт',
     submitting: 'Создание аккаунта...',
+    namePlaceholder: 'Введите имя',
+    emailPlaceholder: 'Введите email',
+    passwordPlaceholder: 'Придумайте пароль',
     hasAccount: 'Уже есть аккаунт?',
     signIn: 'Войти',
     error: 'Не удалось зарегистрироваться.',

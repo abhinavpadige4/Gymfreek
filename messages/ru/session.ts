@@ -191,6 +191,7 @@ export const session = {
   },
   exerciseCard: {
     notAvailable: 'Нет в этом зале',
+    liveFormCheck: 'Проверка техники',
     cardioPrescription:
       '{sets, plural, one {# подход} few {# подхода} many {# подходов} other {# подхода}} · отдых {seconds} с',
     strengthPrescription:
