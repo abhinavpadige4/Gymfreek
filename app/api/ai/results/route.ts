@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
 import { workoutResultsSchema } from '@/lib/schemas/ai';
 import { advanceEnrollment } from '@/lib/challenge-progress';
+import { isValidAttempt } from '@/lib/challenge-rules';
 
 // POST /api/ai/results: stores one completed live workout - session, per-exercise
 // counts/scores and form issues. Structured JSON only; video is never accepted.
@@ -15,7 +16,10 @@ export async function POST(req: Request) {
 
     let advance: { id: string; status: 'ACTIVE' | 'COMPLETED'; currentDay: number } | null =
       null;
-    if (data.challengeDayId) {
+    // Challenge race rule: over-time attempts are stored but never advance.
+    // The day must be redone inside 25 min to count.
+    const validAttempt = isValidAttempt(data.durationSec);
+    if (data.challengeDayId && validAttempt) {
       const day = await db.challengeDay.findUnique({ where: { id: data.challengeDayId } });
       if (!day) throw new ApiError(404, 'Not found.');
       if (data.challengeId && day.challengeId !== data.challengeId) {
@@ -75,6 +79,7 @@ export async function POST(req: Request) {
       {
         id: session.id,
         results: session.results.length,
+        valid: validAttempt,
         enrollment: advance
           ? { status: advance.status, currentDay: advance.currentDay }
           : undefined,

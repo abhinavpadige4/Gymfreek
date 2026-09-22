@@ -5,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProgramCreateForm } from '@/components/programs/program-create-form';
 
-export default async function NewProgramPage() {
+export default async function NewProgramPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ trial?: string }>;
+}) {
   const t = await getTranslations('programs');
   const common = await getTranslations('common');
+  const trial = (await searchParams)?.trial === '1';
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -37,7 +42,18 @@ export default async function NewProgramPage() {
           </CardContent>
         </Card>
 
-        <ProgramCreateForm />
+        {trial ? (
+          <Card>
+            <CardContent className="flex flex-col gap-2 pt-6 text-sm">
+              <p>Free trial includes templates only.</p>
+              <Button asChild className="min-h-tap">
+                <Link href="/programs/new/template">Browse templates</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <ProgramCreateForm />
+        )}
       </div>
     </main>
   );

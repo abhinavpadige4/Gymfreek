@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChallengeJoinButton } from '@/components/challenges/challenge-join-button';
+import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 
 export default async function ChallengeDetailPage({
   params,
@@ -21,6 +23,22 @@ export default async function ChallengeDetailPage({
   const enrollment = await db.enrollment.findUnique({
     where: { userId_challengeId: { userId: session.userId, challengeId: challenge.id } },
   });
+  const bestSessions = enrollment
+    ? await db.workoutSession.findMany({
+        where: {
+          userId: session.userId,
+          challengeId: challenge.id,
+          durationSec: { lte: CHALLENGE_DAY_CAP_SEC, gt: 0 },
+        },
+        select: { challengeDayId: true, durationSec: true },
+      })
+    : [];
+  const bestByDay = new Map<string, number>();
+  for (const s of bestSessions) {
+    if (!s.challengeDayId || s.durationSec == null) continue;
+    const prev = bestByDay.get(s.challengeDayId);
+    if (prev == null || s.durationSec < prev) bestByDay.set(s.challengeDayId, s.durationSec);
+  }
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -39,6 +57,41 @@ export default async function ChallengeDetailPage({
               : null
           }
         />
+        <Link
+          href={`/challenges/${challenge.slug}/leaderboard`}
+          className="text-sm text-volt underline-offset-4 hover:underline"
+        >
+          View leaderboard
+        </Link>
+        {enrollment?.status === 'ACTIVE' && (
+          <div className="grid grid-cols-10 gap-1" aria-label="Daily tracker">
+            {challenge.days.map((d) => {
+              const isCurrent = d.dayNumber === enrollment.currentDay;
+              const best = bestByDay.get(d.id);
+              return (
+                <Link
+                  key={d.id}
+                  href={isCurrent ? `/challenges/${challenge.slug}/day/${d.dayNumber}` : '#'}
+                  aria-disabled={!isCurrent}
+                  title={
+                    best != null
+                      ? `Day ${d.dayNumber} best ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`
+                      : `Day ${d.dayNumber}`
+                  }
+                  className={`flex aspect-square items-center justify-center rounded-sm border text-[10px] tabular-nums ${
+                    best != null
+                      ? 'border-[#35C759]/40 bg-[#35C759]/10'
+                      : isCurrent
+                        ? 'border-volt/60 bg-volt/10 font-bold'
+                        : 'border-border text-muted-foreground'
+                  }`}
+                >
+                  {d.dayNumber}
+                </Link>
+              );
+            })}
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           {challenge.days.slice(0, 3).map((d) => (
             <Card key={d.id}>
