@@ -37,8 +37,8 @@ import {
   isSupersetTransitionRest,
   nextAutoAdvanceIndex,
   nextNavIndex,
-  SUPERSET_TRANSITION_REST_SEC,
 } from '@/lib/supersets';
+import { sessionRestSec } from '@/lib/session-rest';
 import { isReadinessAutoRegulationEnabled } from '@/lib/preferences';
 import {
   bindAutoSync,
@@ -105,6 +105,8 @@ type SessionRunnerProps = {
   // step down and the runner shows a "Deload week" badge.
   deloadActive: boolean;
   unit: WeightUnit;
+  // Members with a flagged condition/injury never rest below 30s.
+  medicalRest: boolean;
   initialProgramExerciseId?: string;
 };
 
@@ -120,6 +122,7 @@ export function SessionRunner({
   readiness,
   deloadActive,
   unit,
+  medicalRest,
   initialProgramExerciseId,
 }: SessionRunnerProps) {
   const t = useTranslations('session');
@@ -394,8 +397,14 @@ export function SessionRunner({
     // Superset-aware rest (issue #189): a short transition rest when the
     // auto-advance moves to another member of the same group (A1 -> A2); the
     // full per-exercise rest after the last member and for standalone work.
+    // Members with a medical flag never drop below 30s (same product rule
+    // as the challenge 30s medical rest).
     const transition = isSupersetTransitionRest(supersetView, currentIdx, nextIdx);
-    const restSec = transition ? SUPERSET_TRANSITION_REST_SEC : currentTarget.restSec;
+    const restSec = sessionRestSec({
+      transition,
+      configuredSec: currentTarget.restSec,
+      medicalRest,
+    });
 
     setMode({
       kind: 'rest',

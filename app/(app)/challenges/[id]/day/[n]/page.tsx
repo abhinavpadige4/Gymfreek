@@ -3,7 +3,7 @@ import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DayRunner } from '@/components/challenges/day-runner';
-import { restFor } from '@/lib/challenge-rules';
+import { restFor, requiredTasksForDay } from '@/lib/challenge-rules';
 
 export default async function ChallengeDayPage({
   params,
@@ -36,6 +36,7 @@ export default async function ChallengeDayPage({
     select: { medicalConditions: true, injuries: true },
   });
   const restSec = restFor(`${user?.medicalConditions ?? ''} ${user?.injuries ?? ''}`);
+  const requiredTasks = requiredTasksForDay(dayNumber, day.tasks.length);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -46,7 +47,12 @@ export default async function ChallengeDayPage({
         {day.focus && <p className="text-sm text-muted-foreground">{day.focus}</p>}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Today circuit - 25:00 cap</CardTitle>
+            <CardTitle className="text-sm">
+              Today circuit - 55:00 cap
+              {requiredTasks < day.tasks.length
+                ? ` - recovery, any ${requiredTasks} of ${day.tasks.length}`
+                : null}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <DayRunner
@@ -57,6 +63,7 @@ export default async function ChallengeDayPage({
                 loadLabel: t.loadLabel,
               }))}
               restSec={restSec}
+              requiredTasks={requiredTasks}
             />
           </CardContent>
         </Card>

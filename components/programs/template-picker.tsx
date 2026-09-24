@@ -28,7 +28,7 @@ export function TemplatePicker({ templates }: Props) {
       const res = await fetch('/api/programs/from-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(template.program),
+        body: JSON.stringify({ program: template.program, templateSlug: template.slug }),
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
@@ -44,45 +44,59 @@ export function TemplatePicker({ templates }: Props) {
     }
   }
 
+  const free = templates.filter((template) => template.free);
+  const advanced = templates.filter((template) => !template.free);
+
+  function renderCard(template: ProgramTemplate, recommended: boolean) {
+    const dayCount = template.program.workouts.length;
+    return (
+      <Card
+        key={template.slug}
+        className={recommended ? 'border-volt/50' : undefined}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold">
+                {template.name}
+                {recommended && <Badge>{t('recommended')}</Badge>}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">{template.summary}</p>
+            </div>
+            <Badge variant="secondary" className="shrink-0">
+              {t('dayCount', { count: dayCount })}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <p className="text-xs text-muted-foreground">{template.attribution}</p>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              className="min-h-tap"
+              disabled={creatingSlug !== null}
+              onClick={() => instantiate(template)}
+            >
+              {creatingSlug === template.slug ? t('creating') : t('templateUse')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      {templates.map((template, index) => {
-        const dayCount = template.program.workouts.length;
-        return (
-          <Card
-            key={template.slug}
-            className={index === 0 ? 'border-volt/50' : undefined}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold">
-                    {template.name}
-                    {index === 0 && <Badge>{t('recommended')}</Badge>}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{template.summary}</p>
-                </div>
-                <Badge variant="secondary" className="shrink-0">
-                  {t('dayCount', { count: dayCount })}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground">{template.attribution}</p>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  className="min-h-tap"
-                  disabled={creatingSlug !== null}
-                  onClick={() => instantiate(template)}
-                >
-                  {creatingSlug === template.slug ? t('creating') : t('templateUse')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+      <h2 className="text-lg font-semibold">{t('freePrograms')}</h2>
+      {free.map((template, index) => renderCard(template, index === 0))}
+      {advanced.length > 0 && (
+        <details className="flex flex-col gap-4">
+          <summary className="cursor-pointer text-lg font-semibold">
+            {t('advancedPrograms')}
+          </summary>
+          {advanced.map((template) => renderCard(template, false))}
+        </details>
+      )}
     </div>
   );
 }

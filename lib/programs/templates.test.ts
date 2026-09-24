@@ -4,6 +4,11 @@ import {
   getTemplateBySlug,
 } from './templates';
 import { generatedProgramSchema } from '@/lib/schemas/program-generation';
+import { EXERCISE_CATALOG } from '@/lib/exercise-catalog';
+import { createAnalyzer } from '@/lib/form-engine/registry';
+import { BASIC_EXERCISE_NAMES } from '@/lib/basic-exercises';
+import { TRIAL_BLOCK } from '@/lib/challenge-blueprint';
+import { catalogNameFor } from '@/lib/exercise-aliases';
 
 describe('program templates', () => {
   it('ships at least the four required established programs', () => {
@@ -88,5 +93,49 @@ describe('program templates', () => {
   it('looks up a template by slug and returns undefined for an unknown slug', () => {
     expect(getTemplateBySlug('ppl-6day')?.name).toBe('Push / Pull / Legs (6-day)');
     expect(getTemplateBySlug('does-not-exist')).toBeUndefined();
+  });
+
+  it('ships seven free beginner templates with plain-language names', () => {
+    const free = programTemplates.filter((t) => t.free);
+    expect(free.map((t) => t.slug).sort()).toEqual(
+      [
+        'conditioning-basics',
+        'dumbbell-basics',
+        'full-body-basics',
+        'kettlebell-foundations',
+        'legs-day-basics',
+        'pull-day-basics',
+        'push-day-basics',
+      ].sort(),
+    );
+    for (const t of free) {
+      expect(t.name.length).toBeGreaterThan(0);
+      expect(t.summary.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('every free-template exercise exists in the catalog exactly and is AI-mapped', () => {
+    const catalogNames = new Set(EXERCISE_CATALOG.map((e) => e.name));
+    for (const t of programTemplates.filter((x) => x.free)) {
+      for (const w of t.program.workouts) {
+        expect(w.exercises.length).toBeGreaterThan(0);
+        for (const e of w.exercises) {
+          expect(catalogNames.has(e.name), `${t.slug}: ${e.name} not in catalog`).toBe(true);
+          expect(
+            createAnalyzer(e.name) !== null,
+            `${t.slug}: ${e.name} has no AI form check`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('the basics set covers the free-trial exceptions', () => {
+    for (const t of TRIAL_BLOCK.tasks) {
+      const mapped = catalogNameFor(t.name);
+      expect(mapped, `trial task unmapped: ${t.name}`).not.toBeNull();
+      expect(BASIC_EXERCISE_NAMES.has(mapped!)).toBe(true);
+    }
+    expect(BASIC_EXERCISE_NAMES.size).toBeGreaterThan(20);
   });
 });

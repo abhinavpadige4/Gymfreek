@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { ExercisesView } from '@/components/exercises/exercises-view';
+import { isVisibleExercise } from '@/lib/basic-exercises';
 
 export default async function ExercisesPage() {
   const session = await requireSession();
@@ -11,7 +12,7 @@ export default async function ExercisesPage() {
 
   return (
     <main className="flex-1 px-4 py-6">
-      <ExercisesView exercises={exercises} />
+      <ExercisesView exercises={exercises.filter((e) => isVisibleExercise(e.name))} />
     </main>
   );
 }

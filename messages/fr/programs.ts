@@ -12,6 +12,8 @@ export const programs = {
   noProgramDescription: 'Créez votre premier programme pour pouvoir démarrer une séance.',
   active: 'Actif',
   recommended: 'Recommandé',
+  freePrograms: 'Commencez ici - bases coachées',
+  advancedPrograms: 'Programmes avancés',
   startedOn: '{phase} · démarré le {date}',
   listSummary:
     '{workouts, plural, one {# séance} other {# séances}} · {logged, plural, one {# séance enregistrée} other {# séances enregistrées}}',
@@ -52,6 +54,7 @@ export const programs = {
   deleting: 'Suppression...',
   templateCreated: 'Programme créé depuis le modèle.',
   templateUse: 'Utiliser ce modèle',
+  startWorkout: 'Démarrer la séance',
   dayCount: '{count, plural, one {# jour} other {# jours}}',
   workout: {
     actions: 'Actions de la séance',

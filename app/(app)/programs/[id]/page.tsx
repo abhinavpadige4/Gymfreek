@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { ProgramDetailView } from '@/components/programs/program-detail-view';
+import { isVisibleExercise } from '@/lib/basic-exercises';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -35,7 +36,10 @@ export default async function ProgramDetailPage(props: Props) {
 
   return (
     <main className="flex-1 px-4 py-6">
-      <ProgramDetailView program={program} catalog={exercisesCatalog} />
+      <ProgramDetailView
+        program={program}
+        catalog={exercisesCatalog.filter((e) => isVisibleExercise(e.name))}
+      />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -64,9 +65,9 @@ export function AdminUsers({
         {error && <p className="text-sm text-destructive">{error}</p>}
         {users.map((u) => (
           <div key={u.id} className="flex items-center justify-between gap-2">
-            <span className="min-w-0 truncate">
+            <Link href={`/admin/users/${u.id}`} className="min-w-0 truncate hover:underline">
               {u.displayName ?? u.email} <span className="text-muted-foreground">{u.email}</span>
-            </span>
+            </Link>
             <span className="flex shrink-0 items-center gap-2">
               <Badge variant={u.role === 'ADMIN' ? undefined : 'secondary'}>{u.role}</Badge>
               <Button

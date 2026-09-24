@@ -34,6 +34,12 @@ export const enrollSchema = z.object({
   challengeId: z.string().min(1),
 });
 
+export const enrollmentUpdateSchema = z.object({
+  enrollmentId: z.string().min(1),
+  status: z.enum(['ACTIVE', 'CANCELLED']),
+  currentDay: z.number().int().min(1).max(365).optional(),
+});
+
 export const createOrderSchema = z.object({
   enrollmentId: z.string().min(1),
 });

@@ -587,6 +587,56 @@ export const EXERCISE_CATALOG: CatalogExercise[] = [
     notes: 'Step up onto box center, pivot, and step down facing opposite side smoothly. Load: 20-24 inch Box.',
   },
   {
+    name: 'Plyo box high jumps',
+    muscleGroup: MuscleGroup.QUADS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.BODYWEIGHT,
+    defaultRestSec: 90,
+    usesBodyweight: true,
+    notes: 'Vertical explosion, land softly, stand to complete hip lockout at top. Load: 24 inch Box.',
+  },
+  {
+    name: 'Box lateral step-ups with high knee',
+    muscleGroup: MuscleGroup.QUADS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.BODYWEIGHT,
+    defaultRestSec: 90,
+    usesBodyweight: true,
+    notes: 'Stand beside box, step up laterally, drive opposite knee to chest level. Load: 20-24 inch Box.',
+  },
+  {
+    name: 'Speed farmer carry strides',
+    muscleGroup: MuscleGroup.FOREARMS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.KETTLEBELL,
+    defaultRestSec: 120,
+    notes: 'Fast-turnover sprint strides carrying bells with rigid shoulder control. Load: Dual 16-20 kg KBs.',
+  },
+  {
+    name: 'Box step-overs with dual dumbbells',
+    muscleGroup: MuscleGroup.QUADS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.DUMBBELL,
+    defaultRestSec: 90,
+    notes: 'Hold dumbbells at sides; travel over box top with steady rapid cadence. Load: Dual 8-10 kg DBs + Box.',
+  },
+  {
+    name: 'Heavy Russian kettlebell swings',
+    muscleGroup: MuscleGroup.HAMSTRINGS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.KETTLEBELL,
+    defaultRestSec: 120,
+    notes: 'Brace core, hinge back deep, fire glutes with maximum power to eye height. Load: 24-32 kg KB.',
+  },
+  {
+    name: 'Box step-overs with overhead dumbbell',
+    muscleGroup: MuscleGroup.QUADS,
+    category: ExerciseCategory.COMPOUND,
+    equipmentType: EquipmentType.DUMBBELL,
+    defaultRestSec: 90,
+    notes: 'Punch single DB overhead; step onto and over box without dropping elbow. Load: Single 10-15 kg DB + Box.',
+  },
+  {
     name: 'Burpee broad jumps',
     muscleGroup: MuscleGroup.QUADS,
     category: ExerciseCategory.COMPOUND,
@@ -809,12 +859,16 @@ export const EXERCISE_CATALOG: CatalogExercise[] = [
 
 // Upserts the default catalog for a user. Returns a name -> exercise id map so
 // callers can wire up a starter program. Idempotent (safe to re-run).
+// Pass onlyNames to seed a subset (registration seeds free basics only;
+// challenge-only movements stay out of pickers and custom programs).
 export async function seedExerciseCatalog(
   prisma: PrismaClient,
   userId: string,
+  onlyNames?: Set<string>,
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   for (const data of EXERCISE_CATALOG) {
+    if (onlyNames && !onlyNames.has(data.name)) continue;
     const exercise = await prisma.exercise.upsert({
       where: { userId_name: { userId, name: data.name } },
       update: data,

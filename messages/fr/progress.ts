@@ -7,6 +7,17 @@ export const progress = {
   emptyDescription:
     'Enregistrez quelques séances et vos graphiques et records apparaîtront ici, sur les {weeks} dernières semaines.',
   firstSession: 'Enregistrer votre première séance',
+  summary: {
+    workouts: 'Séances',
+    volume: 'Charge soulevée',
+    streak: 'Série',
+    window: '28 derniers jours',
+    up: '+{n} vs 4 semaines précédentes',
+    down: '-{n} vs 4 semaines précédentes',
+    same: 'Comme les 4 semaines précédentes',
+    streakActive: 'Série de {n} semaines',
+    streakNone: 'Entraînez-vous cette semaine pour commencer',
+  },
   dashboard: {
     maxLoad: 'Charge max et 1RM estimé',
     chooseExercise: 'Choisir un exercice',

@@ -1,5 +1,5 @@
 import { TrendingUp } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -30,6 +30,7 @@ import {
 } from '@/lib/deload';
 import { exerciseRecords } from '@/lib/records';
 import { ProgressDashboard } from '@/components/progress/progress-dashboard';
+import { ProgressSummary, type SummaryCards } from '@/components/progress/progress-summary';
 import { ConsistencyCard } from '@/components/progress/consistency-card';
 import { DeloadBanner } from '@/components/progress/deload-banner';
 import { BodyweightCard } from '@/components/progress/bodyweight-card';
@@ -446,6 +447,52 @@ export default async function ProgressPage(
   const deloadActive = isDeloadActive(user?.deloadUntil ?? null, new Date());
   const deloadUntilIso = deloadActive ? user!.deloadUntil!.toISOString() : null;
 
+  // Plain-language 28-day recap (display-only): sessions and lifted volume
+  // this window vs the prior one, plus the current week streak. Derived from
+  // the rows already fetched above; no extra queries.
+  const locale = await getLocale();
+  const nowMs = Date.now();
+  const windowMs = 28 * 24 * 60 * 60 * 1000;
+  const inBackWindow = (d: Date, back: number) => {
+    const age = nowMs - d.getTime();
+    return age >= back * windowMs && age < (back + 1) * windowMs;
+  };
+  const recentSessionCount = finishedSessions.filter((s) => inBackWindow(s.startedAt, 0)).length;
+  const priorSessionCount = finishedSessions.filter((s) => inBackWindow(s.startedAt, 1)).length;
+  const volumeIn = (back: number) =>
+    weeklySetsRaw
+      .filter((s) => !s.isWarmup && inBackWindow(s.session.startedAt, back))
+      .reduce((sum, s) => sum + (s.weight ?? 0) * s.reps, 0);
+  const recentVolume = volumeIn(0);
+  const priorVolume = volumeIn(1);
+  const fmtInt = (n: number) => Math.round(n).toLocaleString(locale);
+  const deltaLine = (diff: number, suffix: string) =>
+    diff === 0
+      ? t('summary.same')
+      : diff > 0
+        ? t('summary.up', { n: `${fmtInt(diff)}${suffix}` })
+        : t('summary.down', { n: `${fmtInt(-diff)}${suffix}` });
+  const summaryCards: SummaryCards[] = [
+    {
+      title: t('summary.workouts'),
+      value: fmtInt(recentSessionCount),
+      sub: `${deltaLine(recentSessionCount - priorSessionCount, '')} · ${t('summary.window')}`,
+    },
+    {
+      title: t('summary.volume'),
+      value: `${fmtInt(recentVolume)} ${unit}`,
+      sub: `${deltaLine(recentVolume - priorVolume, ` ${unit}`)} · ${t('summary.window')}`,
+    },
+    {
+      title: t('summary.streak'),
+      value: fmtInt(consistency.currentStreak),
+      sub:
+        consistency.currentStreak > 0
+          ? t('summary.streakActive', { n: consistency.currentStreak })
+          : t('summary.streakNone'),
+    },
+  ];
+
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -497,6 +544,7 @@ export default async function ProgressPage(
             {(deload.recommended || deloadActive) && (
               <DeloadBanner reasons={deload.reasons} deloadUntil={deloadUntilIso} />
             )}
+            <ProgressSummary cards={summaryCards} />
             <ConsistencyCard
               weeks={consistency.weeks}
               currentStreak={consistency.currentStreak}

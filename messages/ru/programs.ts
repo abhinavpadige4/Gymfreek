@@ -13,6 +13,8 @@ export const programs = {
   noProgramDescription: 'Создайте первую программу, чтобы начать тренировку.',
   active: 'Активна',
   recommended: 'Рекомендуем',
+  freePrograms: 'Начните здесь - база с тренером',
+  advancedPrograms: 'Продвинутые программы',
   startedOn: '{phase} · начало: {date}',
   listSummary:
     '{workouts, plural, one {# тренировка} few {# тренировки} many {# тренировок} other {# тренировки}} · {logged, plural, one {# выполненная} few {# выполненные} many {# выполненных} other {# выполненные}}',
@@ -52,6 +54,7 @@ export const programs = {
   deleting: 'Удаление...',
   templateCreated: 'Программа создана из шаблона.',
   templateUse: 'Использовать шаблон',
+  startWorkout: 'Начать тренировку',
   dayCount: '{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}',
   workout: {
     actions: 'Действия с тренировкой',

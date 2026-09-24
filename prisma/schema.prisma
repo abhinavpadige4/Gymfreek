@@ -216,6 +216,9 @@ model Program {
   description String?
   phase       String
   isActive    Boolean   @default(false)
+  // Set when the program was instantiated from a built-in template.
+  // Template programs render locked (start-only, no builder controls).
+  sourceTemplateSlug String?
   startDate   DateTime  @default(now())
   endDate     DateTime?
   createdAt   DateTime  @default(now())

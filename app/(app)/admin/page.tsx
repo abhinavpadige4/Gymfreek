@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ReadinessTable } from '@/components/admin/readiness-table';
 import { AdminUsers } from '@/components/admin/admin-users';
+import { AdminEnrollments } from '@/components/admin/admin-enrollments';
+import { AdminChallengeCreate } from '@/components/admin/admin-challenge-create';
 
 export default async function AdminPage() {
   const session = await requireSession();
@@ -36,27 +38,36 @@ export default async function AdminPage() {
 
   const dayStart = new Date();
   dayStart.setHours(0, 0, 0, 0);
-  const [challenges, users, enrollments, userCount, workoutsToday, uploads] = await Promise.all([
-    db.challenge.findMany({
-      orderBy: { createdAt: 'asc' },
-      include: { _count: { select: { days: true, enrollments: true } } },
-    }),
-    db.user.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      select: { id: true, email: true, displayName: true, role: true, onboardingCompleted: true },
-    }),
-    db.enrollment.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
-    }),
-    db.user.count(),
-    db.session.count({ where: { startedAt: { gte: dayStart } } }),
-    db.exerciseMediaUpload.findMany({
-      select: { name: true, imageMimeType: true, videoUrl: true, videoMimeType: true },
-    }),
-  ]);
+  const [challenges, users, enrollments, payments, userCount, workoutsToday, uploads] =
+    await Promise.all([
+      db.challenge.findMany({
+        orderBy: { createdAt: 'asc' },
+        include: { _count: { select: { days: true, enrollments: true } } },
+      }),
+      db.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, email: true, displayName: true, role: true, onboardingCompleted: true },
+      }),
+      db.enrollment.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
+      }),
+      db.payment.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        include: {
+          user: { select: { email: true } },
+          enrollment: { select: { challenge: { select: { title: true } } } },
+        },
+      }),
+      db.user.count(),
+      db.session.count({ where: { startedAt: { gte: dayStart } } }),
+      db.exerciseMediaUpload.findMany({
+        select: { name: true, imageMimeType: true, videoUrl: true, videoMimeType: true },
+      }),
+    ]);
 
   const uploadFlags = new Map(
     uploads.map((u) => [
@@ -109,6 +120,8 @@ export default async function AdminPage() {
 
         <AdminUsers users={users} currentUserId={session.userId} />
 
+        <AdminChallengeCreate />
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Challenges ({challenges.length})</CardTitle>
@@ -132,17 +145,31 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
 
+        <AdminEnrollments enrollments={enrollments} />
+
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Recent enrollments</CardTitle>
+            <CardTitle className="text-base">Recent payments</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
-            {enrollments.map((e) => (
-              <div key={e.id} className="flex items-center justify-between gap-2">
-                <span>{e.user.email} - {e.challenge.title}</span>
-                <Badge variant="secondary">{e.status} d{e.currentDay}</Badge>
+            {payments.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate">
+                  {p.user.email} - {p.enrollment?.challenge.title ?? 'deleted challenge'}
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="text-muted-foreground">
+                    Rs {(p.amountPaise / 100).toLocaleString('en-IN')}
+                  </span>
+                  <Badge variant={p.status === 'CAPTURED' ? undefined : 'secondary'}>
+                    {p.status}
+                  </Badge>
+                </span>
               </div>
             ))}
+            {payments.length === 0 && (
+              <p className="text-muted-foreground">No payments yet.</p>
+            )}
           </CardContent>
         </Card>
 

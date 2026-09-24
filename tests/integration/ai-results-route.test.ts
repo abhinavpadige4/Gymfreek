@@ -17,18 +17,19 @@ function jsonReq(body: unknown): Request {
   });
 }
 
-function resultBody(dayId: string, challengeId: string) {
+function resultBody(dayId: string, challengeId: string, reps = 10) {
   return {
     challengeId,
     challengeDayId: dayId,
+    durationSec: 1200,
     results: [
       {
         exerciseName: 'squat',
-        reps: 10,
-        goodReps: 9,
-        badReps: 1,
+        reps,
+        goodReps: reps,
+        badReps: 0,
         averageScore: 88,
-        issues: [{ issueType: 'forward_lean', count: 1 }],
+        issues: [],
       },
     ],
   };
@@ -88,6 +89,7 @@ describe('POST /api/ai/results - challenge advancement', () => {
     mockUserId.mockResolvedValue(user.id);
     const res = await postResults(
       jsonReq({
+        durationSec: 600,
         results: [
           { exerciseName: 'squat', reps: 5, goodReps: 5, badReps: 0, averageScore: 95 },
         ],
@@ -95,5 +97,83 @@ describe('POST /api/ai/results - challenge advancement', () => {
     );
     expect(res.status).toBe(201);
     expect((await res.json()).enrollment).toBeUndefined();
+  });
+
+  it('rejects future locked days with 403 and stores nothing', async () => {
+    const { user, challenge } = await seedChallenge();
+    mockUserId.mockResolvedValue(user.id);
+    const day2 = await db.challengeDay.create({
+      data: { challengeId: challenge.id, dayNumber: 2, title: 'Day 2' },
+    });
+    const res = await postResults(jsonReq(resultBody(day2.id, challenge.id)));
+    expect(res.status).toBe(403);
+    const sessions = await db.workoutSession.count({ where: { userId: user.id } });
+    expect(sessions).toBe(0);
+  });
+
+  it('rejects challenge posts without an enrollment with 403', async () => {
+    const { challenge, day1 } = await seedChallenge();
+    const outsider = await db.user.create({
+      data: { email: 'outsider@test.dev', passwordHash: 'x' },
+    });
+    mockUserId.mockResolvedValue(outsider.id);
+    const res = await postResults(jsonReq(resultBody(day1.id, challenge.id)));
+    expect(res.status).toBe(403);
+  });
+
+  it('stores short attempts without advancing', async () => {
+    const { user, challenge } = await seedChallenge(1);
+    const day = await db.challengeDay.findFirstOrThrow({
+      where: { challengeId: challenge.id, dayNumber: 1 },
+    });
+    for (let i = 0; i < 10; i++) {
+      await db.challengeTask.create({
+        data: { dayId: day.id, exerciseName: `move-${i}`, targetReps: 10, rounds: 10, order: i },
+      });
+    }
+    mockUserId.mockResolvedValue(user.id);
+    // 300 reported reps against a 1000-rep day: stored, not valid, no advance.
+    const res = await postResults(
+      jsonReq({
+        challengeId: challenge.id,
+        challengeDayId: day.id,
+        durationSec: 1200,
+        results: [
+          { exerciseName: 'squat', reps: 300, goodReps: 300, badReps: 0, averageScore: 80 },
+        ],
+      }),
+    );
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as { valid?: boolean; enrollment?: unknown };
+    expect(body.valid).toBe(false);
+    expect(body.enrollment).toBeUndefined();
+    const row = await db.enrollment.findFirstOrThrow({ where: { userId: user.id } });
+    expect(row.currentDay).toBe(1);
+  });
+
+  it('advances a recovery day on 600 reported reps', async () => {
+    const { user, challenge } = await seedChallenge(4);
+    const day5 = await db.challengeDay.create({
+      data: { challengeId: challenge.id, dayNumber: 5, title: 'Day 5' },
+    });
+    for (let i = 0; i < 10; i++) {
+      await db.challengeTask.create({
+        data: { dayId: day5.id, exerciseName: `move-${i}`, targetReps: 10, rounds: 10, order: i },
+      });
+    }
+    await db.enrollment.updateMany({ where: { userId: user.id }, data: { currentDay: 5 } });
+    mockUserId.mockResolvedValue(user.id);
+    const res = await postResults(
+      jsonReq({
+        challengeId: challenge.id,
+        challengeDayId: day5.id,
+        durationSec: 1800,
+        results: [
+          { exerciseName: 'squat', reps: 600, goodReps: 600, badReps: 0, averageScore: 80 },
+        ],
+      }),
+    );
+    expect(res.status).toBe(201);
+    expect((await res.json()).enrollment).toEqual({ status: 'ACTIVE', currentDay: 6 });
   });
 });

@@ -9,6 +9,8 @@ export const programs = {
   noProgramDescription: 'Create your first program so you can start a session.',
   active: 'Active',
   recommended: 'Recommended',
+  freePrograms: 'Start here - coached basics',
+  advancedPrograms: 'Advanced programs',
   startedOn: '{phase} · started on {date}',
   listSummary:
     '{workouts, plural, one {# session} other {# sessions}} · {logged, plural, one {# logged session} other {# logged sessions}}',
@@ -47,6 +49,7 @@ export const programs = {
   deleting: 'Deleting...',
   templateCreated: 'Program created from template.',
   templateUse: 'Use this template',
+  startWorkout: 'Start workout',
   dayCount: '{count, plural, one {# day} other {# days}}',
   workout: {
     actions: 'Session actions',

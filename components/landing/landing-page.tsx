@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, BarChart3, Dumbbell, Play, Users, Zap } from 'lucide-react';
+import { ArrowRight, BarChart3, Dumbbell, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Stat, TiltCard } from '@/components/landing/hero-visual';
+import { TiltCard } from '@/components/landing/hero-visual';
+import { LiveTicker, Reveal, ScrollProgress, VelocityMarquee } from '@/components/landing/landing-fx';
+import { ScrollGymAnimation } from '@/components/landing/scroll-gym-animation';
 import { LandingFooter } from '@/components/landing/landing-footer';
 
 const MOVEMENTS = [  'Kettlebell Swings',
@@ -78,132 +80,49 @@ const BRAINS = [
 export function LandingPage() {
   return (
     <main className="flex-1 overflow-x-clip">
-      {/* HERO */}
-      <section className="bg-grid-volt relative">
-        <div className="bg-stripes h-2.5 w-full" aria-hidden="true" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-14 sm:pt-20">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div className="flex flex-col items-start gap-6 text-left">
-              <p
-                className="animate-rise-in font-display text-sm tracking-[0.3em] text-muted-foreground"
-              >
-                100 DAYS. A STRONGER YOU.
-              </p>
-              <h1
-                className="animate-rise-in font-display text-6xl leading-[0.95] tracking-tight sm:text-7xl"
-                style={{ animationDelay: '80ms' }}
-              >
-                TRAIN.
-                <br />
-                TRACK.
-                <br />
-                IMPROVE.
-                <br />
-                <span className="text-volt">TRANSFORM.</span>
-              </h1>
-              <p
-                className="animate-rise-in max-w-md text-base text-muted-foreground sm:text-lg"
-                style={{ animationDelay: '160ms' }}
-              >
-                Join the 100XU challenge and build a stronger, healthier, more
-                confident you - one day at a time.
-              </p>
-              <div
-                className="animate-rise-in flex flex-wrap gap-3"
-                style={{ animationDelay: '240ms' }}
-              >
-                <Button asChild size="lg" className="min-h-tap text-base">
-                  <Link href="/signup">
-                    Start the 100-Day Challenge
-                    <ArrowRight className="size-5" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="min-h-tap text-base">
-                  <Link href="/#how">
-                    <Play className="size-5" />
-                    See how it works
-                  </Link>
-                </Button>
-              </div>
-              <div className="grid w-full max-w-md grid-cols-2 gap-x-4 gap-y-6 pt-2 sm:grid-cols-4">
-                <Stat value={100} suffix="" label="days" />
-                <Stat value={100000} suffix="" label="total reps" />
-                <Stat value={1000} suffix="" label="reps daily" />
-                <Stat value={10} suffix="" label="blocks" />
-              </div>
-            </div>
+      <ScrollProgress />
+      {/* CINEMA - scroll-driven frame animation built from landingpage/ frames */}
+      <ScrollGymAnimation />
 
-            <TiltCard>
-              <div className="relative mx-auto w-full max-w-md">
-                <div className="animate-floaty overflow-hidden rounded-2xl border border-volt/30 shadow-[0_0_80px_-20px_hsl(22_92%_49%/0.5)]">
-                  <Image
-                    src="/landing/hero-girl.png"
-                    alt="Athlete ready to train for the 100XU challenge"
-                    width={1024}
-                    height={1365}
-                    priority
-                    className="h-auto w-full object-cover"
-                  />
-                </div>
-                <div
-                  className="absolute -right-3 -top-4 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
-                  style={{ transform: 'translateZ(60px)' }}
-                >
-                  1,000 reps today
-                </div>
-                <div
-                  className="absolute -left-4 bottom-10 rounded-full border border-volt/40 bg-background px-3 py-1 text-xs font-semibold text-volt"
-                  style={{ transform: 'translateZ(40px)' }}
-                >
-                  form score 84
-                </div>
-                <p
-                  className="absolute -right-2 top-1/3 rotate-6 font-display text-2xl leading-tight text-volt sm:text-3xl"
-                  style={{ transform: 'translateZ(50px) rotate(6deg)' }}
-                >
-                  BETTER
-                  <br />
-                  THAN
-                  <br />
-                  YESTERDAY
-                </p>
-              </div>
-            </TiltCard>
-          </div>
-        </div>
+      {/* marquee: scroll-velocity band ported from the Gym-Website landing */}
+      <div className="marquee-mask relative overflow-hidden border-y border-border bg-card/50">
+        <VelocityMarquee items={MOVEMENTS} />
+      </div>
 
-        {/* marquee */}
-        <div className="marquee-mask relative overflow-hidden border-y border-border bg-card/50 py-3">
-          <div className="animate-marquee flex w-max gap-8 whitespace-nowrap">
-            {[...MOVEMENTS, ...MOVEMENTS].map((m, i) => (
-              <span key={i} className="font-display text-lg tracking-wider text-muted-foreground">
-                {m.toUpperCase()} <span className="ml-6 text-volt">/</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* LIVE - community rep ticker */}
+      <div className="border-b border-border bg-card/30">
+        <p className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-2.5 text-sm text-muted-foreground">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-volt opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-volt" />
+          </span>
+          LIVE - <LiveTicker /> reps logged by the community today
+        </p>
+      </div>
 
       {/* FEATURES */}
       <section className="border-b border-border">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="flex flex-col items-center gap-2 text-center">
-              <f.icon className="size-8 text-volt" strokeWidth={1.5} />
-              <p className="font-semibold">{f.title}</p>
-              <p className="max-w-[16rem] text-sm text-muted-foreground">{f.body}</p>
-            </div>
+          {FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={0.06 * i}>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <f.icon className="size-8 text-volt" strokeWidth={1.5} />
+                <p className="font-semibold">{f.title}</p>
+                <p className="max-w-[16rem] text-sm text-muted-foreground">{f.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* HOW IT WORKS */}
       <section id="how" className="mx-auto max-w-6xl px-4 py-16">
-        <p className="font-display text-sm tracking-[0.3em] text-volt">FIELD MANUAL - 01</p>
-        <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
-          HOW IT <span className="text-volt">WORKS</span>
-        </h2>
+        <Reveal>
+          <p className="font-display text-sm tracking-[0.3em] text-volt">FIELD MANUAL - 01</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
+            HOW IT <span className="text-volt">WORKS</span>
+          </h2>
+        </Reveal>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {[
             {
@@ -221,16 +140,18 @@ export function LandingPage() {
               t: 'Get coached',
               b: 'Live voice cues fix your form mid-set. After the workout, AI tells you exactly what to improve tomorrow.',
             },
-          ].map((s) => (
-            <Card key={s.n} className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="font-display text-5xl text-volt">{s.n}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="font-semibold">{s.t}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{s.b}</p>
-              </CardContent>
-            </Card>
+          ].map((s, i) => (
+            <Reveal key={s.n} delay={0.08 * i}>
+              <Card className="h-full border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="font-display text-5xl text-volt">{s.n}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-semibold">{s.t}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.b}</p>
+                </CardContent>
+              </Card>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -265,7 +186,7 @@ export function LandingPage() {
                 </div>
               </div>
             </TiltCard>
-            <div className="flex flex-col items-start gap-4">
+            <Reveal className="flex flex-col items-start gap-4">
               <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
                 THE 100-DAY CHALLENGE
               </p>
@@ -299,26 +220,30 @@ export function LandingPage() {
                   <ArrowRight className="size-5" />
                 </Link>
               </Button>
-            </div>
+            </Reveal>
           </div>
-          <p className="mt-16 font-display text-sm tracking-[0.3em] text-volt">THE PROGRAM - 02</p>
-          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
-            10 BLOCKS. <span className="text-volt">100 DAYS.</span>
-          </h2>
-          <p className="mt-3 max-w-xl text-muted-foreground">
-            Each 10-day wave has its own theme. Same circuit all 10 days - mastery
-            through repetition, with lighter recovery days on day 5 and 10.
-          </p>
+          <Reveal>
+            <p className="mt-16 font-display text-sm tracking-[0.3em] text-volt">THE PROGRAM - 02</p>
+            <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
+              10 BLOCKS. <span className="text-volt">100 DAYS.</span>
+            </h2>
+            <p className="mt-3 max-w-xl text-muted-foreground">
+              Each 10-day wave has its own theme. Same circuit all 10 days - mastery
+              through repetition, with lighter recovery days on day 5 and 10.
+            </p>
+          </Reveal>
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {BLOCKS.map((b, i) => (
-              <Card key={b} className="group border-border transition-colors hover:border-volt/60">
-                <CardContent className="p-4">
-                  <p className="font-display text-volt">BLOCK {String(i + 1).padStart(2, '0')}</p>
-                  <p className="mt-1 text-sm font-medium leading-snug">
-                    Days {i * 10 + 1}-{i * 10 + 10}: {b}
-                  </p>
-                </CardContent>
-              </Card>
+              <Reveal key={b} delay={0.04 * (i % 5)}>
+                <Card className="group h-full border-border transition-colors hover:border-volt/60">
+                  <CardContent className="p-4">
+                    <p className="font-display text-volt">BLOCK {String(i + 1).padStart(2, '0')}</p>
+                    <p className="mt-1 text-sm font-medium leading-snug">
+                      Days {i * 10 + 1}-{i * 10 + 10}: {b}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -326,31 +251,41 @@ export function LandingPage() {
 
       {/* AI ENGINE */}
       <section id="ai" className="mx-auto max-w-6xl px-4 py-16">
-        <p className="font-display text-sm tracking-[0.3em] text-volt">THE MACHINE - 03</p>
-        <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
-          FOUR BRAINS. <span className="text-volt">ONE COACH.</span>
-        </h2>
+        <Reveal>
+          <p className="font-display text-sm tracking-[0.3em] text-volt">THE MACHINE - 03</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
+            FOUR BRAINS. <span className="text-volt">ONE COACH.</span>
+          </h2>
+        </Reveal>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {BRAINS.map((b) => (
-            <Card key={b.title} className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="font-display text-2xl tracking-wide">{b.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">{b.body}</CardContent>
-            </Card>
+          {BRAINS.map((b, i) => (
+            <Reveal key={b.title} delay={0.06 * i}>
+              <Card className="h-full border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl tracking-wide">{b.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">{b.body}</CardContent>
+              </Card>
+            </Reveal>
           ))}
         </div>
-        <p className="mt-6 rounded-lg border border-volt/30 bg-volt/5 p-4 text-sm">
-          The golden rule: your camera loop never touches an LLM. Real-time coaching
-          is instant and free. AI reads your numbers after the workout - never your
-          video.
-        </p>
+        <Reveal delay={0.1}>
+          <p className="mt-6 rounded-lg border border-volt/30 bg-volt/5 p-4 text-sm">
+            The golden rule: your camera loop never touches an LLM. Real-time coaching
+            is instant and free. AI reads your numbers after the workout - never your
+            video.
+          </p>
+        </Reveal>
       </section>
 
       {/* CTA BANNER */}
       <section className="relative overflow-hidden border-t border-border">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="animate-aurora-a absolute -top-24 left-1/4 size-[28rem] rounded-full bg-volt/20 blur-[120px]" />
+          <div className="animate-aurora-b absolute bottom-0 right-1/4 size-[24rem] rounded-full bg-amber-500/10 blur-[120px]" />
+        </div>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(22_92%_49%/0.22),transparent_65%)]" />
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-20 text-center">
+        <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-20 text-center">
           <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
             READY TO TRANSFORM?
           </p>
@@ -361,23 +296,26 @@ export function LandingPage() {
             Join the 100XU challenge and take the first step towards a
             healthier, stronger you.
           </p>
-          <Button asChild size="lg" className="min-h-tap mt-2 text-base">
+          <Button asChild size="lg" className="btn-glow min-h-tap mt-2 text-base">
             <Link href="/signup">
               Get Started Now
               <ArrowRight className="size-5" />
             </Link>
           </Button>
-        </div>
+        </Reveal>
       </section>
 
       {/* PRICING */}
       <section id="pricing" className="border-t border-border">
         <div className="mx-auto max-w-xl px-4 py-16 text-center">
-          <p className="font-display text-sm tracking-[0.3em] text-volt">ENLIST - 04</p>
-          <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
-            ONE PRICE. <span className="text-volt">100 DAYS.</span>
-          </h2>
-          <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+          <Reveal>
+            <p className="font-display text-sm tracking-[0.3em] text-volt">ENLIST - 04</p>
+            <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
+              ONE PRICE. <span className="text-volt">100 DAYS.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <Card className="mt-8 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
             <CardContent className="flex flex-col items-center gap-4 p-8">
               <p className="font-display text-6xl">
                 Rs 2,999 <span className="text-lg text-muted-foreground">one-time</span>
@@ -396,6 +334,7 @@ export function LandingPage() {
               </Button>
             </CardContent>
           </Card>
+          </Reveal>
         </div>
       </section>
 

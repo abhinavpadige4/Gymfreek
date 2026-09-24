@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
 import { workoutResultsSchema } from '@/lib/schemas/ai';
 import { advanceEnrollment } from '@/lib/challenge-progress';
-import { isValidAttempt } from '@/lib/challenge-rules';
+import { isValidAttempt, requiredRepsForDay } from '@/lib/challenge-rules';
 
 // POST /api/ai/results: stores one completed live workout - session, per-exercise
 // counts/scores and form issues. Structured JSON only; video is never accepted.
@@ -16,11 +16,17 @@ export async function POST(req: Request) {
 
     let advance: { id: string; status: 'ACTIVE' | 'COMPLETED'; currentDay: number } | null =
       null;
-    // Challenge race rule: over-time attempts are stored but never advance.
-    // The day must be redone inside 25 min to count.
+    // Challenge race rules: over-time, short, locked or future-day attempts
+    // are stored but never advance. Locked or future days are rejected
+    // outright - the day must be the member's current (or an already
+    // completed past) day to count.
     const validAttempt = isValidAttempt(data.durationSec);
+    let enoughReps = true;
     if (data.challengeDayId && validAttempt) {
-      const day = await db.challengeDay.findUnique({ where: { id: data.challengeDayId } });
+      const day = await db.challengeDay.findUnique({
+        where: { id: data.challengeDayId },
+        include: { _count: { select: { tasks: true } } },
+      });
       if (!day) throw new ApiError(404, 'Not found.');
       if (data.challengeId && day.challengeId !== data.challengeId) {
         throw new ApiError(400, 'Day does not belong to the challenge.');
@@ -31,7 +37,16 @@ export async function POST(req: Request) {
           where: { userId_challengeId: { userId, challengeId: day.challengeId } },
         }),
       ]);
-      if (enrollment) {
+      if (
+        !enrollment ||
+        (enrollment.status !== 'ACTIVE' && enrollment.status !== 'COMPLETED') ||
+        day.dayNumber > enrollment.currentDay
+      ) {
+        throw new ApiError(403, 'This day is locked. Complete the current day first.');
+      }
+      const reportedReps = data.results.reduce((sum, r) => sum + r.reps, 0);
+      enoughReps = reportedReps >= requiredRepsForDay(day.dayNumber, day._count.tasks);
+      if (enoughReps && enrollment) {
         const next = advanceEnrollment(
           { status: enrollment.status, currentDay: enrollment.currentDay },
           day.dayNumber,
@@ -79,7 +94,7 @@ export async function POST(req: Request) {
       {
         id: session.id,
         results: session.results.length,
-        valid: validAttempt,
+        valid: validAttempt && enoughReps,
         enrollment: advance
           ? { status: advance.status, currentDay: advance.currentDay }
           : undefined,

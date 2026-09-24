@@ -7,6 +7,7 @@ import { isDeloadActive } from '@/lib/deload';
 import { getReturnToTrainingRecommendations } from '@/lib/return-to-training-history';
 import { SessionRunner, type SerializedLastPerformance } from '@/components/session/session-runner';
 import { liveSessionGymInclude } from '@/lib/session-gym-selection';
+import { needsMedicalRest } from '@/lib/challenge-rules';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -46,7 +47,7 @@ export default async function SessionRunPage(props: Props) {
   const exerciseIds = session.workout.exercises.map((pe) => pe.exerciseId);
   const userPromise = db.user.findUnique({
     where: { id: auth.userId },
-    select: { unit: true, deloadUntil: true, bodyweight: true },
+    select: { unit: true, deloadUntil: true, bodyweight: true, medicalConditions: true, injuries: true },
   });
   const [lastPerformances, user, latestCheckin, returnRecommendations] = await Promise.all([
     getLastPerformances(auth.userId, exerciseIds, session.id),
@@ -73,6 +74,9 @@ export default async function SessionRunPage(props: Props) {
   }
 
   const readiness = buildReadinessSignal(latestCheckin);
+  // Medical rest floor: members with a flagged condition or injury never
+  // rest less than 30s between sets (same product rule as challenges).
+  const medicalRest = needsMedicalRest(`${user?.medicalConditions ?? ''} ${user?.injuries ?? ''}`);
   // Planned deload week (issue #112): resolved against the clock here so the
   // client never reasons about dates; an expired deloadUntil has no effect.
   const deloadActive = isDeloadActive(user?.deloadUntil ?? null, new Date());
@@ -85,6 +89,7 @@ export default async function SessionRunPage(props: Props) {
       readiness={readiness}
       deloadActive={deloadActive}
       unit={user?.unit ?? 'KG'}
+      medicalRest={medicalRest}
       initialProgramExerciseId={searchParams.programExerciseId}
     />
   );

@@ -6,19 +6,22 @@ import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 
 type Task = { exerciseName: string; loadLabel: string | null };
 
-// Challenge-only day runner: 25:00 countdown, per-set rest overlay
-// (20s standard, 30s medical), sequential task checklist. Posts the attempt
-// to /api/ai/results; over-time attempts are stored as INVALID server-side.
+// Challenge-only day runner: 55:00 countdown, per-set rest overlay
+// (20s standard, 30s medical), sequential task checklist. Recovery days need
+// only 6 of 10 tasks. Posts the attempt to /api/ai/results; over-time or
+// short attempts are stored as INVALID server-side.
 export function DayRunner({
   challengeId,
   challengeDayId,
   tasks,
   restSec,
+  requiredTasks,
 }: {
   challengeId: string;
   challengeDayId: string;
   tasks: Task[];
   restSec: number;
+  requiredTasks: number;
 }) {
   const [started, setStarted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -29,7 +32,10 @@ export function DayRunner({
   const startRef = useRef(0);
 
   const remaining = Math.max(0, CHALLENGE_DAY_CAP_SEC - elapsed);
-  const allDone = useMemo(() => done.every(Boolean), [done]);
+  const doneCount = useMemo(() => done.filter(Boolean).length, [done]);
+  const allDone = doneCount >= Math.min(requiredTasks, tasks.length);
+  const isRecovery = requiredTasks < tasks.length;
+  const capLabel = `${Math.floor(CHALLENGE_DAY_CAP_SEC / 60)}:${String(CHALLENGE_DAY_CAP_SEC % 60).padStart(2, '0')}`;
   const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
   const ss = String(remaining % 60).padStart(2, '0');
 
@@ -82,7 +88,7 @@ export function DayRunner({
     setResult(
       data?.valid
         ? `Done in ${Math.floor(durationSec / 60)}:${String(durationSec % 60).padStart(2, '0')} - VALID. Next day unlocked.`
-        : 'Stored as INVALID - over 25 min or incomplete. Redo this day inside 25 min.',
+        : `Stored as INVALID - over ${capLabel} or incomplete. Redo this day inside ${capLabel}.`,
     );
   }
 
@@ -90,8 +96,10 @@ export function DayRunner({
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">
-          Full day in 25:00. {restSec}s rest after each set. Finish every task or the attempt is
-          INVALID.
+          Full day in {capLabel}. {restSec}s rest after each set.{' '}
+          {isRecovery
+            ? `Recovery day: complete any ${requiredTasks} of ${tasks.length} tasks.`
+            : 'Finish every task or the attempt is INVALID.'}
         </p>
         <Button onClick={start} size="lg" className="min-h-tap">
           Start day timer
@@ -129,7 +137,11 @@ export function DayRunner({
         ))}
       </ul>
       <Button onClick={() => void finish()} disabled={!allDone || saving} size="lg">
-        {saving ? 'Saving...' : 'Finish day'}
+        {saving
+          ? 'Saving...'
+          : allDone
+            ? 'Finish day'
+            : `Complete ${Math.min(requiredTasks, tasks.length) - doneCount} more`}
       </Button>
       {result && <p className="text-sm text-muted-foreground">{result}</p>}
     </div>

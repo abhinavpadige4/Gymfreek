@@ -4,6 +4,17 @@ export const progress = {
   emptyDescription:
     'Log a few sessions and your charts and PRs will appear here, tracking the last {weeks} weeks.',
   firstSession: 'Log your first session',
+  summary: {
+    workouts: 'Workouts',
+    volume: 'Weight lifted',
+    streak: 'Streak',
+    window: 'Last 28 days',
+    up: '+{n} vs prior 4 weeks',
+    down: '-{n} vs prior 4 weeks',
+    same: 'Same as prior 4 weeks',
+    streakActive: '{n}-week streak',
+    streakNone: 'Train this week to start one',
+  },
   dashboard: {
     maxLoad: 'Max load and estimated 1RM',
     chooseExercise: 'Choose an exercise',

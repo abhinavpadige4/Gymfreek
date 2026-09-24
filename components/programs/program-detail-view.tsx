@@ -15,6 +15,7 @@ import { ProgramDeleteButton } from '@/components/programs/program-delete-button
 import { WorkoutCard } from '@/components/programs/workout-card';
 import { WorkoutFormDialog } from '@/components/programs/workout-form-dialog';
 import { useTrainingName } from '@/components/shared/use-training-name';
+import { useExerciseName } from '@/components/shared/use-exercise-name';
 
 type ProgramExerciseWithExercise = ProgramExercise & { exercise: Exercise };
 type WorkoutWithExercises = Workout & { exercises: ProgramExerciseWithExercise[] };
@@ -29,6 +30,7 @@ export function ProgramDetailView({ program, catalog }: Props) {
   const t = useTranslations('programs');
   const common = useTranslations('common');
   const trainingName = useTrainingName();
+  const exerciseName = useExerciseName();
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [addWorkoutOpen, setAddWorkoutOpen] = useState(false);
@@ -62,7 +64,78 @@ export function ProgramDetailView({ program, catalog }: Props) {
         </Link>
       </Button>
 
-      <Card>
+      {program.sourceTemplateSlug ? (
+        <>
+          <Card className="border-volt/40">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-xl">{trainingName(program.name)}</CardTitle>
+                  <CardDescription>{program.phase}</CardDescription>
+                </div>
+                {program.isActive && <Badge>{t('active')}</Badge>}
+              </div>
+            </CardHeader>
+            {program.description && (
+              <CardContent className="text-sm text-muted-foreground">
+                {program.description}
+              </CardContent>
+            )}
+            <CardContent className="flex flex-col gap-3">
+              <Button asChild size="lg" className="min-h-tap w-full text-base">
+                <Link href="/session/new">{t('startWorkout')}</Link>
+              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleActive}
+                  disabled={activating}
+                  className="min-h-tap"
+                >
+                  {program.isActive ? t('deactivate') : t('activate')}
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="min-h-tap">
+                  <Link href={`/programs/${program.id}/print`}>
+                    <Printer className="size-4" />
+                    <span className="ml-2">{t('print.action')}</span>
+                  </Link>
+                </Button>
+                <ProgramDeleteButton
+                  programId={program.id}
+                  programName={trainingName(program.name)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col gap-4">
+            {program.workouts.map((w) => (
+              <Card key={w.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{trainingName(w.name)}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="flex flex-col gap-2 text-sm">
+                    {w.exercises.map((pe) => (
+                      <li key={pe.id} className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0 truncate font-medium">
+                          {exerciseName(pe.exercise.name)}
+                        </span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {pe.targetSets} x {pe.targetRepsMin}-{pe.targetRepsMax} · {pe.restSec}s
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -138,6 +211,8 @@ export function ProgramDetailView({ program, catalog }: Props) {
         mode="create"
         programId={program.id}
       />
+        </>
+      )}
     </div>
   );
 }

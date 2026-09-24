@@ -59,7 +59,7 @@ describe('POST /api/programs/from-template', () => {
     });
     actAs(user.id);
 
-    const res = await postFromTemplate(jsonReq(templatePayload));
+    const res = await postFromTemplate(jsonReq({ program: templatePayload }));
     expect(res.status).toBe(201);
     const { id } = (await res.json()) as { id: string };
 
@@ -69,11 +69,27 @@ describe('POST /api/programs/from-template', () => {
     });
     expect(program.userId).toBe(user.id);
     expect(program.isActive).toBe(true);
+    expect(program.sourceTemplateSlug).toBeNull();
     expect(program.workouts).toHaveLength(1);
     expect(program.workouts[0]?.exercises).toHaveLength(1);
 
     const old = await db.program.findUniqueOrThrow({ where: { id: previous.id } });
     expect(old.isActive).toBe(false);
+  });
+
+  it('stores the template slug for locked rendering', async () => {
+    const user = await db.user.create({
+      data: { email: 'template-slug@test.dev', passwordHash: 'x' },
+    });
+    actAs(user.id);
+
+    const res = await postFromTemplate(
+      jsonReq({ program: templatePayload, templateSlug: 'full-body-basics' }),
+    );
+    expect(res.status).toBe(201);
+    const { id } = (await res.json()) as { id: string };
+    const program = await db.program.findUniqueOrThrow({ where: { id } });
+    expect(program.sourceTemplateSlug).toBe('full-body-basics');
   });
 
   it('does not overwrite metadata of an existing same-named exercise', async () => {
@@ -92,7 +108,7 @@ describe('POST /api/programs/from-template', () => {
     });
     actAs(user.id);
 
-    const res = await postFromTemplate(jsonReq(templatePayload));
+    const res = await postFromTemplate(jsonReq({ program: templatePayload }));
     expect(res.status).toBe(201);
 
     const after = await db.exercise.findUniqueOrThrow({ where: { id: existing.id } });
@@ -102,14 +118,14 @@ describe('POST /api/programs/from-template', () => {
 
   it('rejects unauthenticated and invalid payloads', async () => {
     actAs(null);
-    const unauth = await postFromTemplate(jsonReq(templatePayload));
+    const unauth = await postFromTemplate(jsonReq({ program: templatePayload }));
     expect(unauth.status).toBe(401);
 
     const user = await db.user.create({
       data: { email: 'template-invalid@test.dev', passwordHash: 'x' },
     });
     actAs(user.id);
-    const invalid = await postFromTemplate(jsonReq({ name: 'No workouts' }));
+    const invalid = await postFromTemplate(jsonReq({ program: { name: 'No workouts' } }));
     expect(invalid.status).toBe(400);
   });
 });
