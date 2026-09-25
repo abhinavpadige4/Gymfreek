@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
+import { requireAdminUserId } from '@/lib/admin';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChallengeJoinButton } from '@/components/challenges/challenge-join-button';
@@ -23,6 +24,13 @@ export default async function ChallengeDetailPage({
   const enrollment = await db.enrollment.findUnique({
     where: { userId_challengeId: { userId: session.userId, challengeId: challenge.id } },
   });
+  // Same gate as the create-order bypass: admins join free.
+  let adminBypass = false;
+  try {
+    adminBypass = (await requireAdminUserId()) === session.userId;
+  } catch {
+    adminBypass = false;
+  }
   const bestSessions = enrollment
     ? await db.workoutSession.findMany({
         where: {
@@ -80,6 +88,7 @@ export default async function ChallengeDetailPage({
               challengeId={challenge.id}
               pricePaise={challenge.pricePaise}
               currency={challenge.currency}
+              adminBypass={adminBypass}
               enrollment={
                 enrollment
                   ? { id: enrollment.id, status: enrollment.status, currentDay: enrollment.currentDay }

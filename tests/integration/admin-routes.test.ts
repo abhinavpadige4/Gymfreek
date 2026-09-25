@@ -11,10 +11,12 @@ const mockSession = vi.mocked(getCurrentSession);
 import { PUT as putEnrollments } from '@/app/api/admin/enrollments/route';
 import {
   DELETE as deleteTask,
+  PATCH as patchTask,
   POST as postTask,
 } from '@/app/api/admin/challenge-tasks/route';
 import { PATCH as patchChallenge } from '@/app/api/admin/challenges/route';
 import { GET as getChallenge } from '@/app/api/challenges/[id]/route';
+import { POST as postCreateOrder } from '@/app/api/payments/create-order/route';
 
 function jsonReq(url: string, method: string, body?: unknown): Request {
   return new Request(url, {
@@ -146,6 +148,33 @@ describe('admin console routes', () => {
     expect(missingDay.status).toBe(404);
   });
 
+  it('edits task fields without touching the rest', async () => {
+    await adminUser('editor@test.dev');
+    const { day } = await seedChallengeWithDay();
+    const created = await postTask(
+      jsonReq('http://test.local/api/admin/challenge-tasks', 'POST', {
+        dayId: day.id,
+        exerciseName: 'Goblet squats',
+        targetReps: 10,
+        rounds: 10,
+      }),
+    );
+    const { id } = (await created.json()) as { id: string };
+    const patched = await patchTask(
+      jsonReq('http://test.local/api/admin/challenge-tasks', 'PATCH', {
+        taskId: id,
+        loadLabel: '16-24 kg KB',
+        instructions: 'Sit deep.',
+      }),
+    );
+    expect(patched.status).toBe(200);
+    const row = await db.challengeTask.findUniqueOrThrow({ where: { id } });
+    expect(row.loadLabel).toBe('16-24 kg KB');
+    expect(row.instructions).toBe('Sit deep.');
+    expect(row.exerciseName).toBe('Goblet squats');
+    expect(row.targetReps).toBe(10);
+  });
+
   it('renames and toggles challenges', async () => {
     await adminUser('curator@test.dev');
     const { challenge } = await seedChallengeWithDay();
@@ -165,8 +194,7 @@ describe('admin console routes', () => {
     }
   });
 
-  it('shows 3-day preview unenrolled and full circuits enrolled', async () => {
-    const { challenge } = await seedChallengeWithDay();
+  it('shows 3-day preview unenrolled and full circuits enrolled', async () => {    const { challenge } = await seedChallengeWithDay();
     for (let n = 2; n <= 5; n++) {
       await db.challengeDay.create({
         data: { challengeId: challenge.id, dayNumber: n, title: `Day ${n}` },
@@ -191,5 +219,25 @@ describe('admin console routes', () => {
       params: Promise.resolve({ id: challenge.slug }),
     });
     expect(((await full.json()) as { days: unknown[] }).days).toHaveLength(5);
+  });
+
+  it('activates admin enrollments with no order and no charge', async () => {
+    const admin = await adminUser('freepass@test.dev');
+    const { challenge } = await seedChallengeWithDay();
+    const enrollment = await db.enrollment.create({
+      data: { userId: admin.id, challengeId: challenge.id, status: 'PENDING', currentDay: 1 },
+    });
+    const res = await postCreateOrder(
+      jsonReq('http://test.local/api/payments/create-order', 'POST', {
+        enrollmentId: enrollment.id,
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(
+      expect.objectContaining({ enrollmentId: enrollment.id, free: true }),
+    );
+    const row = await db.enrollment.findUniqueOrThrow({ where: { id: enrollment.id } });
+    expect(row.status).toBe('ACTIVE');
+    expect(await db.payment.count({ where: { enrollmentId: enrollment.id } })).toBe(0);
   });
 });

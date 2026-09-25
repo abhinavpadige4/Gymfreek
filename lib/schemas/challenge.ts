@@ -58,6 +58,17 @@ export const challengePatchSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const challengeTaskPatchSchema = z.object({
+  taskId: z.string().min(1),
+  exerciseName: z.string().trim().min(1).max(80).optional(),
+  targetReps: z.number().int().min(1).max(1000).optional(),
+  rounds: z.number().int().min(1).max(50).optional(),
+  loadKg: z.number().min(0).max(500).nullable().optional(),
+  loadLabel: z.string().trim().max(120).nullable().optional(),
+  instructions: z.string().trim().max(2000).nullable().optional(),
+  demoVideoUrl: z.string().trim().url().max(500).nullable().optional(),
+});
+
 export const createOrderSchema = z.object({
   enrollmentId: z.string().min(1),
 });

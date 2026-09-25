@@ -12,6 +12,7 @@ import {
   setExerciseVideoUrl,
 } from '@/lib/exercise-technique-image';
 import { exerciseMediaUpsertSchema } from '@/lib/schemas/exercise-media';
+import { catalogNameFor } from '@/lib/exercise-aliases';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,9 @@ export async function GET(req: Request) {
   try {
     await requireApiUserId();
     const params = new URL(req.url).searchParams;
-    const name = params.get('name') ?? '';
+    // Blueprint names (challenge tasks) resolve to their catalog entry so
+    // one upload serves every spelling of the movement.
+    const name = catalogNameFor(params.get('name') ?? '') ?? params.get('name') ?? '';
     if (params.get('format') === 'meta') {
       return NextResponse.json(await getExerciseMediaMeta(name));
     }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Volume2, VolumeX } from 'lucide-react';
 import { createAnalyzer, type ExerciseAnalyzer } from '@/lib/form-engine/registry';
 import { CueThrottle, RULE_PHRASES, topIssues } from '@/lib/form-engine/feedback';
 import { landmarksVisible } from '@/lib/form-engine/angles';
@@ -47,6 +48,11 @@ export function LiveWorkout({
   const [error, setError] = useState('');
   const [reps, setReps] = useState(0);
   const [cue, setCue] = useState('');
+  // Voice cues default on; persisted so a muted gym stays muted.
+  const [voiceOn, setVoiceOn] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.localStorage.getItem('100xu-voice') !== 'off';
+  });
   const [score, setScore] = useState<number | null>(null);
   const [issueKeys, setIssueKeys] = useState<string[]>([]);
   const [framed, setFramed] = useState(true);
@@ -64,6 +70,13 @@ export function LiveWorkout({
   useEffect(() => {
     setCanRecord(typeof MediaRecorder !== 'undefined');
   }, []);
+
+  useEffect(() => {
+    voiceService.setEnabled(voiceOn);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('100xu-voice', voiceOn ? 'on' : 'off');
+    }
+  }, [voiceOn]);
 
   useEffect(() => {
     return () => {
@@ -295,8 +308,7 @@ export function LiveWorkout({
         )}
       </div>
       <div className="flex items-center gap-4">
-        <div className="relative size-20 shrink-0" role="img" aria-label={`${reps} reps`}>
-          <svg viewBox="0 0 80 80" className="size-20 -rotate-90" aria-hidden>
+        <div className="relative size-20 shrink-0" role="img" aria-label={`${reps} reps`}>          <svg viewBox="0 0 80 80" className="size-20 -rotate-90" aria-hidden>
             <circle
               cx="40"
               cy="40"
@@ -339,6 +351,17 @@ export function LiveWorkout({
             </div>
           )}
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="min-h-tap min-w-tap shrink-0"
+          aria-label={voiceOn ? 'Mute voice cues' : 'Unmute voice cues'}
+          aria-pressed={voiceOn}
+          onClick={() => setVoiceOn((v) => !v)}
+        >
+          {voiceOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
+        </Button>
       </div>
       {status === 'running' && !framed && (
         <p className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-sm text-amber-500">
@@ -347,7 +370,7 @@ export function LiveWorkout({
       )}
       {status === 'idle' || status === 'error' ? (
         <Button onClick={start} disabled={!supported} size="lg">
-          {supported ? 'Start camera' : `${exercise} is not supported yet (squat first)`}
+          {supported ? 'Start camera' : `Camera counting is not available for ${exercise} yet`}
         </Button>
       ) : status === 'running' ? (
         <div className="flex gap-2">

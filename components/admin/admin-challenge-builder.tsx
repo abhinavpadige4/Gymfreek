@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +51,13 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
   const [taskLoad, setTaskLoad] = useState('');
   const [taskCue, setTaskCue] = useState('');
   const [taskVideo, setTaskVideo] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editReps, setEditReps] = useState('10');
+  const [editRounds, setEditRounds] = useState('10');
+  const [editLoad, setEditLoad] = useState('');
+  const [editCue, setEditCue] = useState('');
+  const [editVideo, setEditVideo] = useState('');
 
   const day = useMemo(
     () => days.find((d) => d.dayNumber === dayNumber) ?? null,
@@ -155,6 +162,35 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
       call(`/api/admin/challenge-tasks?taskId=${encodeURIComponent(taskId)}`, {
         method: 'DELETE',
       }),
+    );
+  };
+
+  const startEdit = (t: BuilderTask) => {
+    setEditingId(t.id);
+    setEditName(t.exerciseName);
+    setEditReps(String(t.targetReps));
+    setEditRounds(String(t.rounds));
+    setEditLoad(t.loadLabel ?? '');
+    setEditCue(t.instructions ?? '');
+    setEditVideo(t.demoVideoUrl ?? '');
+  };
+
+  const saveEdit = (taskId: string) => {
+    const name = editName.trim();
+    if (!name) return;
+    void run(() =>
+      call('/api/admin/challenge-tasks', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          taskId,
+          exerciseName: name,
+          targetReps: Math.max(1, Number(editReps) || 10),
+          rounds: Math.max(1, Number(editRounds) || 10),
+          loadLabel: editLoad.trim() || null,
+          instructions: editCue.trim() || null,
+          demoVideoUrl: editVideo.trim() || null,
+        }),
+      }).then(() => setEditingId(null)),
     );
   };
 
@@ -277,30 +313,99 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
             .slice()
             .sort((a, b) => a.order - b.order)
             .map((t, i) => (
-              <div
-                key={t.id}
-                className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
-              >
-                <span className="min-w-0 truncate">
-                  <span className="font-medium">
-                    V{i + 1} {t.exerciseName}
-                  </span>{' '}
-                  <span className="text-muted-foreground">
-                    {t.targetReps} x {t.rounds}
-                    {t.loadLabel ? ` - ${t.loadLabel}` : ''}
-                    {t.demoVideoUrl ? ' - video' : ''}
+              <div key={t.id} className="flex flex-col gap-2 rounded-md border border-border px-3 py-2 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate">
+                    <span className="font-medium">
+                      V{i + 1} {t.exerciseName}
+                    </span>{' '}
+                    <span className="text-muted-foreground">
+                      {t.targetReps} x {t.rounds}
+                      {t.loadLabel ? ` - ${t.loadLabel}` : ''}
+                      {t.demoVideoUrl ? ' - video' : ''}
+                    </span>
                   </span>
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => deleteTask(t.id, t.exerciseName)}
-                  aria-label={`Remove ${t.exerciseName}`}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                  <span className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() =>
+                        editingId === t.id ? setEditingId(null) : startEdit(t)
+                      }
+                      aria-label={`Edit ${t.exerciseName}`}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => deleteTask(t.id, t.exerciseName)}
+                      aria-label={`Remove ${t.exerciseName}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </span>
+                </div>
+                {editingId === t.id && (
+                  <div className="grid gap-2 border-t pt-2 sm:grid-cols-2">
+                    <div className="grid gap-1.5">
+                      <Label>Exercise name</Label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} disabled={busy} />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Load label</Label>
+                      <Input value={editLoad} onChange={(e) => setEditLoad(e.target.value)} disabled={busy} />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Target reps</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={editReps}
+                        onChange={(e) => setEditReps(e.target.value)}
+                        disabled={busy}
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Rounds</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={editRounds}
+                        onChange={(e) => setEditRounds(e.target.value)}
+                        disabled={busy}
+                      />
+                    </div>
+                    <div className="grid gap-1.5 sm:col-span-2">
+                      <Label>Execution cue</Label>
+                      <Input value={editCue} onChange={(e) => setEditCue(e.target.value)} disabled={busy} />
+                    </div>
+                    <div className="grid gap-1.5 sm:col-span-2">
+                      <Label>Demo video URL</Label>
+                      <Input
+                        inputMode="url"
+                        value={editVideo}
+                        onChange={(e) => setEditVideo(e.target.value)}
+                        placeholder="https://..."
+                        disabled={busy}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={busy || !editName.trim()}
+                        onClick={() => saveEdit(t.id)}
+                      >
+                        Save movement
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
         </CardContent>

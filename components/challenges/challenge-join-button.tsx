@@ -16,11 +16,14 @@ export function ChallengeJoinButton({
   pricePaise,
   currency,
   enrollment,
+  adminBypass,
 }: {
   challengeId: string;
   pricePaise: number;
   currency: string;
   enrollment: Enrollment;
+  // Admins join free without touching Razorpay (server enforces the role).
+  adminBypass?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +53,16 @@ export function ChallengeJoinButton({
       const order = (await orderRes.json()) as {
         orderId?: string;
         keyId?: string | null;
+        free?: boolean;
+        alreadyActive?: boolean;
         error?: string;
       };
-      if (!orderRes.ok || !order.orderId) throw new Error(order.error ?? 'Order failed.');
+      if (!orderRes.ok) throw new Error(order.error ?? 'Order failed.');
+      if (order.free || order.alreadyActive) {
+        window.location.reload();
+        return;
+      }
+      if (!order.orderId) throw new Error(order.error ?? 'Order failed.');
       if (pricePaise === 0 || !order.keyId || !window.Razorpay) {
         // Free challenge or keys not pasted yet: resolve via demo verify path.
         const verify = await fetch('/api/payments/verify', {
@@ -100,7 +110,13 @@ export function ChallengeJoinButton({
   return (
     <div className="flex flex-col gap-2">
       <Button onClick={join} disabled={busy} className="min-h-tap">
-        {busy ? 'Working...' : pricePaise === 0 ? 'Join free' : `Join - ${(pricePaise / 100).toFixed(0)} ${currency}`}
+        {busy
+          ? 'Working...'
+          : adminBypass
+            ? 'Join free - admin'
+            : pricePaise === 0
+              ? 'Join free'
+              : `Join - ${(pricePaise / 100).toFixed(0)} ${currency}`}
       </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <script src="https://checkout.razorpay.com/v1/checkout.js" async />

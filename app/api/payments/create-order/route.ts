@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
+import { requireAdminUserId } from '@/lib/admin';
 import { createOrderSchema } from '@/lib/schemas/challenge';
 
 // Creates a Razorpay order for a PENDING enrollment. Never trusts the client
-// for price: amount comes from the Challenge row.
+// for price: amount comes from the Challenge row. Admins bypass payment
+// entirely: their enrollment flips ACTIVE with no order and no charge.
 export async function POST(req: Request) {
   try {
     const userId = await requireApiUserId();
@@ -18,6 +20,19 @@ export async function POST(req: Request) {
     }
     if (enrollment.status === 'ACTIVE') {
       return NextResponse.json({ enrollment, orderId: null, alreadyActive: true });
+    }
+    let adminId: string | null = null;
+    try {
+      adminId = await requireAdminUserId();
+    } catch {
+      adminId = null;
+    }
+    if (adminId === userId) {
+      await db.enrollment.update({
+        where: { id: enrollment.id },
+        data: { status: 'ACTIVE', startDate: enrollment.startDate ?? new Date() },
+      });
+      return NextResponse.json({ enrollmentId: enrollment.id, free: true });
     }
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
