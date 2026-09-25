@@ -12,6 +12,10 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/logout',
+  // Razorpay calls this with no session cookie; the handler authenticates
+  // via webhook signature instead. Blocking it here would break payment
+  // activation for users who close checkout early.
+  '/api/payments/webhook',
 ]);
 
 export async function middleware(req: NextRequest) {
