@@ -39,41 +39,41 @@ const FEATURES = [
   {
     icon: Dumbbell,
     title: 'AI Workout Tracking',
-    body: 'Accurate rep counting and form analysis.',
+    body: 'Camera counts every rep and checks form live.',
   },
   {
     icon: BarChart3,
     title: 'Track Your Progress',
-    body: 'See real improvements over time.',
+    body: 'Charts, records and streaks.',
   },
   {
     icon: Zap,
     title: 'Stay Consistent',
-    body: 'Daily workouts, streaks and milestones.',
+    body: 'One circuit a day. Show up, check it off.',
   },
   {
     icon: Users,
     title: 'Be Part of a Community',
-    body: 'Challenge yourself with thousands of others.',
+    body: 'Climb the leaderboard with thousands.',
   },
 ];
 
 const BRAINS = [
   {
     title: 'Eyes',
-    body: 'Your camera reads every rep in the browser with on-device pose detection. No video ever leaves your phone.',
+    body: 'On-device pose detection counts reps. Video never leaves your phone.',
   },
   {
     title: 'Referee',
-    body: 'A rule engine scores depth, alignment and control rep by rep. Real time, zero waiting, zero cost.',
+    body: 'Depth, alignment and control scored rep by rep, instantly.',
   },
   {
     title: 'Coach',
-    body: 'After the workout, AI turns your numbers into one clear verdict: what improved, what to fix tomorrow.',
+    body: 'Post-workout verdict: what improved, what to fix tomorrow.',
   },
   {
     title: 'Voice',
-    body: 'Cues spoken out loud mid-set. Chest up. Knees out. Deeper. Like a coach standing next to you.',
+    body: 'Spoken cues mid-set. Like a coach beside you.',
   },
 ];
 
@@ -128,17 +128,17 @@ export function LandingPage() {
             {
               n: '01',
               t: 'Join the challenge',
-              b: 'One payment of Rs 2,999 unlocks all 100 days. Fill your training profile so the coach knows your level, limits and injuries.',
+              b: 'Rs 2,999 once. 100 days unlocked. Tell us your level and injuries.',
             },
             {
               n: '02',
               t: 'Train the daily circuit',
-              b: 'Every day runs variations V1 to V10, 10 reps each, 10 rounds. About 1,000 reps in 45 minutes. Your camera counts and scores.',
+              b: 'V1 to V10, 10 reps each, 10 rounds. 1,000 reps in about 45 minutes.',
             },
             {
               n: '03',
               t: 'Get coached',
-              b: 'Live voice cues fix your form mid-set. After the workout, AI tells you exactly what to improve tomorrow.',
+              b: 'Voice cues fix form mid-set. AI reviews every workout.',
             },
           ].map((s, i) => (
             <Reveal key={s.n} delay={0.08 * i}>
@@ -196,8 +196,7 @@ export function LandingPage() {
                 BUILDS <span className="text-volt">FREEDOM.</span>
               </h2>
               <p className="max-w-md text-muted-foreground">
-                Structured workouts, intelligent tracking and real coaching to
-                help you show up, stay consistent and see real results in 100 days.
+                100 days. One circuit a day. Show up, finish, repeat.
               </p>
               <div className="grid w-full max-w-md grid-cols-2 gap-6 pt-2 sm:grid-cols-4">
                 {[
@@ -227,10 +226,10 @@ export function LandingPage() {
             <h2 className="mt-2 font-display text-4xl tracking-tight sm:text-5xl">
               10 BLOCKS. <span className="text-volt">100 DAYS.</span>
             </h2>
-            <p className="mt-3 max-w-xl text-muted-foreground">
-              Each 10-day wave has its own theme. Same circuit all 10 days - mastery
-              through repetition, with lighter recovery days on day 5 and 10.
-            </p>
+          <p className="mt-3 max-w-xl text-muted-foreground">
+            10 themed 10-day waves. Same moves for 10 days, then level up.
+            Recovery on days 5 and 10.
+          </p>
           </Reveal>
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {BLOCKS.map((b, i) => (
@@ -271,9 +270,7 @@ export function LandingPage() {
         </div>
         <Reveal delay={0.1}>
           <p className="mt-6 rounded-lg border border-volt/30 bg-volt/5 p-4 text-sm">
-            The golden rule: your camera loop never touches an LLM. Real-time coaching
-            is instant and free. AI reads your numbers after the workout - never your
-            video.
+            The golden rule: your video never touches AI. The camera loop is instant and free.
           </p>
         </Reveal>
       </section>
@@ -293,8 +290,7 @@ export function LandingPage() {
             YOUR STRONGER SELF STARTS <span className="text-volt">TODAY.</span>
           </h2>
           <p className="max-w-xl text-muted-foreground">
-            Join the 100XU challenge and take the first step towards a
-            healthier, stronger you.
+            100 days. One payment. Start today.
           </p>
           <Button asChild size="lg" className="btn-glow min-h-tap mt-2 text-base">
             <Link href="/signup">
@@ -321,10 +317,10 @@ export function LandingPage() {
                 Rs 2,999 <span className="text-lg text-muted-foreground">one-time</span>
               </p>
               <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <li>All 100 days with loads, reps and execution cues</li>
+                <li>All 100 days, loads and cues</li>
                 <li>Live AI form checks and voice coaching</li>
-                <li>Progress tracking across all 10 blocks</li>
-                <li>Free workouts included forever</li>
+                <li>Progress across all 10 blocks</li>
+                <li>Free workouts forever</li>
               </ul>
               <Button asChild size="lg" className="min-h-tap w-full text-base">
                 <Link href="/signup">Claim your spot</Link>

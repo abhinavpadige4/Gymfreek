@@ -64,7 +64,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['var(--font-anton)', 'ui-sans-serif', 'sans-serif'],
+        display: ['var(--font-display)', 'ui-sans-serif', 'sans-serif'],
       },
       minHeight: {
         // Minimum tap target, deliberately 4rem (64px) rather than the usual

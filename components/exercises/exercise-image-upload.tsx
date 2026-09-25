@@ -20,7 +20,15 @@ type VideoState =
 
 // Admin-only technique photo upload. One photo per movement name, shared
 // across every user. Rendered only for admins by the exercise detail page.
-export function ExerciseImageUpload({ exerciseName }: { exerciseName: string }) {
+// onChanged fires after every successful mutation so parents (e.g. the admin
+// media table) can refresh their status flags.
+export function ExerciseImageUpload({
+  exerciseName,
+  onChanged,
+}: {
+  exerciseName: string;
+  onChanged?: () => void;
+}) {
   const t = useTranslations('exercises.media');
   const fileRef = useRef<HTMLInputElement>(null);
   const videoFileRef = useRef<HTMLInputElement>(null);
@@ -105,6 +113,7 @@ export function ExerciseImageUpload({ exerciseName }: { exerciseName: string }) 
       }
       setHasPhoto(true);
       setVersion((v) => v + 1);
+      onChanged?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('uploadError'));
     } finally {
@@ -128,6 +137,7 @@ export function ExerciseImageUpload({ exerciseName }: { exerciseName: string }) 
       }
       setHasPhoto(false);
       setVersion((v) => v + 1);
+      onChanged?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('uploadError'));
     } finally {
@@ -146,6 +156,7 @@ export function ExerciseImageUpload({ exerciseName }: { exerciseName: string }) 
       throw new Error(data?.error ?? t('uploadError'));
     }
     setVersion((v) => v + 1);
+    onChanged?.();
   }
 
   async function attachLink() {
@@ -200,6 +211,7 @@ export function ExerciseImageUpload({ exerciseName }: { exerciseName: string }) 
       }
       setVideo({ status: 'missing' });
       setVersion((v) => v + 1);
+      onChanged?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('uploadError'));
     } finally {

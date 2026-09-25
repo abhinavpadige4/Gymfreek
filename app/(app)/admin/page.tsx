@@ -6,9 +6,12 @@ import { buildExerciseReadiness } from '@/lib/exercise-readiness';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ReadinessTable } from '@/components/admin/readiness-table';
+import { AdminNav } from '@/components/admin/admin-nav';
 import { AdminUsers } from '@/components/admin/admin-users';
 import { AdminEnrollments } from '@/components/admin/admin-enrollments';
 import { AdminChallengeCreate } from '@/components/admin/admin-challenge-create';
+import { AdminActivityChart } from '@/components/admin/admin-charts';
+import { activityBuckets } from '@/lib/admin-stats';
 
 export default async function AdminPage() {
   const session = await requireSession();
@@ -38,36 +41,64 @@ export default async function AdminPage() {
 
   const dayStart = new Date();
   dayStart.setHours(0, 0, 0, 0);
-  const [challenges, users, enrollments, payments, userCount, workoutsToday, uploads] =
-    await Promise.all([
-      db.challenge.findMany({
-        orderBy: { createdAt: 'asc' },
-        include: { _count: { select: { days: true, enrollments: true } } },
-      }),
-      db.user.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: { id: true, email: true, displayName: true, role: true, onboardingCompleted: true },
-      }),
-      db.enrollment.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
-      }),
-      db.payment.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        include: {
-          user: { select: { email: true } },
-          enrollment: { select: { challenge: { select: { title: true } } } },
-        },
-      }),
-      db.user.count(),
-      db.session.count({ where: { startedAt: { gte: dayStart } } }),
-      db.exerciseMediaUpload.findMany({
-        select: { name: true, imageMimeType: true, videoUrl: true, videoMimeType: true },
-      }),
-    ]);
+  const windowStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const [
+    challenges,
+    users,
+    enrollments,
+    payments,
+    userCount,
+    workoutsToday,
+    uploads,
+    activitySessions,
+    activityEnrollments,
+    activityPayments,
+  ] = await Promise.all([
+    db.challenge.findMany({
+      orderBy: { createdAt: 'asc' },
+      include: { _count: { select: { days: true, enrollments: true } } },
+    }),
+    db.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: { id: true, email: true, displayName: true, role: true, onboardingCompleted: true },
+    }),
+    db.enrollment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
+    }),
+    db.payment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: {
+        user: { select: { email: true } },
+        enrollment: { select: { challenge: { select: { title: true } } } },
+      },
+    }),
+    db.user.count(),
+    db.session.count({ where: { startedAt: { gte: dayStart } } }),
+    db.exerciseMediaUpload.findMany({
+      select: { name: true, imageMimeType: true, videoUrl: true, videoMimeType: true },
+    }),
+    db.session.findMany({
+      where: { startedAt: { gte: windowStart } },
+      select: { startedAt: true },
+    }),
+    db.enrollment.findMany({
+      where: { createdAt: { gte: windowStart } },
+      select: { createdAt: true },
+    }),
+    db.payment.findMany({
+      where: { createdAt: { gte: windowStart } },
+      select: { createdAt: true },
+    }),
+  ]);
+  const activity = activityBuckets(
+    activitySessions.map((s) => s.startedAt),
+    activityEnrollments.map((e) => e.createdAt),
+    activityPayments.map((p) => p.createdAt),
+  );
 
   const uploadFlags = new Map(
     uploads.map((u) => [
@@ -103,6 +134,10 @@ export default async function AdminPage() {
           <p className="mt-2 text-muted-foreground">Manage the 100XU fitness ecosystem.</p>
         </div>
 
+        <AdminNav />
+
+        <AdminActivityChart days={activity} />
+
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {overview.map((s) => (
             <Card key={s.label}>
@@ -129,13 +164,22 @@ export default async function AdminPage() {
           <CardContent className="flex flex-col gap-2 text-sm">
             {challenges.map((c) => (
               <div key={c.id} className="flex items-center justify-between gap-2">
-                <span>
+                <Link
+                  href={`/admin/challenges/${c.slug}`}
+                  className="min-w-0 truncate font-medium hover:underline"
+                >
                   {c.title} <span className="text-muted-foreground">/{c.slug}</span>
-                </span>
-                <span className="flex gap-2">
+                </Link>
+                <span className="flex shrink-0 gap-2">
                   <Badge variant="secondary">{c._count.days}d</Badge>
                   <Badge variant="secondary">{c._count.enrollments} users</Badge>
                   {!c.isActive && <Badge variant="destructive">off</Badge>}
+                  <Link
+                    href={`/challenges/${c.slug}/leaderboard`}
+                    className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                  >
+                    board
+                  </Link>
                 </span>
               </div>
             ))}

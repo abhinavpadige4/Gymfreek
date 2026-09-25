@@ -40,6 +40,24 @@ export const enrollmentUpdateSchema = z.object({
   currentDay: z.number().int().min(1).max(365).optional(),
 });
 
+export const challengeTaskCreateSchema = z.object({
+  dayId: z.string().min(1),
+  exerciseName: z.string().trim().min(1).max(80),
+  targetReps: z.number().int().min(1).max(1000).default(10),
+  rounds: z.number().int().min(1).max(50).default(10),
+  loadKg: z.number().min(0).max(500).nullable().optional(),
+  loadLabel: z.string().trim().max(120).nullable().optional(),
+  instructions: z.string().trim().max(2000).nullable().optional(),
+  demoVideoUrl: z.string().trim().url().max(500).nullable().optional(),
+});
+
+export const challengePatchSchema = z.object({
+  challengeId: z.string().min(1),
+  title: z.string().trim().min(2).max(120).optional(),
+  description: z.string().trim().max(2000).nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
 export const createOrderSchema = z.object({
   enrollmentId: z.string().min(1),
 });

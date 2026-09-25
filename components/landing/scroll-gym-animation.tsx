@@ -8,7 +8,7 @@ import { useMotionValueEvent, useScroll } from 'framer-motion';
 // ---------------------------------------------------------------------------
 const FRAME_COUNT = 20;
 const FRAME_PATH = (index: number) =>
-  `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.jpg`;
+  `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.png`;
 // Cumulative preload tiers: first tier unblocks the page, the rest stream in.
 const PRELOAD_TIERS = [4, 10, 20];
 // 0..1 easing per rAF tick toward the scroll target. Lower is silkier.
@@ -17,9 +17,11 @@ const EASE = 0.25;
 // pinned viewport then holds the final frames while scrolling continues,
 // so the ending is viewable instead of rushing past on release.
 const COMPLETE_AT = 0.7;
-// Edge sharpening strength (0 = off). Frames are pre-sharpened once after
+// Edge sharpening strength (0 = off). Edge-aware: flat areas (dark JPEG
+// noise) are left untouched, real edges get crisped. Precomputed once after
 // load, so scrolling never pays the convolution cost.
-const SHARPEN_AMOUNT = 0.5;
+const SHARPEN_AMOUNT = 0.6;
+const SHARPEN_EDGE_THRESHOLD = 10;
 // Static frame shown when the OS asks for reduced motion.
 const POSTER_INDEX = 14;
 // Captions reuse the landing's own headline copy, one per quarter.
@@ -99,6 +101,21 @@ export function ScrollGymAnimation() {
       for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
           const i = (y * w + x) * 4;
+          // Edge test on green (luma proxy): skip flat regions so dark
+          // compression noise is not amplified into mush.
+          const g = d[i + 1] ?? 0;
+          const gl = d[i - 4 + 1] ?? 0;
+          const gr = d[i + 4 + 1] ?? 0;
+          const gu = d[i - w * 4 + 1] ?? 0;
+          const gd = d[i + w * 4 + 1] ?? 0;
+          const edge = Math.max(g, gl, gr, gu, gd) - Math.min(g, gl, gr, gu, gd);
+          if (edge < SHARPEN_EDGE_THRESHOLD) {
+            o[i] = d[i] ?? 0;
+            o[i + 1] = g;
+            o[i + 2] = d[i + 2] ?? 0;
+            o[i + 3] = 255;
+            continue;
+          }
           for (let c = 0; c < 3; c++) {
             const center = d[i + c] ?? 0;
             const left = d[i - 4 + c] ?? 0;
@@ -172,8 +189,11 @@ export function ScrollGymAnimation() {
       const g = geo.current;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+      // GPU punch, negligible cost. Ignored gracefully where unsupported.
+      ctx.filter = 'contrast(1.06) saturate(1.08)';
       ctx.clearRect(0, 0, g.bw, g.bh);
       ctx.drawImage(source, g.ox, g.oy, g.dw, g.dh);
+      ctx.filter = 'none';
       canvas.dataset.frame = String(index);
     };
 
@@ -215,13 +235,16 @@ export function ScrollGymAnimation() {
       }
       // Pre-sharpen every frame once everything is in. Two frames per idle
       // chunk so the main thread never stutters; scrolling draws from cache.
-      // Skipped on low-memory devices (raw frames are drawn instead).
+      // Skipped on low-memory devices (raw frames are drawn instead), and for
+      // high-res sources (>= 1920px): downscaling a sharp source stays crisp
+      // on its own, and caching 20 large frames would waste ~300MB.
       const nav = window.navigator as Navigator & { deviceMemory?: number };
-      if (SHARPEN_AMOUNT > 0 && !(nav.deviceMemory && nav.deviceMemory <= 3)) {
+      const lowMem = nav.deviceMemory !== undefined && nav.deviceMemory <= 3;
+      if (SHARPEN_AMOUNT > 0 && !lowMem) {
         for (let i = 0; i < FRAME_COUNT; i++) {
           if (cancelled) return;
           const img = images.current[i];
-          if (img?.naturalWidth && !sharpCache.current[i]) {
+          if (img?.naturalWidth && img.naturalWidth < 1920 && !sharpCache.current[i]) {
             const done = sharpen(img);
             if (done) sharpCache.current[i] = done;
           }

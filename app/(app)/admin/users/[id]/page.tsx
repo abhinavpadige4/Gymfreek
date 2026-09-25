@@ -4,6 +4,9 @@ import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AdminNav } from '@/components/admin/admin-nav';
+import { AdminUserCharts } from '@/components/admin/admin-charts';
+import { volumeBuckets } from '@/lib/admin-stats';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -73,9 +76,27 @@ export default async function AdminUserPage(props: Props) {
     select: { id: true, startedAt: true, finishedAt: true },
   });
 
+  const windowStart = new Date(Date.now() - 12 * 7 * 24 * 60 * 60 * 1000);
+  const trainingSets = await db.set.findMany({
+    where: {
+      isWarmup: false,
+      completedAt: { gte: windowStart },
+      session: { userId: user.id },
+    },
+    select: { weight: true, reps: true, session: { select: { startedAt: true } } },
+  });
+  const training = volumeBuckets(
+    trainingSets.map((s) => ({
+      startedAt: s.session.startedAt,
+      weight: s.weight ?? 0,
+      reps: s.reps,
+    })),
+  );
+
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <AdminNav />
         <Link href="/admin" className="text-sm text-muted-foreground underline">
           Back to admin
         </Link>
@@ -93,6 +114,8 @@ export default async function AdminUserPage(props: Props) {
             </p>
           )}
         </div>
+
+        <AdminUserCharts weeks={training} unit="kg" />
 
         <Card>
           <CardHeader>

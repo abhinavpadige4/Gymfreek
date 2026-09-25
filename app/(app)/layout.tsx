@@ -16,8 +16,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-          <div className="flex items-center justify-between px-4 py-3">
+        <header className="sticky top-0 z-40 px-3 pt-3 sm:px-6">
+          <nav
+            aria-label="Primary"
+            className="mx-auto flex max-w-5xl items-center justify-between gap-2 rounded-2xl border border-white/10 bg-black/60 py-2 pl-3 pr-2 shadow-[0_8px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+          >
             <Link href="/" className="flex items-center gap-2" aria-label="100XU home">
               <Image
                 src="/icons/icon-192.png"
@@ -26,16 +29,30 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 height={64}
                 className="h-8 w-8 rounded-md"
               />
+              <span className="hidden font-display text-base tracking-wide text-white sm:inline">
+                100XU
+              </span>
             </Link>
-            <div className="flex items-center gap-2">
-              <Button asChild variant="ghost">
+            <div className="hidden items-center gap-1 md:flex">
+              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
+                <a href="#how">How it works</a>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
+                <a href="#challenge">Challenge</a>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
+                <a href="#pricing">Pricing</a>
+              </Button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button asChild variant="ghost" size="sm" className="text-zinc-200 hover:text-white">
                 <Link href="/login">Log in</Link>
               </Button>
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link href="/signup">Join the challenge</Link>
               </Button>
             </div>
-          </div>
+          </nav>
         </header>
         {children}
       </div>

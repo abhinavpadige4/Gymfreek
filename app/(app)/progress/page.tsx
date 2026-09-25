@@ -496,9 +496,16 @@ export default async function ProgressPage(
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="size-6" />
-          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        <div className="overflow-hidden rounded-2xl border border-volt/30 bg-gradient-to-br from-volt/20 via-card to-card p-6">
+          <div className="flex items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-xl bg-volt text-white shadow-[0_4px_16px_hsl(22_92%_49%/0.5)]">
+              <TrendingUp className="size-6" />
+            </span>
+            <div>
+              <p className="font-display text-xs tracking-[0.3em] text-volt">YOUR NUMBERS</p>
+              <h1 className="font-display text-3xl tracking-tight sm:text-4xl">{t('title')}</h1>
+            </div>
+          </div>
         </div>
 
         <BodyweightCard

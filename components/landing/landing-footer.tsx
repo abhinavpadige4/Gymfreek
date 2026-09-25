@@ -10,8 +10,8 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: 'Program',
     links: [
       { label: 'The challenge', href: '/challenges' },
-      { label: 'How it works', href: '/#how' },
-      { label: 'Pricing', href: '/#pricing' },
+      { label: 'How it works', href: '#how' },
+      { label: 'Pricing', href: '#pricing' },
     ],
   },
   {
@@ -65,15 +65,25 @@ export function LandingFooter() {
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               {col.title}
             </p>
-            {col.links.map((l) => (
-              <Link
-                key={l.href + l.label}
-                href={l.href}
-                className="w-fit text-sm text-foreground/80 transition-colors hover:text-volt"
-              >
-                {l.label}
-              </Link>
-            ))}
+            {col.links.map((l) =>
+              l.href.startsWith('#') ? (
+                <a
+                  key={l.href + l.label}
+                  href={l.href}
+                  className="w-fit text-sm text-foreground/80 transition-colors hover:text-volt"
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link
+                  key={l.href + l.label}
+                  href={l.href}
+                  className="w-fit text-sm text-foreground/80 transition-colors hover:text-volt"
+                >
+                  {l.label}
+                </Link>
+              ),
+            )}
           </motion.nav>
         ))}
       </div>

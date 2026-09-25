@@ -7,7 +7,7 @@ export default function SignupPage() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(22_92%_49%/0.08),transparent_65%)]"
       />
-      <div className="relative w-full max-w-sm">
+      <div className="relative w-full max-w-md">
         <SignupForm />
       </div>
     </main>

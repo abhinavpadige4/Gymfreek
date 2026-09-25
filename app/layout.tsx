@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Anton, Inter } from 'next/font/google';
+import { Inter, Russo_One } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { Toaster } from '@/components/ui/sonner';
@@ -8,7 +8,7 @@ import { PwaUpdateManager } from '@/components/shared/pwa-update-manager';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-anton', display: 'swap' });
+const display = Russo_One({ subsets: ['latin'], weight: '400', variable: '--font-display', display: 'swap' });
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('common.metadata');
@@ -49,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // or button in the header).
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.variable} ${anton.variable} min-h-screen bg-background font-sans text-foreground antialiased`}>
+      <body className={`${inter.variable} ${display.variable} min-h-screen bg-background font-sans text-foreground antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <PwaUpdateManager />

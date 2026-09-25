@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody } from '@/lib/api';
 import { requireAdminUserId } from '@/lib/admin';
-import { challengeDaySchema } from '@/lib/schemas/challenge';
+import { challengeDaySchema, challengePatchSchema } from '@/lib/schemas/challenge';
 import { z } from 'zod';
 
 const setRoleSchema = z.object({
@@ -57,6 +57,27 @@ export async function PUT(req: Request) {
       update: { title: body.day.title, focus: body.day.focus ?? null },
     });
     return NextResponse.json(day);
+  } catch (err) {
+    return handleApiError(err);
+  }
+}
+
+// PATCH /api/admin/challenges: rename, re-describe or activate/deactivate a
+// challenge. Days and tasks are managed per-day (PUT) and per-task.
+export async function PATCH(req: Request) {
+  try {
+    await requireAdminUserId();
+    const data = await parseJsonBody(req, challengePatchSchema);
+    const updated = await db.challenge.update({
+      where: { id: data.challengeId },
+      data: {
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+      select: { id: true, title: true, isActive: true },
+    });
+    return NextResponse.json(updated);
   } catch (err) {
     return handleApiError(err);
   }

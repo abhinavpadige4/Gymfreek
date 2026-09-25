@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password, displayName } = parsed.data;
+    const { email, password, displayName, ...profile } = parsed.data;
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json(
@@ -39,8 +39,26 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const emptyToNull = (v: string | null | undefined) => {
+      const t = v?.trim();
+      return t ? t : null;
+    };
     const user = await db.user.create({
-      data: { email, passwordHash, displayName: displayName ?? null },
+      data: {
+        email,
+        passwordHash,
+        displayName: displayName ?? null,
+        sex: profile.sex,
+        dateOfBirth: profile.dateOfBirth ?? null,
+        heightCm: profile.heightCm,
+        bodyweight: profile.bodyweight,
+        goal: profile.goal,
+        weeklyFrequency: profile.weeklyFrequency,
+        experienceLevel: profile.experienceLevel,
+        medicalConditions: emptyToNull(profile.medicalConditions),
+        injuries: emptyToNull(profile.injuries),
+        onboardingCompleted: true,
+      },
     });
 
     // Give the new account a starter catalog so the app is not empty.

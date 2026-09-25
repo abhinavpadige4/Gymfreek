@@ -43,26 +43,57 @@ export default async function ChallengeDetailPage({
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">{challenge.title}</h1>
-        {challenge.description && (
-          <p className="text-sm text-muted-foreground">{challenge.description}</p>
-        )}
-        <ChallengeJoinButton
-          challengeId={challenge.id}
-          pricePaise={challenge.pricePaise}
-          currency={challenge.currency}
-          enrollment={
-            enrollment
-              ? { id: enrollment.id, status: enrollment.status, currentDay: enrollment.currentDay }
-              : null
-          }
-        />
-        <Link
-          href={`/challenges/${challenge.slug}/leaderboard`}
-          className="text-sm text-volt underline-offset-4 hover:underline"
-        >
-          View leaderboard
-        </Link>
+        <Card className="overflow-hidden border-volt/40">
+          <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-6">
+            <div>
+              <p className="font-display text-xs tracking-[0.3em] text-volt">
+                100XU CHALLENGE
+              </p>
+              <h1 className="mt-1 font-display text-3xl tracking-tight sm:text-4xl">
+                {challenge.title}
+              </h1>
+              {challenge.description && (
+                <p className="mt-2 text-sm text-muted-foreground">{challenge.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                [String(challenge.days.length), challenge.days.length === 1 ? 'Day' : 'Days'],
+                ['1,000', 'Reps daily'],
+                ['55:00', 'Time cap'],
+                [
+                  challenge.pricePaise === 0
+                    ? 'Free'
+                    : `Rs ${(challenge.pricePaise / 100).toLocaleString('en-IN')}`,
+                  'One-time',
+                ],
+              ].map(([v, label]) => (
+                <div key={label} className="flex flex-col rounded-xl bg-background/60 p-3">
+                  <span className="font-display text-2xl text-volt">{v}</span>
+                  <span className="mt-0.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <ChallengeJoinButton
+              challengeId={challenge.id}
+              pricePaise={challenge.pricePaise}
+              currency={challenge.currency}
+              enrollment={
+                enrollment
+                  ? { id: enrollment.id, status: enrollment.status, currentDay: enrollment.currentDay }
+                  : null
+              }
+            />
+            <Link
+              href={`/challenges/${challenge.slug}/leaderboard`}
+              className="text-sm text-volt underline-offset-4 hover:underline"
+            >
+              View leaderboard
+            </Link>
+          </div>
+        </Card>
         {enrollment?.status === 'ACTIVE' && (
           <div className="grid grid-cols-10 gap-1" aria-label="Daily tracker">
             {challenge.days.map((d) => {
