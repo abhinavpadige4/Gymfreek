@@ -14,9 +14,18 @@ import {
   PATCH as patchTask,
   POST as postTask,
 } from '@/app/api/admin/challenge-tasks/route';
-import { PATCH as patchChallenge } from '@/app/api/admin/challenges/route';
+import { DELETE as deleteChallengeRoute, PATCH as patchChallenge } from '@/app/api/admin/challenges/route';
 import { GET as getChallenge } from '@/app/api/challenges/[id]/route';
 import { POST as postCreateOrder } from '@/app/api/payments/create-order/route';
+
+async function deleteChallenge(challengeId: string) {
+  return deleteChallengeRoute(
+    jsonReq(
+      `http://test.local/api/admin/challenges?challengeId=${encodeURIComponent(challengeId)}`,
+      'DELETE',
+    ),
+  );
+}
 
 function jsonReq(url: string, method: string, body?: unknown): Request {
   return new Request(url, {
@@ -222,8 +231,7 @@ describe('admin console routes', () => {
     expect(((await full.json()) as { days: unknown[] }).days).toHaveLength(5);
   });
 
-  it('activates admin enrollments with no order and no charge', async () => {
-    const admin = await adminUser('freepass@test.dev');
+  it('activates admin enrollments with no order and no charge', async () => {    const admin = await adminUser('freepass@test.dev');
     const { challenge } = await seedChallengeWithDay();
     const enrollment = await db.enrollment.create({
       data: { userId: admin.id, challengeId: challenge.id, status: 'PENDING', currentDay: 1 },
@@ -240,5 +248,29 @@ describe('admin console routes', () => {
     const row = await db.enrollment.findUniqueOrThrow({ where: { id: enrollment.id } });
     expect(row.status).toBe('ACTIVE');
     expect(await db.payment.count({ where: { enrollmentId: enrollment.id } })).toBe(0);
+  });
+
+  it('deletes empty challenges with their days and tasks', async () => {
+    await adminUser('deleter@test.dev');
+    const { challenge, day } = await seedChallengeWithDay();
+    await db.challengeTask.create({
+      data: { dayId: day.id, exerciseName: 'Goblet squats', targetReps: 10, rounds: 10, order: 0 },
+    });
+    const res = await deleteChallenge(challenge.id);
+    expect(res.status).toBe(200);
+    expect(await db.challenge.findUnique({ where: { id: challenge.id } })).toBeNull();
+    expect(await db.challengeDay.count({ where: { challengeId: challenge.id } })).toBe(0);
+  });
+
+  it('refuses to delete challenges with enrolled members', async () => {
+    await adminUser('keeper@test.dev');
+    const member = await db.user.create({ data: { email: 'locked@test.dev', passwordHash: 'x' } });
+    const { challenge } = await seedChallengeWithDay();
+    await db.enrollment.create({
+      data: { userId: member.id, challengeId: challenge.id, status: 'ACTIVE', currentDay: 1 },
+    });
+    const res = await deleteChallenge(challenge.id);
+    expect(res.status).toBe(409);
+    expect(await db.challenge.findUnique({ where: { id: challenge.id } })).not.toBeNull();
   });
 });

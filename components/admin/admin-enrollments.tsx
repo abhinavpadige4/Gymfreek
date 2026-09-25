@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AdminEnrollment {
   id: string;
@@ -52,6 +52,9 @@ export function AdminEnrollments({ enrollments }: { enrollments: AdminEnrollment
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Enrollments ({enrollments.length})</CardTitle>
+        <CardDescription>
+          Member subscriptions. Cancel, reactivate or reset anyone to day 1.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
         {error && <p className="text-sm text-destructive">{error}</p>}

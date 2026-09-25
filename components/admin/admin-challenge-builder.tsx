@@ -120,6 +120,26 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
       }),
     );
 
+  const deleteChallenge = () => {
+    if (
+      !window.confirm(
+        `Delete "${challenge.title}" with ALL its days and movements? Members keep their past sessions, but enrollments block this when anyone has joined.`,
+      )
+    ) {
+      return;
+    }
+    if (!window.confirm('Really delete? This cannot be undone. Deactivate instead to hide it.')) {
+      return;
+    }
+    void run(async () => {
+      await call(
+        `/api/admin/challenges?challengeId=${encodeURIComponent(challenge.id)}`,
+        { method: 'DELETE' },
+      );
+      router.push('/admin');
+    });
+  };
+
   const saveDay = () =>
     run(() =>
       call('/api/admin/challenges', {
@@ -200,7 +220,7 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Challenge settings</CardTitle>
+          <CardTitle className="text-base">Step 1 - Challenge settings</CardTitle>
           <CardDescription>
             /{challenge.slug} · {days.length} days · members see changes instantly.
           </CardDescription>
@@ -227,7 +247,7 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Day {dayNumber}</CardTitle>
+          <CardTitle className="text-base">Step 2 - Pick a day</CardTitle>
           <CardDescription>Days unlock in order; members train the current day only.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
@@ -300,7 +320,7 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">
-            Movements - day {dayNumber} ({day?.tasks.length ?? 0})
+            Step 3 - Movements, day {dayNumber} ({day?.tasks.length ?? 0})
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -414,7 +434,7 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
       {day && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Add movement to day {dayNumber}</CardTitle>
+            <CardTitle className="text-base">Step 4 - Add movement to day {dayNumber}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="grid gap-2 sm:grid-cols-2">
@@ -490,6 +510,26 @@ export function AdminChallengeBuilder({ challenge, days }: Props) {
           </CardContent>
         </Card>
       )}
+
+      <Card className="border-destructive/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Danger zone</CardTitle>
+          <CardDescription>
+            Deletes the challenge with all days and movements. Blocked while
+            members are enrolled - deactivate instead to hide it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={busy}
+            onClick={deleteChallenge}
+          >
+            Delete challenge
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

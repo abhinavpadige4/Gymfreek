@@ -82,3 +82,25 @@ export async function PATCH(req: Request) {
     return handleApiError(err);
   }
 }
+
+// DELETE /api/admin/challenges?challengeId=: delete a challenge with its
+// days and tasks. Refused when members are enrolled (their purchase and
+// progress history must survive) - deactivate instead.
+export async function DELETE(req: Request) {
+  try {
+    await requireAdminUserId();
+    const challengeId = new URL(req.url).searchParams.get('challengeId');
+    if (!challengeId) return NextResponse.json({ error: 'challengeId required.' }, { status: 400 });
+    const used = await db.enrollment.count({ where: { challengeId } });
+    if (used > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete: ${used} member(s) enrolled. Deactivate instead.` },
+        { status: 409 },
+      );
+    }
+    await db.challenge.delete({ where: { id: challengeId } });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return handleApiError(err);
+  }
+}

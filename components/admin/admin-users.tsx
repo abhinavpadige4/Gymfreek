@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AdminUser {
   id: string;
@@ -60,6 +60,9 @@ export function AdminUsers({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Users</CardTitle>
+        <CardDescription>
+          Tap a member to open their full account: profile, enrollments, payments, training.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
         {error && <p className="text-sm text-destructive">{error}</p>}

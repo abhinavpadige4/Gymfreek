@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { requireAdminPage } from '@/lib/admin-page';
@@ -26,6 +27,9 @@ export default async function AdminChallengePage({
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <Link href="/admin" className="text-sm text-muted-foreground underline">
+          Back to admin dashboard
+        </Link>
         <div>
           <p className="font-display text-sm tracking-[0.3em] text-volt">100XU CONTROL</p>
           <h1 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">

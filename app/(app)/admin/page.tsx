@@ -3,8 +3,9 @@ import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { EXERCISE_CATALOG } from '@/lib/exercise-catalog';
 import { buildExerciseReadiness } from '@/lib/exercise-readiness';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ReadinessTable } from '@/components/admin/readiness-table';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { AdminUsers } from '@/components/admin/admin-users';
@@ -136,6 +137,35 @@ export default async function AdminPage() {
 
         <AdminNav />
 
+        <Card className="border-volt/40">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Start here - run a challenge in 4 steps</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="flex flex-col gap-2 text-sm">
+              <li>
+                <span className="font-display text-volt">01 - </span>
+                Create the challenge below (title, link-name, price).
+              </li>
+              <li>
+                <span className="font-display text-volt">02 - </span>
+                Open it from the challenges list to add days and movements.
+              </li>
+              <li>
+                <span className="font-display text-volt">03 - </span>
+                <Link href="/admin/media" className="font-medium underline-offset-4 hover:underline">
+                  Upload photos and videos
+                </Link>{' '}
+                for every movement.
+              </li>
+              <li>
+                <span className="font-display text-volt">04 - </span>
+                Watch enrollments and payments arrive below.
+              </li>
+            </ol>
+          </CardContent>
+        </Card>
+
         <AdminActivityChart days={activity} />
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -160,25 +190,29 @@ export default async function AdminPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Challenges ({challenges.length})</CardTitle>
+            <CardDescription>
+              Manage days opens the full builder: days, movements, videos, settings, delete.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {challenges.map((c) => (
               <div key={c.id} className="flex items-center justify-between gap-2">
-                <Link
-                  href={`/admin/challenges/${c.slug}`}
-                  className="min-w-0 truncate font-medium hover:underline"
-                >
-                  {c.title} <span className="text-muted-foreground">/{c.slug}</span>
-                </Link>
-                <span className="flex shrink-0 gap-2">
+                <span className="min-w-0 truncate">
+                  <span className="font-medium">{c.title}</span>{' '}
+                  <span className="text-muted-foreground">/{c.slug}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
                   <Badge variant="secondary">{c._count.days}d</Badge>
                   <Badge variant="secondary">{c._count.enrollments} users</Badge>
                   {!c.isActive && <Badge variant="destructive">off</Badge>}
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/admin/challenges/${c.slug}`}>Manage days</Link>
+                  </Button>
                   <Link
                     href={`/challenges/${c.slug}/leaderboard`}
                     className="text-xs text-muted-foreground underline-offset-4 hover:underline"
                   >
-                    board
+                    Leaderboard
                   </Link>
                 </span>
               </div>
@@ -194,6 +228,9 @@ export default async function AdminPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Recent payments</CardTitle>
+            <CardDescription>
+              Latest Razorpay orders. CAPTURED means the member was activated.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {payments.map((p) => (
