@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { Client } from 'pg';
+import { registerProfile } from './helpers';
 
 test.use({ viewport: { width: 390, height: 844 }, extraHTTPHeaders: { 'x-forwarded-for': '10.111.1.91' } });
 
@@ -7,7 +8,7 @@ async function seedReturnScenario(page: Page) {
   const email = 'e2e-return-' + Date.now() + '@test.dev';
   const password = 'supersecret';
   const register = await page.request.post('/api/auth/register', {
-    data: { displayName: 'Return E2E', email, password },
+    data: { displayName: 'Return E2E', email, password, ...registerProfile() },
   });
   expect(register.ok()).toBeTruthy();
 

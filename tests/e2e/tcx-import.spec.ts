@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // TCX cardio import (issue #152): switch the settings import section to TCX,
 // upload an activity file, check the dry-run preview, confirm, and find the
@@ -34,6 +35,7 @@ test('a lifter can import a TCX activity as a cardio session', async ({ page }) 
       displayName: 'TCX E2E',
       email: `e2e-tcx-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpUser } from './helpers';
 
 // Each spec file registers through the app's real per-IP rate limit
 // (register:<ip>, 5 per 60s). A dedicated client IP per file keeps UI signups
@@ -10,12 +11,12 @@ test('a new user can sign up, log out and sign back in', async ({ page }) => {
   const email = `e2e-${Date.now()}@test.dev`;
   const password = 'supersecret';
 
-  // Sign up
-  await page.goto('/signup');
-  await page.getByLabel('Name').fill('E2E User');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Create account' }).click();
+  // Sign up (two-step form: account, then training profile).
+  await signUpUser(page, {
+    name: 'E2E User',
+    email: `e2e-${Date.now()}@test.dev`,
+    password: 'supersecret',
+  });
   await expect(page).toHaveURL('/');
 
   // Log out (the logout control lives in the app shell)
@@ -23,8 +24,8 @@ test('a new user can sign up, log out and sign back in', async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
 
   // Sign back in
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL('/');
 });

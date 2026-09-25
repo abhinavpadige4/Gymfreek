@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // First-class cardio sets (issue #133): a CARDIO exercise can be put in a
 // workout, a duration(+distance) set logged through the session runner, and
@@ -57,6 +58,7 @@ test('a trainee can log a cardio set (duration + distance) in a live session', a
       displayName: 'Cardio E2E',
       email: `e2e-cardio-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

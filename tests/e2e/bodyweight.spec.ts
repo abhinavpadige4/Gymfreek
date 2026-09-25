@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpUser } from './helpers';
 
 // Dedicated client IP so the UI signup does not share the default register
 // rate-limit bucket with other specs (issue #292).
@@ -11,12 +12,12 @@ test.use({ extraHTTPHeaders: { 'x-forwarded-for': '10.111.1.2' } });
 test('a lifter can log and delete a bodyweight entry on the progress page', async ({
   page,
 }) => {
-  // Sign up (fresh user each run).
-  await page.goto('/signup');
-  await page.getByLabel('Name').fill('Bodyweight E2E');
-  await page.getByLabel('Email').fill(`e2e-bodyweight-${Date.now()}@test.dev`);
-  await page.getByLabel('Password').fill('supersecret');
-  await page.getByRole('button', { name: 'Create account' }).click();
+  // Sign up (fresh user each run, two-step form).
+  await signUpUser(page, {
+    name: 'Bodyweight E2E',
+    email: `e2e-bodyweight-${Date.now()}@test.dev`,
+    password: 'supersecret',
+  });
   await expect(page).toHaveURL('/');
 
   await page.goto('/progress');

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // GPX cardio import (issue #204): switch the settings import section to GPX,
 // upload a route file, check the dry-run preview, confirm, and find the
@@ -29,6 +30,7 @@ test('a lifter can import a GPX activity as a cardio session', async ({ page }) 
       displayName: 'GPX E2E',
       email: `e2e-gpx-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

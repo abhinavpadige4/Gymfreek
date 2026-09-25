@@ -100,7 +100,7 @@ describe('POST /api/ai/results - challenge advancement', () => {
   });
 
   it('rejects future locked days with 403 and stores nothing', async () => {
-    const { user, challenge } = await seedChallenge();
+    const { user, challenge } = await seedChallenge(1);
     mockUserId.mockResolvedValue(user.id);
     const day2 = await db.challengeDay.create({
       data: { challengeId: challenge.id, dayNumber: 2, title: 'Day 2' },
@@ -152,9 +152,9 @@ describe('POST /api/ai/results - challenge advancement', () => {
   });
 
   it('advances a recovery day on 600 reported reps', async () => {
-    const { user, challenge } = await seedChallenge(4);
-    const day5 = await db.challengeDay.create({
-      data: { challengeId: challenge.id, dayNumber: 5, title: 'Day 5' },
+    const { user, challenge } = await seedChallenge(7);
+    const day5 = await db.challengeDay.findFirstOrThrow({
+      where: { challengeId: challenge.id, dayNumber: 5 },
     });
     for (let i = 0; i < 10; i++) {
       await db.challengeTask.create({

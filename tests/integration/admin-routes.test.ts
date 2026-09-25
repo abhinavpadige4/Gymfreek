@@ -194,7 +194,8 @@ describe('admin console routes', () => {
     }
   });
 
-  it('shows 3-day preview unenrolled and full circuits enrolled', async () => {    const { challenge } = await seedChallengeWithDay();
+  it('shows 3-day preview unenrolled and full circuits enrolled', async () => {
+    const { challenge } = await seedChallengeWithDay();
     for (let n = 2; n <= 5; n++) {
       await db.challengeDay.create({
         data: { challengeId: challenge.id, dayNumber: n, title: `Day ${n}` },

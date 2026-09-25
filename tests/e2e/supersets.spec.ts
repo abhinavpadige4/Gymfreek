@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // Supersets slice 1 (issue #146): pair two exercises in the program builder
 // (A1/A2 labels), then run the workout - the session runner presents the pair
@@ -69,6 +70,7 @@ test('a lifter can pair two exercises as a superset and run the A1/A2 flow', asy
       displayName: 'Superset E2E',
       email: `e2e-superset-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();
@@ -125,6 +127,7 @@ test('a superset gives a short rest between members and a full rest after the gr
       displayName: 'Superset Rest E2E',
       email: `e2e-superset-rest-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

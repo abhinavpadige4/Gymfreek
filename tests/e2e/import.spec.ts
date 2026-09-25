@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signUpUser } from './helpers';
 
 // Dedicated client IP so the UI signup does not share the default register
 // rate-limit bucket with other specs (issue #292).
@@ -15,12 +16,12 @@ const STRONG_CSV = [
 ].join('\n');
 
 test('a lifter can preview and confirm a Strong CSV import', async ({ page }) => {
-  // Sign up (fresh user each run).
-  await page.goto('/signup');
-  await page.getByLabel('Name').fill('Import E2E');
-  await page.getByLabel('Email').fill(`e2e-import-${Date.now()}@test.dev`);
-  await page.getByLabel('Password').fill('supersecret');
-  await page.getByRole('button', { name: 'Create account' }).click();
+  // Sign up (fresh user each run, two-step form).
+  await signUpUser(page, {
+    name: 'Import E2E',
+    email: `e2e-import-${Date.now()}@test.dev`,
+    password: 'supersecret',
+  });
   await expect(page).toHaveURL('/');
 
   await page.goto('/settings');

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // Printable A4 workout sheet (issue #333): the print route renders a seeded
 // program workout with an empty weight / reps / RIR cell per planned set, and
@@ -14,6 +15,7 @@ test('the print route renders a seeded program as fillable sheets', async ({ pag
       displayName: 'Print E2E',
       email: `e2e-print-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // Gymfreek native CSV import: switch the settings import section
 // to Gymfreek, upload a history-export-shaped CSV, check the dry-run preview,
@@ -25,6 +26,7 @@ test('a lifter can preview and confirm a Gymfreek CSV import', async ({ page }) 
       displayName: 'Gymfreek CSV E2E',
       email: `e2e-gymfreek-csv-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

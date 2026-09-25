@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // Hevy CSV import (issue #113): switch the settings import section to Hevy,
 // upload an export, check the dry-run preview, confirm, and find the imported
@@ -24,6 +25,7 @@ test('a lifter can preview and confirm a Hevy CSV import', async ({ page }) => {
       displayName: 'Hevy E2E',
       email: `e2e-hevy-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

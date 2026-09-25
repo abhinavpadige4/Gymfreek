@@ -861,14 +861,28 @@ export const EXERCISE_CATALOG: CatalogExercise[] = [
 // callers can wire up a starter program. Idempotent (safe to re-run).
 // Pass onlyNames to seed a subset (registration seeds free basics only;
 // challenge-only movements stay out of pickers and custom programs).
+// Fast path: brand-new accounts get one createMany instead of N upserts -
+// registration used to take 10s+ over remote Postgres.
 export async function seedExerciseCatalog(
   prisma: PrismaClient,
   userId: string,
   onlyNames?: Set<string>,
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  for (const data of EXERCISE_CATALOG) {
-    if (onlyNames && !onlyNames.has(data.name)) continue;
+  const list = onlyNames ? EXERCISE_CATALOG.filter((e) => onlyNames.has(e.name)) : EXERCISE_CATALOG;
+  if ((await prisma.exercise.count({ where: { userId } })) === 0 && list.length > 0) {
+    await prisma.exercise.createMany({
+      data: list.map((data) => ({ ...data, userId })),
+      skipDuplicates: true,
+    });
+    const rows = await prisma.exercise.findMany({
+      where: { userId },
+      select: { id: true, name: true },
+    });
+    for (const row of rows) map.set(row.name, row.id);
+    return map;
+  }
+  for (const data of list) {
     const exercise = await prisma.exercise.upsert({
       where: { userId_name: { userId, name: data.name } },
       update: data,

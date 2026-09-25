@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // FIT cardio import (issues #249, #253): switch the settings import section to
 // FIT, upload MULTIPLE binary FIT files at once, check the aggregated dry-run
@@ -21,6 +22,7 @@ test('a lifter can import multiple FIT activities at once', async ({ page }) => 
       displayName: 'FIT E2E',
       email: `e2e-fit-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { registerProfile } from './helpers';
 
 // Body-measurement tracking (issue #202): pick a site, quick-add a value on the
 // progress page, see it as the latest-per-site value, then delete it. The card
@@ -16,6 +17,7 @@ test('a lifter can log and delete a body measurement on the progress page', asyn
       displayName: 'Measurement E2E',
       email: `e2e-measure-${Date.now()}@test.dev`,
       password: 'supersecret',
+      ...registerProfile(),
     },
   });
   expect(registerRes.ok()).toBeTruthy();
