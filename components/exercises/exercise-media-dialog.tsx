@@ -27,11 +27,13 @@ import {
 interface Props {
   exerciseName: string;
   displayName: string;
-  equipmentType: EquipmentType;
+  equipmentType?: EquipmentType;
   compact?: boolean;
   // Catalog technique cue. Shown as the HOW TO PERFORM card when no photo
   // frames exist for this movement.
   notes?: string | null;
+  // Challenge task demo link. Shown only when no uploaded video exists.
+  demoUrl?: string | null;
 }
 
 export function commonsQuery(exerciseName: string): string {
@@ -49,6 +51,7 @@ export function ExerciseMediaDialog({
   equipmentType,
   compact = false,
   notes = null,
+  demoUrl = null,
 }: Props) {
   const t = useTranslations('exercises.media');
   const exerciseT = useTranslations('exercises');
@@ -112,6 +115,8 @@ export function ExerciseMediaDialog({
 
   const demoEmbed =
     video.status === 'link' ? embedUrl(video.url) : null;
+  const fallbackEmbed =
+    video.status === 'missing' && demoUrl ? embedUrl(demoUrl) : null;
 
   useEffect(() => {
     if (!open || !playing || !media) return;
@@ -135,7 +140,7 @@ export function ExerciseMediaDialog({
   // Defensive fallback: rows seeded or imported under a newer enum value than
   // this bundle knows render as "other" instead of crashing the page.
   const equipmentLabel = exerciseT(
-    `equipmentTypes.${equipmentTypeMessageKeys[equipmentType] ?? 'other'}`,
+    `equipmentTypes.${equipmentType && equipmentTypeMessageKeys[equipmentType] ? equipmentTypeMessageKeys[equipmentType] : 'other'}`,
   );
   const commonsUrl = `https://commons.wikimedia.org/w/index.php?search=${encodeURIComponent(
     commonsQuery(exerciseName),
@@ -166,14 +171,14 @@ export function ExerciseMediaDialog({
             onError={() => setUpload('missing')}
           />
         )}
-        {video.status === 'file' || demoEmbed ? (
+        {video.status === 'file' || demoEmbed || fallbackEmbed ? (
           <div className="space-y-4">
             <div className="relative aspect-video overflow-hidden rounded-md border bg-black">
               {video.status === 'file' ? (
                 <video src={videoSrc} controls playsInline className="h-full w-full" />
               ) : (
                 <iframe
-                  src={demoEmbed ?? undefined}
+                  src={(demoEmbed ?? fallbackEmbed) ?? undefined}
                   title={t('demoVideo')}
                   className="h-full w-full"
                   allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"

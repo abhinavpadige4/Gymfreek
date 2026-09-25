@@ -42,7 +42,7 @@ export default async function ChallengeDayPage({
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <h1 className="text-2xl font-bold tracking-tight">
-          Day {day.dayNumber}: {day.title}
+          {day.title.startsWith('Day ') ? day.title : `Day ${day.dayNumber}: ${day.title}`}
         </h1>
         {day.focus && <p className="text-sm text-muted-foreground">{day.focus}</p>}
         <Card>
@@ -61,6 +61,8 @@ export default async function ChallengeDayPage({
               tasks={day.tasks.map((t) => ({
                 exerciseName: t.exerciseName,
                 loadLabel: t.loadLabel,
+                instructions: t.instructions,
+                demoVideoUrl: t.demoVideoUrl,
               }))}
               restSec={restSec}
               requiredTasks={requiredTasks}

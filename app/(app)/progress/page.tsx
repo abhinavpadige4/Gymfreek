@@ -22,6 +22,7 @@ import {
   WEEKLY_SETS_MRV,
 } from '@/lib/stats';
 import { buildMuscleMap } from '@/lib/muscle-map';
+import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 import {
   DELOAD_READINESS_LOOKBACK,
   DELOAD_READINESS_MAX_AGE_DAYS,
@@ -111,10 +112,26 @@ export default async function ProgressPage(
     },
     select: { startedAt: true },
   });
-  const consistency = trainingConsistency(
-    finishedSessions.map((s) => s.startedAt),
-    { weeklyFrequency: user?.weeklyFrequency ?? null, windowWeeks: RECENT_WEEKS },
-  );
+  // Finished challenge days count as trained days too (valid attempts only).
+  // Volume stays gym-only: challenge work carries no loads.
+  const challengeDays = await db.workoutSession.findMany({
+    where: {
+      userId: auth.userId,
+      challengeDayId: { not: null },
+      durationSec: { gt: 0, lte: CHALLENGE_DAY_CAP_SEC },
+      startedAt: { gte: since },
+    },
+    select: { startedAt: true, completedAt: true },
+  });
+  const challengeDates = challengeDays.map((s) => s.completedAt ?? s.startedAt);
+  const trainedDates = [
+    ...finishedSessions.map((s) => s.startedAt),
+    ...challengeDates,
+  ];
+  const consistency = trainingConsistency(trainedDates, {
+    weeklyFrequency: user?.weeklyFrequency ?? null,
+    windowWeeks: RECENT_WEEKS,
+  });
 
   const selectedExerciseId =
     searchParams.exerciseId ?? exercisesWithSets[0]?.id;
@@ -457,8 +474,8 @@ export default async function ProgressPage(
     const age = nowMs - d.getTime();
     return age >= back * windowMs && age < (back + 1) * windowMs;
   };
-  const recentSessionCount = finishedSessions.filter((s) => inBackWindow(s.startedAt, 0)).length;
-  const priorSessionCount = finishedSessions.filter((s) => inBackWindow(s.startedAt, 1)).length;
+  const recentSessionCount = trainedDates.filter((d) => inBackWindow(d, 0)).length;
+  const priorSessionCount = trainedDates.filter((d) => inBackWindow(d, 1)).length;
   const volumeIn = (back: number) =>
     weeklySetsRaw
       .filter((s) => !s.isWarmup && inBackWindow(s.session.startedAt, back))

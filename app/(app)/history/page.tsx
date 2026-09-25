@@ -38,7 +38,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
   const monthRange = getMonthQueryRange(month);
   const programFilter = searchParams.programId ? { programId: searchParams.programId } : {};
 
-  const [sessions, programs, user, totalHistoryCount] = await Promise.all([
+  const [sessions, programs, user, totalHistoryCount, challengeDays] = await Promise.all([
     db.session.findMany({
       where: {
         userId: auth.userId,
@@ -75,9 +75,47 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
     db.session.count({
       where: { userId: auth.userId, finishedAt: { not: null } },
     }),
+    db.workoutSession.findMany({
+      where: {
+        userId: auth.userId,
+        challengeDayId: { not: null },
+        startedAt: monthRange,
+      },
+      orderBy: { startedAt: 'asc' },
+      select: {
+        id: true,
+        startedAt: true,
+        durationSec: true,
+        results: { select: { id: true } },
+        challengeDay: {
+          select: {
+            dayNumber: true,
+            challenge: { select: { title: true, slug: true } },
+          },
+        },
+      },
+    }),
   ]);
 
   const unit = user?.unit ?? 'KG';
+  const challengeItems: HistoryCalendarSession[] = challengeDays.map((s) => {
+    const dayLabel = s.challengeDay ? `Day ${s.challengeDay.dayNumber}` : t('freeSession');
+    const minutes =
+      s.durationSec != null ? Math.max(1, Math.round(s.durationSec / 60)) : null;
+    return {
+      id: s.id,
+      startedAt: s.startedAt.toISOString(),
+      title: dayLabel,
+      programName: s.challengeDay?.challenge.title ?? null,
+      workingSets: s.results.length,
+      volumeLabel: null,
+      durationLabel: minutes != null ? t('minutes', { count: minutes }) : null,
+      cardioDistanceLabel: null,
+      cardioDurationLabel: null,
+      cardioHeartRateLabel: null,
+      href: s.challengeDay ? `/challenges/${s.challengeDay.challenge.slug}` : undefined,
+    };
+  });
   const calendarSessions: HistoryCalendarSession[] = sessions.map((session) => {
     const enrichedSets = applyBodyweight(
       session.sets.map((set) => ({
@@ -152,7 +190,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
           selectedMonth={monthKey}
         />
 
-        {totalHistoryCount === 0 ? (
+        {totalHistoryCount === 0 && challengeItems.length === 0 ? (
           <EmptyState
             icon={CalendarDays}
             title={t('emptyTitle')}
@@ -163,7 +201,9 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
           <HistoryCalendar
             monthKey={monthKey}
             initialDay={searchParams.day}
-            sessions={calendarSessions}
+            sessions={[...calendarSessions, ...challengeItems].sort((a, b) =>
+              a.startedAt < b.startedAt ? -1 : 1,
+            )}
             selectedProgramId={searchParams.programId}
             timeZone={timeZone}
           />

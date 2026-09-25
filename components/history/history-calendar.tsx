@@ -29,6 +29,9 @@ export interface HistoryCalendarSession {
   cardioDistanceLabel: string | null;
   cardioDurationLabel: string | null;
   cardioHeartRateLabel: string | null;
+  // Challenge days link back to their challenge (no session detail page).
+  // Undefined keeps the default /history/[id] link.
+  href?: string;
 }
 
 interface Props {
@@ -298,54 +301,55 @@ export function HistoryCalendar({
               const returnParams = new URLSearchParams({ month: monthKey, day: selectedDate });
               if (selectedProgramId) returnParams.set('programId', selectedProgramId);
               returnParams.set('tz', urlZone);
+              const href = session.href ?? `/history/${session.id}?${returnParams.toString()}`;
+              const card = (
+                <Card className="transition-colors hover:border-volt/50">
+                  <CardContent className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-base font-medium">{session.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {format.dateTime(new Date(session.startedAt), {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone,
+                        })}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+                        {session.programName && (
+                          <Badge variant="secondary">{session.programName}</Badge>
+                        )}
+                        {session.cardioDistanceLabel && (
+                          <Badge variant="outline">{session.cardioDistanceLabel}</Badge>
+                        )}
+                        {session.cardioDurationLabel && (
+                          <Badge variant="outline">{session.cardioDurationLabel}</Badge>
+                        )}
+                        {session.cardioHeartRateLabel && (
+                          <Badge variant="outline">{session.cardioHeartRateLabel}</Badge>
+                        )}
+                        {!session.cardioDurationLabel && (
+                          <>
+                            <Badge variant="outline">
+                              {common('counts.sets', { count: session.workingSets })}
+                            </Badge>
+                            {session.volumeLabel && (
+                              <Badge variant="outline">{session.volumeLabel}</Badge>
+                            )}
+                            {session.durationLabel && (
+                              <Badge variant="outline">{session.durationLabel}</Badge>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              );
               return (
                 <li key={session.id}>
-                  <Link
-                    href={`/history/${session.id}?${returnParams.toString()}`}
-                    className="block"
-                  >
-                    <Card className="transition-colors hover:border-volt/50">
-                      <CardContent className="flex items-center justify-between gap-3 p-4">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-base font-medium">{session.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {format.dateTime(new Date(session.startedAt), {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              timeZone,
-                            })}
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-                            {session.programName && (
-                              <Badge variant="secondary">{session.programName}</Badge>
-                            )}
-                            {session.cardioDistanceLabel && (
-                              <Badge variant="outline">{session.cardioDistanceLabel}</Badge>
-                            )}
-                            {session.cardioDurationLabel && (
-                              <Badge variant="outline">{session.cardioDurationLabel}</Badge>
-                            )}
-                            {session.cardioHeartRateLabel && (
-                              <Badge variant="outline">{session.cardioHeartRateLabel}</Badge>
-                            )}
-                            {!session.cardioDurationLabel && (
-                              <>
-                                <Badge variant="outline">
-                                  {common('counts.sets', { count: session.workingSets })}
-                                </Badge>
-                                {session.volumeLabel && (
-                                  <Badge variant="outline">{session.volumeLabel}</Badge>
-                                )}
-                                {session.durationLabel && (
-                                  <Badge variant="outline">{session.durationLabel}</Badge>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-                      </CardContent>
-                    </Card>
+                  <Link href={href} className="block">
+                    {card}
                   </Link>
                 </li>
               );
