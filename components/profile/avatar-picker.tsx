@@ -26,7 +26,7 @@ export function AvatarPicker({
         >
           {/* Plain img: DiceBear serves SVG, which the Next optimizer refuses. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={avatarUrl(seed)} alt={seed} width={64} height={64} className="h-14 w-full" />
+          <img src={avatarUrl(seed)} alt={seed} width={64} height={64} className="h-16 w-full rounded-lg object-cover object-top" />
         </button>
       ))}
     </div>

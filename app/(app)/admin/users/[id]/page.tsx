@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { AdminUserCharts } from '@/components/admin/admin-charts';
 import { volumeBuckets } from '@/lib/admin-stats';
-import { avatarUrl } from '@/lib/avatar';
+import { avatarUrl, BLOCK_BADGES } from '@/lib/avatar';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -52,6 +52,10 @@ export default async function AdminUserPage(props: Props) {
       medicalConditions: true,
       injuries: true,
       createdAt: true,
+      badgeAwards: {
+        orderBy: { blockNumber: 'asc' },
+        select: { blockNumber: true, awardedAt: true },
+      },
       enrollments: {
         orderBy: { createdAt: 'desc' },
         select: {
@@ -133,7 +137,7 @@ export default async function AdminUserPage(props: Props) {
               <img
                 src={avatarUrl(user.avatarSeed)}
                 alt="Member bitmoji"
-                className="h-16 w-16 rounded-full border"
+                className="h-16 w-16 rounded-full border object-cover object-top"
               />
             )}
             <div className="min-w-0 text-sm">
@@ -153,6 +157,40 @@ export default async function AdminUserPage(props: Props) {
             </p>
           )}
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Badges ({user.badgeAwards.length}/10)</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2 text-sm">
+            {user.badgeAwards.map((b) => {
+              const meta = BLOCK_BADGES[b.blockNumber - 1];
+              return (
+                <Link
+                  key={b.blockNumber}
+                  href={`/badges/${b.blockNumber}?userId=${user.id}`}
+                  className="flex items-center gap-2 rounded-full border border-border py-1 pl-1 pr-3 transition-colors hover:border-volt/60"
+                >
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-black"
+                    style={{ background: meta?.color ?? '#888' }}
+                  >
+                    {b.blockNumber * 10}
+                  </span>
+                  <span>
+                    {meta?.name ?? `Block ${b.blockNumber}`}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {b.awardedAt.toLocaleDateString('en-IN')}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+            {user.badgeAwards.length === 0 && (
+              <p className="text-muted-foreground">No badges yet.</p>
+            )}
+          </CardContent>
+        </Card>
 
         <AdminUserCharts weeks={training} unit="kg" />
 
