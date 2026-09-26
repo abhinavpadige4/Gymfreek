@@ -7,6 +7,10 @@ import { toast } from 'sonner';
 import type { Sex, TrainingGoal, WeightUnit } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { AvatarPicker } from '@/components/profile/avatar-picker';
+import { PhotoUpload } from '@/components/profile/photo-upload';
+import Image from 'next/image';
+import { avatarUrl } from '@/lib/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -19,6 +23,10 @@ import {
 
 export interface ProfileData {
   displayName: string | null;
+  avatarSeed: string | null;
+  hasPhoto: boolean;
+  instagram: string | null;
+  facebook: string | null;
   bodyweight: number | null;
   sex: Sex | null;
   heightCm: number | null;
@@ -49,6 +57,9 @@ export function ProfileSection({ initial }: Props) {
   const t = useTranslations('settings.profile');
   const common = useTranslations('common');
   const [displayName, setDisplayName] = useState(initial.displayName ?? '');
+  const [avatarSeed, setAvatarSeed] = useState(initial.avatarSeed ?? 'Ravi');
+  const [instagram, setInstagram] = useState(initial.instagram ?? '');
+  const [facebook, setFacebook] = useState(initial.facebook ?? '');
   const [bodyweight, setBodyweight] = useState(numOrEmpty(initial.bodyweight));
   const [heightCm, setHeightCm] = useState(numOrEmpty(initial.heightCm));
   const [weeklyFrequency, setWeeklyFrequency] = useState(
@@ -81,6 +92,9 @@ export function ProfileSection({ initial }: Props) {
     try {
       const body: Record<string, unknown> = {
         displayName: displayName.trim() === '' ? null : displayName.trim(),
+        avatarSeed,
+        instagram: instagram.trim() === '' ? null : instagram.trim(),
+        facebook: facebook.trim() === '' ? null : facebook.trim(),
         bodyweight: bodyweight === '' ? null : Number(bodyweight),
         heightCm: heightCm === '' ? null : Number(heightCm),
         weeklyFrequency: weeklyFrequency === '' ? null : Number(weeklyFrequency),
@@ -118,6 +132,47 @@ export function ProfileSection({ initial }: Props) {
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src={avatarUrl(avatarSeed)}
+            alt="Your avatar"
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full border"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Your avatar</p>
+            <p className="text-xs text-muted-foreground">Shown on home in place of a photo.</p>
+          </div>
+        </div>
+        <AvatarPicker value={avatarSeed} onChange={setAvatarSeed} />
+        <PhotoUpload hasPhoto={initial.hasPhoto} />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="instagram" className="text-sm">
+              Instagram
+            </Label>
+            <Input
+              id="instagram"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="@you"
+              maxLength={80}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="facebook" className="text-sm">
+              Facebook
+            </Label>
+            <Input
+              id="facebook"
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              placeholder="profile link"
+              maxLength={80}
+            />
+          </div>
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="displayName" className="text-sm">
             {t('displayName')}

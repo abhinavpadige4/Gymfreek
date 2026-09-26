@@ -10,7 +10,7 @@ export interface SummaryCards {
 // cards out - no client state, no charts.
 export function ProgressSummary({ cards }: { cards: SummaryCards[] }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((c) => (
         <Card key={c.title}>
           <CardContent className="flex flex-col gap-1 p-4">

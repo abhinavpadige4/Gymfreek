@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Play, AlertCircle, Lightbulb, Trophy, TrendingUp, Layers } from 'lucide-react';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { getCurrentSession, requireSession } from '@/lib/auth';
 import { LandingPage } from '@/components/landing/landing-page';
+import { AvatarShare } from '@/components/home/avatar-share';
+import { BadgeShelf } from '@/components/home/badge-shelf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,44 +64,91 @@ export default async function DashboardPage() {
   // call; null on a brand-new account with no history.
   const insight = await getHomeInsight(session.userId, new Date(), locale);
 
-  // Read-only display aggregates over the member's own history. No logic
-  // changes: counts and sums for the stats strip and the record card.
+  // Read-only display aggregates over the member's own history. Gym sessions
+  // (Session+Set) and challenge sessions (WorkoutSession+ExerciseResult) are
+  // merged so challenge-only users never see 0/0/0.
   const finishedWhere = { userId: session.userId, finishedAt: { not: null } };
-  const [profile, workoutCount, repSum, bestSet, finishedSessions] = await Promise.all([
-    db.user.findUnique({
-      where: { id: session.userId },
-      select: { displayName: true },
-    }),
-    db.session.count({ where: finishedWhere }),
-    db.set.aggregate({ _sum: { reps: true }, where: { session: finishedWhere } }),
-    db.set.findFirst({
-      where: { session: { userId: session.userId }, weight: { gt: 0 } },
-      orderBy: { weight: 'desc' },
-      select: {
-        weight: true,
-        exercise: { select: { name: true } },
-      },
-    }),
-    db.session.findMany({
-      where: finishedWhere,
-      select: { startedAt: true, finishedAt: true },
-    }),
-  ]);
-  const activeMinutes = finishedSessions.reduce(
+  const [profile, workoutCount, repSum, bestSet, finishedSessions, challengeSessions, challengeReps, badgeAwards] =
+    await Promise.all([
+      db.user.findUnique({
+        where: { id: session.userId },
+        select: { displayName: true, avatarSeed: true, instagram: true, facebook: true },
+      }),
+      db.session.count({ where: finishedWhere }),
+      db.set.aggregate({ _sum: { reps: true }, where: { session: finishedWhere } }),
+      db.set.findFirst({
+        where: { session: finishedWhere, weight: { gt: 0 } },
+        orderBy: { weight: 'desc' },
+        select: {
+          weight: true,
+          exercise: { select: { name: true } },
+        },
+      }),
+      db.session.findMany({
+        where: finishedWhere,
+        select: { startedAt: true, finishedAt: true },
+      }),
+      db.workoutSession.findMany({
+        where: { userId: session.userId, completedAt: { not: null } },
+        select: { startedAt: true, completedAt: true, durationSec: true },
+      }),
+      db.exerciseResult.aggregate({
+        _sum: { reps: true },
+        where: { session: { userId: session.userId, completedAt: { not: null } } },
+      }),
+      db.badgeAward.findMany({
+        where: { userId: session.userId },
+        select: { blockNumber: true },
+        orderBy: { blockNumber: 'asc' },
+      }),
+    ]);
+  const gymMinutes = finishedSessions.reduce(
     (acc, s) =>
       acc +
       (s.finishedAt
-        ? Math.max(0, Math.round((s.finishedAt.getTime() - s.startedAt.getTime()) / 60000))
+        ? Math.max(1, Math.round((s.finishedAt.getTime() - s.startedAt.getTime()) / 60000))
         : 0),
     0,
   );
+  const challengeMinutes = challengeSessions.reduce((acc, s) => {
+    if (s.durationSec != null) return acc + Math.max(1, Math.round(s.durationSec / 60));
+    if (s.completedAt)
+      return acc + Math.max(1, Math.round((s.completedAt.getTime() - s.startedAt.getTime()) / 60000));
+    return acc;
+  }, 0);
+  const activeMinutes = gymMinutes + challengeMinutes;
+  const totalWorkouts = workoutCount + challengeSessions.length;
+  const totalReps = (repSum._sum.reps ?? 0) + (challengeReps._sum.reps ?? 0);
   const displayName = profile?.displayName || session.email;
 
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-5xl flex-col gap-6">
+        {/* STATS - first so progress is visible without scrolling */}
+        <div>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {t('yourStats')}
+          </h2>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {[
+              { label: t('statWorkouts'), value: format.number(totalWorkouts) },
+              { label: t('statReps'), value: format.number(totalReps) },
+              { label: t('statMinutes'), value: format.number(activeMinutes) },
+            ].map((s) => (
+              <Card key={s.label}>
+                <CardContent className="flex flex-col gap-1 p-3 sm:p-4">
+                  <span className="font-display text-2xl text-volt sm:text-3xl">{s.value}</span>
+                  <span className="text-[11px] uppercase tracking-widest text-muted-foreground sm:text-xs">
+                    {s.label}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
         {/* HERO */}
-        <div className="grid items-center gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
           <div className="flex flex-col items-start gap-3">
             <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
               {t('welcomeBack')}
@@ -110,16 +158,19 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-muted-foreground">{t('heroSubtitle')}</p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border">
-            <Image
-              src="/landing/challenge-boy.png"
-              alt="100XU athlete"
-              width={1024}
-              height={1365}
-              className="h-48 w-full object-cover object-top sm:h-56 lg:h-64"
-            />
-          </div>
+          <AvatarShare
+            name={displayName}
+            seed={profile?.avatarSeed ?? null}
+            workouts={totalWorkouts}
+            reps={totalReps}
+            minutes={activeMinutes}
+            badges={badgeAwards}
+            instagram={profile?.instagram ?? null}
+            facebook={profile?.facebook ?? null}
+          />
         </div>
+
+        <BadgeShelf badges={badgeAwards} />
 
         {/* CHALLENGE */}
         <Card className="border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
@@ -266,29 +317,6 @@ export default async function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {t('yourStats')}
-          </h2>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: t('statWorkouts'), value: format.number(workoutCount) },
-              { label: t('statReps'), value: format.number(repSum._sum.reps ?? 0) },
-              { label: t('statMinutes'), value: format.number(activeMinutes) },
-            ].map((s) => (
-              <Card key={s.label}>
-                <CardContent className="flex flex-col gap-1 p-4">
-                  <span className="font-display text-3xl text-volt">{s.value}</span>
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
-                    {s.label}
-                  </span>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>

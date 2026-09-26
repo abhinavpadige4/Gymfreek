@@ -13,10 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AvatarPicker } from '@/components/profile/avatar-picker';
 
 type Props = {
   initial: {
     displayName: string | null;
+    avatarSeed: string | null;
+    instagram: string | null;
+    facebook: string | null;
     sex: string | null;
     heightCm: number | null;
     bodyweight: number | null;
@@ -53,6 +57,9 @@ export function OnboardingForm({ initial }: Props) {
         medicalConditions: form.medicalConditions || null,
         injuries: form.injuries || null,
         experienceLevel: form.experienceLevel || null,
+        avatarSeed: form.avatarSeed || null,
+        instagram: form.instagram || null,
+        facebook: form.facebook || null,
         onboardingCompleted: true,
       }),
     });
@@ -76,6 +83,33 @@ export function OnboardingForm({ initial }: Props) {
       </CardHeader>
       <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
+          <div className="grid gap-2">
+            <Label>Pick your avatar</Label>
+            <AvatarPicker
+              value={form.avatarSeed ?? null}
+              onChange={(v) => set('avatarSeed', v)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="instagram">Instagram</Label>
+              <Input
+                id="instagram"
+                value={form.instagram ?? ''}
+                onChange={(e) => set('instagram', e.target.value)}
+                placeholder="@you"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="facebook">Facebook</Label>
+              <Input
+                id="facebook"
+                value={form.facebook ?? ''}
+                onChange={(e) => set('facebook', e.target.value)}
+                placeholder="profile link"
+              />
+            </div>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="displayName">Name</Label>
             <Input

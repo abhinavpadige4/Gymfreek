@@ -113,7 +113,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
       cardioDistanceLabel: null,
       cardioDurationLabel: null,
       cardioHeartRateLabel: null,
-      href: s.challengeDay ? `/challenges/${s.challengeDay.challenge.slug}` : undefined,
+      href: `/history/${s.id}`,
     };
   });
   const calendarSessions: HistoryCalendarSession[] = sessions.map((session) => {

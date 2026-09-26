@@ -1,12 +1,12 @@
 import { db } from '@/lib/db';
 import { requireAdminPage } from '@/lib/admin-page';
 import { AdminNav } from '@/components/admin/admin-nav';
-import { Badge } from '@/components/ui/badge';
+import { AdminProgramRow } from '@/components/admin/admin-program-row';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Admin programs overview: every member program in one place - owner, active
-// state, template origin, size and session count. Read-only; programs are
-// managed by their owners (template ones are locked by design).
+// state, template origin, size and session count. Inspect inline, open the
+// owner profile, deactivate or delete (delete is blocked when sessions exist).
 export default async function AdminProgramsPage() {
   await requireAdminPage();
   const programs = await db.program.findMany({
@@ -19,8 +19,11 @@ export default async function AdminProgramsPage() {
       isActive: true,
       sourceTemplateSlug: true,
       updatedAt: true,
-      user: { select: { email: true } },
-      workouts: { select: { id: true, _count: { select: { exercises: true } } } },
+      user: { select: { id: true, email: true } },
+      workouts: {
+        orderBy: { order: 'asc' },
+        select: { name: true, _count: { select: { exercises: true } } },
+      },
       _count: { select: { sessions: true } },
     },
   });
@@ -46,22 +49,24 @@ export default async function AdminProgramsPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {programs.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate">
-                  <span className="font-medium">{p.name}</span>{' '}
-                  <span className="text-muted-foreground">
-                    {p.user.email} · {p.workouts.length} sessions · {p._count.sessions} logged
-                  </span>
-                </span>
-                <span className="flex shrink-0 gap-1.5">
-                  {p.sourceTemplateSlug && <Badge variant="outline">locked</Badge>}
-                  {p.isActive ? (
-                    <Badge>active</Badge>
-                  ) : (
-                    <Badge variant="secondary">idle</Badge>
-                  )}
-                </span>
-              </div>
+              <AdminProgramRow
+                key={p.id}
+                program={{
+                  id: p.id,
+                  name: p.name,
+                  isActive: p.isActive,
+                  sourceTemplateSlug: p.sourceTemplateSlug,
+                  ownerId: p.user.id,
+                  ownerEmail: p.user.email,
+                  workoutCount: p.workouts.length,
+                  exerciseCount: p.workouts.reduce((s, w) => s + w._count.exercises, 0),
+                  sessionCount: p._count.sessions,
+                  workouts: p.workouts.map((w) => ({
+                    name: w.name,
+                    exerciseCount: w._count.exercises,
+                  })),
+                }}
+              />
             ))}
             {programs.length === 0 && (
               <p className="text-muted-foreground">No programs yet.</p>

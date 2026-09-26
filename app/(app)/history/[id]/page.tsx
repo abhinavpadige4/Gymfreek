@@ -82,7 +82,120 @@ export default async function HistorySessionPage(props: Params) {
     }),
   ]);
 
-  if (!session || session.userId !== auth.userId) {
+  // Challenge sessions (WorkoutSession + ExerciseResult) render their own
+  // detail view below. Gym sessions continue past this branch.
+  if (!session) {
+    const challenge = await db.workoutSession.findUnique({
+      where: { id: params.id },
+      include: {
+        results: { include: { issues: true } },
+        challengeDay: { select: { dayNumber: true, title: true, challenge: { select: { title: true, slug: true } } } },
+      },
+    });
+    if (!challenge || challenge.userId !== auth.userId) {
+      notFound();
+    }
+    const totalReps = challenge.results.reduce((a, r) => a + r.reps, 0);
+    const durationMin =
+      challenge.durationSec != null
+        ? Math.max(1, Math.round(challenge.durationSec / 60))
+        : challenge.completedAt
+          ? Math.max(
+              1,
+              Math.round(
+                (challenge.completedAt.getTime() - challenge.startedAt.getTime()) / 60000,
+              ),
+            )
+          : null;
+    return (
+      <main className="flex-1 px-4 py-6">
+        <div className="mx-auto flex max-w-2xl flex-col gap-4">
+          <Button asChild variant="ghost" size="sm" className="-ml-2 self-start">
+            <Link href={buildBackHref(searchParams)}>
+              <ArrowLeft className="size-4" />
+              <span className="ml-1">{t('title')}</span>
+            </Link>
+          </Button>
+          <Card>
+            <CardHeader className="pb-3">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {challenge.challengeDay
+                  ? `Day ${challenge.challengeDay.dayNumber}`
+                  : t('freeSession')}
+              </h1>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {challenge.challengeDay && (
+                  <Badge variant="secondary">{challenge.challengeDay.challenge.title}</Badge>
+                )}
+                <Badge variant="outline" className="gap-1">
+                  <Calendar className="size-3" />
+                  {format.dateTime(challenge.startedAt, {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone,
+                  })}
+                </Badge>
+                {durationMin != null && (
+                  <Badge variant="outline" className="gap-1">
+                    <Clock className="size-3" />
+                    {t('minutes', { count: durationMin })}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3 pt-0 text-sm sm:grid-cols-3">
+              <Stat label={detail('exercises')} value={String(challenge.results.length)} />
+              <Stat label={detail('sets')} value={String(challenge.results.length)} />
+              <Stat
+                label={detail('reps')}
+                value={format.number(totalReps)}
+              />
+            </CardContent>
+          </Card>
+          <ul className="flex flex-col gap-3">
+            {challenge.results.map((r) => (
+              <li key={r.id}>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <h2 className="text-base font-semibold">{r.exerciseName}</h2>
+                    <div className="mt-1 flex gap-3 text-xs text-muted-foreground">
+                      <span>
+                        {r.goodReps}/{r.reps} good
+                      </span>
+                      <span>Score {Math.round(r.averageScore)}</span>
+                    </div>
+                  </CardHeader>
+                  {r.issues.length > 0 && (
+                    <CardContent className="pt-0">
+                      <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
+                        {r.issues.map((i) => (
+                          <li key={i.id}>
+                            {i.issueType} × {i.count}
+                            {i.severity ? ` (${i.severity})` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  )}
+                </Card>
+              </li>
+            ))}
+          </ul>
+          {challenge.challengeDay && (
+            <Button asChild variant="outline" className="min-h-tap">
+              <Link href={`/challenges/${challenge.challengeDay.challenge.slug}`}>
+                Open challenge
+              </Link>
+            </Button>
+          )}
+        </div>
+      </main>
+    );
+  }
+  if (session.userId !== auth.userId) {
     notFound();
   }
   const bodyweight = user?.bodyweight ?? null;

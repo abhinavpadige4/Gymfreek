@@ -3,7 +3,8 @@ import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
 import { workoutResultsSchema } from '@/lib/schemas/ai';
 import { advanceEnrollment } from '@/lib/challenge-progress';
-import { isValidAttempt, requiredRepsForDay } from '@/lib/challenge-rules';
+import { isValidAttemptForDay, requiredRepsForDay } from '@/lib/challenge-rules';
+import { maybeAwardBadge } from '@/lib/badges';
 
 // POST /api/ai/results: stores one completed live workout - session, per-exercise
 // counts/scores and form issues. Structured JSON only; video is never accepted.
@@ -16,13 +17,12 @@ export async function POST(req: Request) {
 
     let advance: { id: string; status: 'ACTIVE' | 'COMPLETED'; currentDay: number } | null =
       null;
-    // Challenge race rules: over-time, short, locked or future-day attempts
-    // are stored but never advance. Locked or future days are rejected
-    // outright - the day must be the member's current (or an already
-    // completed past) day to count.
-    const validAttempt = isValidAttempt(data.durationSec);
+    // Challenge race rules: days 1-50 cap is info-only, days 51+ enforce
+    // 55:00. Locked or future days are rejected outright.
+    let validAttempt = true;
     let enoughReps = true;
-    if (data.challengeDayId && validAttempt) {
+    let awardedBlock: number | null = null;
+    if (data.challengeDayId) {
       const day = await db.challengeDay.findUnique({
         where: { id: data.challengeDayId },
         include: { _count: { select: { tasks: true } } },
@@ -46,7 +46,8 @@ export async function POST(req: Request) {
       }
       const reportedReps = data.results.reduce((sum, r) => sum + r.reps, 0);
       enoughReps = reportedReps >= requiredRepsForDay(day.dayNumber, day._count.tasks);
-      if (enoughReps && enrollment) {
+      validAttempt = isValidAttemptForDay(data.durationSec, day.dayNumber);
+      if (enoughReps && validAttempt && enrollment) {
         const next = advanceEnrollment(
           { status: enrollment.status, currentDay: enrollment.currentDay },
           day.dayNumber,
@@ -89,12 +90,18 @@ export async function POST(req: Request) {
         where: { id: advance.id },
         data: { status: advance.status, currentDay: advance.currentDay },
       });
+      // Badge: day 10/20/...100 completes its block.
+      const dayNum = data.challengeDayId
+        ? (await db.challengeDay.findUnique({ where: { id: data.challengeDayId }, select: { dayNumber: true } }))?.dayNumber
+        : null;
+      if (dayNum) awardedBlock = await maybeAwardBadge(userId, dayNum);
     }
     return NextResponse.json(
       {
         id: session.id,
         results: session.results.length,
         valid: validAttempt && enoughReps,
+        awardedBlock,
         enrollment: advance
           ? { status: advance.status, currentDay: advance.currentDay }
           : undefined,

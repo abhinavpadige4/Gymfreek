@@ -36,6 +36,27 @@ export const profileUpdateSchema = z.object({
   injuries: z.string().trim().max(1000).nullable().optional(),
   experienceLevel: z.nativeEnum(ExperienceLevel).nullable().optional(),
   onboardingCompleted: z.boolean().optional(),
+  avatarSeed: z.string().trim().min(1).max(40).nullable().optional(),
+  instagram: z.string().trim().max(80).nullable().optional(),
+  facebook: z.string().trim().max(80).nullable().optional(),
 });
+
+// Profile photo as a data URL (jpeg/png/webp, capped so the row stays small).
+// Stored as bytes + mime on User; served back through /api/profile/photo.
+export const PROFILE_PHOTO_MAX_BYTES = 500 * 1024;
+export const PROFILE_PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+export const profilePhotoSchema = z.object({
+  dataUrl: z
+    .string()
+    .max(Math.ceil((PROFILE_PHOTO_MAX_BYTES * 4) / 3) + 100, 'Photo too large.')
+    .refine(
+      (s) =>
+        PROFILE_PHOTO_MIMES.some((m) => s.startsWith(`data:${m};base64,`)),
+      'Photo must be a jpeg, png or webp data URL.',
+    ),
+});
+
+export type ProfilePhoto = z.infer<typeof profilePhotoSchema>;
 
 export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;

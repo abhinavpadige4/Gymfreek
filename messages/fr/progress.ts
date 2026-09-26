@@ -10,6 +10,7 @@ export const progress = {
   summary: {
     workouts: 'Séances',
     volume: 'Charge soulevée',
+    challengeReps: 'Reps challenge',
     streak: 'Série',
     window: '28 derniers jours',
     up: '+{n} vs 4 semaines précédentes',

@@ -104,78 +104,76 @@ export default async function ChallengeDetailPage({
           </div>
         </Card>
         {enrollment?.status === 'ACTIVE' && (
-          <div className="grid grid-cols-10 gap-1" aria-label="Daily tracker">
-            {challenge.days.map((d) => {
-              const isCurrent = d.dayNumber === enrollment.currentDay;
-              const best = bestByDay.get(d.id);
+          <div className="grid gap-2 sm:grid-cols-2" aria-label="10-day blocks">
+            {Array.from({ length: Math.ceil(challenge.days.length / 10) }, (_, b) => {
+              const start = b * 10 + 1;
+              const end = Math.min((b + 1) * 10, challenge.days.length);
+              const done = challenge.days
+                .filter((d) => d.dayNumber >= start && d.dayNumber <= end)
+                .filter((d) => bestByDay.has(d.id)).length;
+              const isCurrentBlock =
+                enrollment.currentDay >= start && enrollment.currentDay <= end;
+              const current = challenge.days.find((d) => d.dayNumber === enrollment.currentDay);
               return (
-                <Link
-                  key={d.id}
-                  href={isCurrent ? `/challenges/${challenge.slug}/day/${d.dayNumber}` : '#'}
-                  aria-disabled={!isCurrent}
-                  title={
-                    best != null
-                      ? `Day ${d.dayNumber} best ${Math.floor(best / 60)}:${String(best % 60).padStart(2, '0')}`
-                      : `Day ${d.dayNumber}`
-                  }
-                  className={`flex aspect-square items-center justify-center rounded-sm border text-[10px] tabular-nums ${
-                    best != null
-                      ? 'border-[#35C759]/40 bg-[#35C759]/10'
-                      : isCurrent
-                        ? 'border-volt/60 bg-volt/10 font-bold'
-                        : 'border-border text-muted-foreground'
-                  }`}
-                >
-                  {d.dayNumber}
-                </Link>
+                <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">
+                      Block {b + 1}: Days {start}-{end}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {done}/{end - start + 1} days · same V1-V10 circuit each day
+                    </p>
+                    {isCurrentBlock && current && (
+                      <Link
+                        href={`/challenges/${challenge.slug}/day/${current.dayNumber}`}
+                        className="text-sm font-semibold text-volt hover:underline"
+                      >
+                        Continue Day {current.dayNumber}: {current.title}
+                      </Link>
+                    )}
+                    {!isCurrentBlock && done >= end - start + 1 && (
+                      <p className="text-xs font-semibold text-[#35C759]">Badge earned</p>
+                    )}
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
         )}
         <div className="flex flex-col gap-2">
-          {challenge.days.slice(0, 3).map((d) => (
+          {enrollment && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">
+                  Day {enrollment.currentDay}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link
+                  href={`/challenges/${challenge.slug}/day/${enrollment.currentDay}`}
+                  className="text-sm font-semibold text-volt hover:underline"
+                >
+                  Open today circuit
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+          {!enrollment && challenge.days.slice(0, 1).map((d) => (
             <Card key={d.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">
-                  Day {d.dayNumber}: {d.title}
+                  What a day looks like
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                {d.focus && <p className="text-xs text-muted-foreground">{d.focus}</p>}
-                <ul className="flex flex-col gap-1.5">
-                  {d.tasks.map((t) => (
-                    <li key={t.id} className="text-xs">
-                      <span className="font-medium">
-                        V{t.order + 1} {t.exerciseName}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {' - '}10 x 10 rounds{t.loadLabel ? ` - ${t.loadLabel}` : ''}
-                      </span>
-                      {t.instructions && (
-                        <p className="text-muted-foreground">{t.instructions}</p>
-                      )}
-                      {t.demoVideoUrl && (
-                        <a
-                          href={t.demoVideoUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="underline"
-                        >
-                          Watch demo
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+              <CardContent className="flex flex-col gap-1">
+                <p className="text-xs text-muted-foreground">
+                  10 movements x 100 reps, one screen at a time, 55:00 info timer.
+                </p>
               </CardContent>
             </Card>
           ))}
-          {challenge.days.length > 3 && (
-            <p className="text-xs text-muted-foreground">
-              + {challenge.days.length - 3} more days after enrollment. Same V1-V10 circuit
-              all 10 days of each block.
-            </p>
-          )}
         </div>
       </div>
     </main>

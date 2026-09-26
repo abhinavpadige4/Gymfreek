@@ -58,9 +58,31 @@ model User {
   injuries          String?
   experienceLevel   ExperienceLevel?
   onboardingCompleted Boolean          @default(false)
+  avatarSeed        String?
+  instagram         String?
+  facebook          String?
+  // Optional profile photo bytes (capped server-side, see profilePhotoSchema).
+  // Separate from avatarSeed: the DiceBear bitmoji stays the public avatar,
+  // the photo is for the profile and admin view.
+  photoData         Bytes?
+  photoMimeType     String?
   enrollments       Enrollment[]
   payments          Payment[]
   workoutSessions   WorkoutSession[]
+  badgeAwards       BadgeAward[]
+}
+
+// One row per 10-day block badge (block 1-10). Awarded when all days in the
+// block are valid; drives the avatar shelf and share card.
+model BadgeAward {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blockNumber Int
+  awardedAt   DateTime @default(now())
+
+  @@unique([userId, blockNumber])
+  @@index([userId, blockNumber])
 }
 
 // Personal access tokens for remote MCP clients such as ChatGPT. Only a

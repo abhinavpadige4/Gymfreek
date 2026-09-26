@@ -10,6 +10,7 @@ export const progress = {
   summary: {
     workouts: 'Тренировки',
     volume: 'Поднятый вес',
+    challengeReps: 'Повторы челленджа',
     streak: 'Серия',
     window: 'Последние 28 дней',
     up: '+{n} к прошлым 4 неделям',

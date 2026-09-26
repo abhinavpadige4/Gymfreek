@@ -13,6 +13,7 @@ function renderRunner(requiredTasks = 2, restSec = 20) {
     <DayRunner
       challengeId="c1"
       challengeDayId="d1"
+      dayNumber={1}
       tasks={TASKS}
       restSec={restSec}
       requiredTasks={requiredTasks}
@@ -22,8 +23,16 @@ function renderRunner(requiredTasks = 2, restSec = 20) {
 
 describe('DayRunner guided flow', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ valid: true }) })));
   });
+
+  async function logCurrent(user: ReturnType<typeof setupUser>) {
+    // Manual log lives inside the Alternative collapsible.
+    const summary = screen.getByText('Alternative: log without camera');
+    await user.click(summary);
+    await user.click(screen.getByRole('button', { name: /log 100 without camera/i }));
+  }
 
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -39,11 +48,9 @@ describe('DayRunner guided flow', () => {
 
     await user.click(screen.getByRole('button', { name: 'Start day timer' }));
     expect(screen.getByText('Movement 1 of 2')).toBeInTheDocument();
-    expect(screen.getByText('Locked')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /log 100 without camera/i }));
+    await logCurrent(user);
     expect(screen.getByText('Movement 2 of 2')).toBeInTheDocument();
-    expect(screen.queryByText('Locked')).not.toBeInTheDocument();
   });
 
   it('enables finish only when the required tasks are done', async () => {
@@ -54,18 +61,13 @@ describe('DayRunner guided flow', () => {
     const finish = screen.getByRole('button', { name: /complete 2 more|finish day/i });
     expect(finish).toBeDisabled();
 
-    const logs = screen.getAllByRole('button', { name: /log 100 without camera/i });
-    await user.click(logs[0]!);
+    await logCurrent(user);
     expect(screen.getByRole('button', { name: /complete 1 more/i })).toBeDisabled();
 
     // Let the 1s inter-task rest elapse, then finish the second movement.
     await screen.findByRole('button', { name: /log 100 without camera/i });
     await waitForElementToBeRemoved(() => screen.queryByText(/Rest \ds/), { timeout: 5000 });
-    const enabledLogs = screen
-      .getAllByRole('button', { name: /log 100 without camera/i })
-      .filter((b) => !(b as HTMLButtonElement).disabled);
-    expect(enabledLogs).toHaveLength(1);
-    await user.click(enabledLogs[0]!);
+    await logCurrent(user);
     await user.click(screen.getByRole('button', { name: 'Finish day' }));
     expect(fetch).toHaveBeenCalledWith(
       '/api/ai/results',
@@ -79,7 +81,7 @@ describe('DayRunner guided flow', () => {
     renderRunner(1);
 
     await user.click(screen.getByRole('button', { name: 'Start day timer' }));
-    await user.click(screen.getAllByRole('button', { name: /log 100 without camera/i })[0]!);
+    await logCurrent(user);
     expect(screen.getByRole('button', { name: 'Finish day' })).toBeEnabled();
   });
 });

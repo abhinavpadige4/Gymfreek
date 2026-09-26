@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       };
     }
 
-    const [sessions, user] = await Promise.all([
+    const [sessions, user, challengeSessions] = await Promise.all([
       db.session.findMany({
         where,
         orderBy: { startedAt: 'asc' },
@@ -55,6 +55,36 @@ export async function GET(req: Request) {
       db.user.findUnique({
         where: { id: userId },
         select: { bodyweight: true },
+      }),
+      // Challenge days land here as one row per exercise (no loads, reps only).
+      db.workoutSession.findMany({
+        where: {
+          userId,
+          completedAt: { not: null },
+          ...(month && /^\d{4}-\d{2}$/.test(month)
+            ? (() => {
+                const [yStr, mStr] = (month as string).split('-');
+                const y = Number(yStr);
+                const m = Number(mStr);
+                return {
+                  startedAt: {
+                    gte: new Date(Date.UTC(y, (m as number) - 1, 1)),
+                    lt: new Date(Date.UTC(y, m as number, 1)),
+                  },
+                };
+              })()
+            : {}),
+        },
+        orderBy: { startedAt: 'asc' },
+        include: {
+          results: true,
+          challengeDay: {
+            select: {
+              dayNumber: true,
+              challenge: { select: { title: true } },
+            },
+          },
+        },
       }),
     ]);
     const bodyweight = user?.bodyweight ?? null;
@@ -102,6 +132,46 @@ export async function GET(req: Request) {
           // cardio logged without a heart-rate reading.
           set.avgHr != null ? String(set.avgHr) : '',
           set.maxHr != null ? String(set.maxHr) : '',
+        ];
+        lines.push(row.map(csvEscape).join(','));
+      }
+    }
+
+    for (const s of challengeSessions) {
+      const durationMin =
+        s.durationSec != null
+          ? Math.max(1, Math.round(s.durationSec / 60))
+          : s.completedAt
+            ? Math.max(1, Math.round((s.completedAt.getTime() - s.startedAt.getTime()) / 60000))
+            : '';
+      const dateOnly = s.startedAt.toISOString().slice(0, 10);
+      const dayLabel = s.challengeDay ? `Day ${s.challengeDay.dayNumber}` : '';
+      for (const r of s.results) {
+        const row = [
+          s.id,
+          dateOnly,
+          s.startedAt.toISOString(),
+          s.completedAt?.toISOString() ?? '',
+          String(durationMin),
+          s.challengeDay?.challenge.title ?? '',
+          dayLabel,
+          r.exerciseName,
+          '',
+          '',
+          '',
+          '',
+          '',
+          String(r.reps),
+          '',
+          'false',
+          'false',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
         ];
         lines.push(row.map(csvEscape).join(','));
       }
