@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Camera, Check, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -403,7 +404,12 @@ export function DayRunner({
               <p className="text-sm text-muted-foreground">
                 10 days complete. Saved to your avatar shelf and share card.
               </p>
-              <Button onClick={() => setBadge(null)}>Keep going</Button>
+              <div className="flex gap-2">
+                <Button asChild onClick={() => setBadge(null)}>
+                  <Link href={`/badges/${badge}`}>See your badge</Link>
+                </Button>
+                <Button variant="outline" onClick={() => setBadge(null)}>Keep going</Button>
+              </div>
             </motion.div>
           </motion.div>
         )}
