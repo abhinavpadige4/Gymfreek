@@ -26,8 +26,7 @@ const LINKS = [
   { href: '/settings', label: 'settings', icon: Settings },
 ] as const;
 
-// Bottom dock: the active destination is a solid volt pill, the rest are
-// quiet icon-plus-label stops. Horizontally scrollable on narrow screens.
+// Bottom dock: icon-only stops, active destination shows its label below.
 export function NavLinks() {
   const pathname = usePathname();
   const t = useTranslations('navigation');
@@ -43,15 +42,24 @@ export function NavLinks() {
               key={link.href}
               href={link.href}
               aria-current={active ? 'page' : undefined}
+              aria-label={t(link.label)}
+              title={t(link.label)}
               className={cn(
-                'flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition-all',
+                'group flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 transition-all',
                 active
                   ? 'bg-volt text-white shadow-[0_4px_16px_hsl(22_92%_49%/0.5)]'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
               )}
             >
               <Icon className="size-5 shrink-0" />
-              <span className="truncate">{t(link.label)}</span>
+              <span
+                className={cn(
+                  'truncate text-[10px] font-semibold uppercase tracking-wide',
+                  active ? '' : 'hidden group-hover:inline group-focus-visible:inline',
+                )}
+              >
+                {t(link.label)}
+              </span>
             </Link>
           );
         })}

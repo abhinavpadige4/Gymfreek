@@ -5,7 +5,6 @@ import { SyncBootstrap } from '@/components/shared/sync-bootstrap';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { LanguageSelector } from '@/components/shared/language-selector';
 import { getCurrentSession } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -16,44 +15,33 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-40 px-3 pt-3 sm:px-6">
-          <nav
-            aria-label="Primary"
-            className="mx-auto flex max-w-5xl items-center justify-between gap-2 rounded-2xl border border-white/10 bg-black/60 py-2 pl-3 pr-2 shadow-[0_8px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-          >
-            <Link href="/" className="flex items-center gap-2" aria-label="100XU home">
-              <Image
-                src="/icons/icon-192.png"
-                alt="100XU"
-                width={64}
-                height={64}
-                className="h-8 w-8 rounded-md"
-              />
-              <span className="hidden font-display text-base tracking-wide text-white sm:inline">
-                100XU
-              </span>
-            </Link>
-            <div className="hidden items-center gap-1 md:flex">
-              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                <a href="#how">How it works</a>
-              </Button>
-              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                <a href="#challenge">Challenge</a>
-              </Button>
-              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
-                <a href="#pricing">Pricing</a>
-              </Button>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button asChild variant="ghost" size="sm" className="text-zinc-200 hover:text-white">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Join the challenge</Link>
-              </Button>
-            </div>
-          </nav>
-        </header>
+        <div className="fixed right-3 top-3 z-40">
+          <details className="group relative">
+            <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-black/60 text-xl text-white backdrop-blur-xl [&::-webkit-details-marker]:hidden">
+              =
+            </summary>
+            <nav
+              aria-label="Primary"
+              className="absolute right-0 top-13 flex w-52 flex-col gap-1 rounded-2xl border border-white/10 bg-black/80 p-2 backdrop-blur-xl"
+            >
+              <a href="#how" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
+                How it works
+              </a>
+              <a href="#challenge" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
+                Challenge
+              </a>
+              <a href="#pricing" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
+                Pricing
+              </a>
+              <Link href="/login" className="rounded-lg px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/10 hover:text-white">
+                Log in
+              </Link>
+              <Link href="/signup" className="rounded-lg bg-volt px-3 py-2.5 text-sm font-semibold text-white">
+                Join the challenge
+              </Link>
+            </nav>
+          </details>
+        </div>
         {children}
       </div>
     );

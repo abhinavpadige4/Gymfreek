@@ -37,6 +37,16 @@ export function isValidAttempt(durationSec: number | null | undefined): boolean 
   return typeof durationSec === 'number' && durationSec > 0 && durationSec <= CHALLENGE_DAY_CAP_SEC;
 }
 
+// Days 1-50: cap is info-only, never fails. Days 51+: cap enforced.
+export function isValidAttemptForDay(
+  durationSec: number | null | undefined,
+  dayNumber: number,
+): boolean {
+  if (typeof durationSec !== 'number' || durationSec <= 0) return false;
+  if (dayNumber <= 50) return true;
+  return durationSec <= CHALLENGE_DAY_CAP_SEC;
+}
+
 // Day 5 and 10 of every 10-day block (global day numbers ending in 5 or 0).
 export function isChallengeRecoveryDay(dayNumber: number): boolean {
   return dayNumber % 10 === 5 || dayNumber % 10 === 0;

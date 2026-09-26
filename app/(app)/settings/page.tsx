@@ -17,6 +17,10 @@ export default async function SettingsPage() {
       where: { id: auth.userId },
       select: {
         displayName: true,
+        avatarSeed: true,
+        photoMimeType: true,
+        instagram: true,
+        facebook: true,
         bodyweight: true,
         sex: true,
         heightCm: true,
@@ -60,6 +64,10 @@ export default async function SettingsPage() {
         <ProfileSection
           initial={{
             displayName: user?.displayName ?? null,
+            avatarSeed: user?.avatarSeed ?? null,
+            hasPhoto: user?.photoMimeType != null,
+            instagram: user?.instagram ?? null,
+            facebook: user?.facebook ?? null,
             bodyweight: user?.bodyweight ?? null,
             sex: user?.sex ?? null,
             heightCm: user?.heightCm ?? null,

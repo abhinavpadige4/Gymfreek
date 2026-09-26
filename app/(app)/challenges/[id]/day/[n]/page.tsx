@@ -41,23 +41,30 @@ export default async function ChallengeDayPage({
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {day.title.startsWith('Day ') ? day.title : `Day ${day.dayNumber}: ${day.title}`}
-        </h1>
-        {day.focus && <p className="text-sm text-muted-foreground">{day.focus}</p>}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Day {day.dayNumber}</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {[day.title.replace(/^Day\s*\d+\s*:?\s*/i, ''), day.focus]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        </div>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              Today circuit - 55:00 cap
+              {dayNumber <= 50
+                ? '55:00 shown for info only, no fail'
+                : 'Finish inside 55:00 or redo the day'}
               {requiredTasks < day.tasks.length
-                ? ` - recovery, any ${requiredTasks} of ${day.tasks.length}`
-                : null}
+                ? ` · Recovery: any ${requiredTasks} of ${day.tasks.length}`
+                : ` · All ${day.tasks.length} movements`}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <DayRunner
               challengeId={challenge.id}
               challengeDayId={day.id}
+              dayNumber={dayNumber}
               tasks={day.tasks.map((t) => ({
                 exerciseName: t.exerciseName,
                 loadLabel: t.loadLabel,

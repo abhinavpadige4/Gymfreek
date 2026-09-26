@@ -7,6 +7,7 @@ export const progress = {
   summary: {
     workouts: 'Workouts',
     volume: 'Weight lifted',
+    challengeReps: 'Challenge reps',
     streak: 'Streak',
     window: 'Last 28 days',
     up: '+{n} vs prior 4 weeks',

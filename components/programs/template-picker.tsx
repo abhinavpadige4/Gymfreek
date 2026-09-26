@@ -70,6 +70,16 @@ export function TemplatePicker({ templates }: Props) {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <p className="text-xs text-muted-foreground">{template.attribution}</p>
+          <ul className="flex flex-wrap gap-1.5" aria-label={template.name}>
+            {template.program.workouts.map((w) => (
+              <li
+                key={w.name}
+                className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground"
+              >
+                {w.name} · {w.exercises.length}
+              </li>
+            ))}
+          </ul>
           <div className="flex justify-end">
             <Button
               type="button"

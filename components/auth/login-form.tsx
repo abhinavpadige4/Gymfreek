@@ -72,8 +72,8 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm animate-auth-in rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
-      <CardContent className="flex flex-col gap-5 p-8">
+    <Card className="w-full max-w-sm rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
+      <CardContent className="flex flex-col gap-4 p-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="font-display text-4xl tracking-wide">
             100<span className="text-volt">X</span>U

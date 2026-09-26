@@ -38,6 +38,16 @@ export default async function AdminUserPage(props: Props) {
       displayName: true,
       role: true,
       onboardingCompleted: true,
+      avatarSeed: true,
+      photoMimeType: true,
+      instagram: true,
+      facebook: true,
+      bodyweight: true,
+      sex: true,
+      heightCm: true,
+      goal: true,
+      weeklyFrequency: true,
+      unit: true,
       medicalConditions: true,
       injuries: true,
       createdAt: true,
@@ -108,6 +118,34 @@ export default async function AdminUserPage(props: Props) {
             {user.email} · {user.role} · joined{' '}
             {user.createdAt.toLocaleDateString('en-IN')} · {user._count.sessions} sessions
           </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {user.photoMimeType && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/profile/photo?userId=${user.id}`}
+                alt="Member photo"
+                className="h-16 w-16 rounded-full border object-cover"
+              />
+            )}
+            {user.avatarSeed && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(user.avatarSeed)}`}
+                alt="Member bitmoji"
+                className="h-16 w-16 rounded-full border"
+              />
+            )}
+            <div className="min-w-0 text-sm">
+              {[user.instagram && `Instagram: ${user.instagram}`, user.facebook && `Facebook: ${user.facebook}`]
+                .filter(Boolean)
+                .join(' · ') || <span className="text-muted-foreground">No socials.</span>}
+              <p className="text-muted-foreground">
+                {[user.bodyweight != null && `${user.bodyweight} kg`, user.heightCm != null && `${user.heightCm} cm`, user.sex, user.goal, user.weeklyFrequency != null && `${user.weeklyFrequency}/wk`, user.unit]
+                  .filter(Boolean)
+                  .join(' · ') || 'No body metrics.'}
+              </p>
+            </div>
+          </div>
           {(user.medicalConditions || user.injuries) && (
             <p className="mt-1 text-sm text-amber-600">
               Medical: {[user.medicalConditions, user.injuries].filter(Boolean).join(' / ')}

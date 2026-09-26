@@ -9,6 +9,9 @@ export default async function OnboardingPage() {
     where: { id: session.userId },
     select: {
       displayName: true,
+      avatarSeed: true,
+      instagram: true,
+      facebook: true,
       sex: true,
       heightCm: true,
       bodyweight: true,
@@ -33,6 +36,9 @@ export default async function OnboardingPage() {
         <OnboardingForm
           initial={{
             displayName: user?.displayName ?? null,
+            avatarSeed: user?.avatarSeed ?? null,
+            instagram: user?.instagram ?? null,
+            facebook: user?.facebook ?? null,
             sex: user?.sex ?? null,
             heightCm: user?.heightCm ?? null,
             bodyweight: user?.bodyweight ?? null,

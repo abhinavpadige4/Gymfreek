@@ -19,6 +19,9 @@ const PROFILE_SELECT = {
   injuries: true,
   experienceLevel: true,
   onboardingCompleted: true,
+  avatarSeed: true,
+  instagram: true,
+  facebook: true,
 } as const;
 
 export async function GET() {
@@ -64,6 +67,15 @@ export async function PATCH(req: Request) {
         ...(data.experienceLevel !== undefined ? { experienceLevel: data.experienceLevel } : {}),
         ...(data.onboardingCompleted !== undefined
           ? { onboardingCompleted: data.onboardingCompleted }
+          : {}),
+        ...(data.avatarSeed !== undefined
+          ? { avatarSeed: data.avatarSeed ? data.avatarSeed : null }
+          : {}),
+        ...(data.instagram !== undefined
+          ? { instagram: data.instagram ? data.instagram : null }
+          : {}),
+        ...(data.facebook !== undefined
+          ? { facebook: data.facebook ? data.facebook : null }
           : {}),
       },
       select: PROFILE_SELECT,

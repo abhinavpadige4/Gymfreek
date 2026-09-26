@@ -121,7 +121,7 @@ export default async function ProgressPage(
       durationSec: { gt: 0, lte: CHALLENGE_DAY_CAP_SEC },
       startedAt: { gte: since },
     },
-    select: { startedAt: true, completedAt: true },
+    select: { startedAt: true, completedAt: true, results: { select: { reps: true } } },
   });
   const challengeDates = challengeDays.map((s) => s.completedAt ?? s.startedAt);
   const trainedDates = [
@@ -476,6 +476,13 @@ export default async function ProgressPage(
   };
   const recentSessionCount = trainedDates.filter((d) => inBackWindow(d, 0)).length;
   const priorSessionCount = trainedDates.filter((d) => inBackWindow(d, 1)).length;
+  // Challenge reps per 28-day window, from the same rows as the trained days.
+  const challengeRepsIn = (back: number) =>
+    challengeDays
+      .filter((s) => inBackWindow(s.completedAt ?? s.startedAt, back))
+      .reduce((sum, s) => sum + s.results.reduce((a, r) => a + r.reps, 0), 0);
+  const recentChallengeReps = challengeRepsIn(0);
+  const priorChallengeReps = challengeRepsIn(1);
   const volumeIn = (back: number) =>
     weeklySetsRaw
       .filter((s) => !s.isWarmup && inBackWindow(s.session.startedAt, back))
@@ -499,6 +506,11 @@ export default async function ProgressPage(
       title: t('summary.volume'),
       value: `${fmtInt(recentVolume)} ${unit}`,
       sub: `${deltaLine(recentVolume - priorVolume, ` ${unit}`)} · ${t('summary.window')}`,
+    },
+    {
+      title: t('summary.challengeReps'),
+      value: fmtInt(recentChallengeReps),
+      sub: `${deltaLine(recentChallengeReps - priorChallengeReps, '')} · ${t('summary.window')}`,
     },
     {
       title: t('summary.streak'),
