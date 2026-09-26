@@ -51,6 +51,6 @@ export const config = {
   matcher: [
     // Exclude static resources, PWA assets, and public exercise demos
     // (they must load without a session, e.g. on the login-adjacent flows).
-    '/((?!_next/static|_next/image|icons|landing|img|frames|manifest.json|favicon.ico|sw.js|workbox-|exercise-media).*)',
+    '/((?!_next/static|_next/image|icons|landing|img|frames|avatars|manifest.json|favicon.ico|sw.js|workbox-|exercise-media).*)',
   ],
 };

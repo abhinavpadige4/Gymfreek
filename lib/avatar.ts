@@ -1,5 +1,6 @@
-// DiceBear preset avatars (no upload, no storage). The seed string is the
-// only thing saved on User.avatarSeed.
+// Local 100XU characters (public/avatars/*.svg): each wears a 100XU tee.
+// Local files ship with the app, so they render on Vercel with no external
+// host. The seed string is the only thing saved on User.avatarSeed.
 export const AVATAR_SEEDS = [
   'Ravi',
   'Asha',
@@ -16,8 +17,9 @@ export const AVATAR_SEEDS = [
 ] as const;
 
 export function avatarUrl(seed: string | null | undefined): string {
-  const s = encodeURIComponent(seed?.trim() || 'Ravi');
-  return `https://api.dicebear.com/9.x/adventurer/svg?seed=${s}`;
+  const s = (seed?.trim() || 'Ravi').toLowerCase();
+  const known = (AVATAR_SEEDS as readonly string[]).map((n) => n.toLowerCase());
+  return `/avatars/${known.includes(s) ? s : 'ravi'}.svg`;
 }
 
 // 10 block badges: name + color only, rendered as SVG medal in UI.
