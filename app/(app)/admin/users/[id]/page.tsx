@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { AdminUserCharts } from '@/components/admin/admin-charts';
 import { volumeBuckets } from '@/lib/admin-stats';
+import { avatarUrl } from '@/lib/avatar';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -130,7 +131,7 @@ export default async function AdminUserPage(props: Props) {
             {user.avatarSeed && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(user.avatarSeed)}`}
+                src={avatarUrl(user.avatarSeed)}
                 alt="Member bitmoji"
                 className="h-16 w-16 rounded-full border"
               />

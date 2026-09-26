@@ -55,9 +55,6 @@ const withNextIntl = require('next-intl/plugin')('./i18n/request.ts');
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
-  images: {
-    remotePatterns: [{ protocol: 'https', hostname: 'api.dicebear.com' }],
-  },
 };
 
 module.exports = withPWA(withNextIntl(nextConfig));

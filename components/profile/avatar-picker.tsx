@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { AVATAR_SEEDS, avatarUrl } from '@/lib/avatar';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +24,9 @@ export function AvatarPicker({
             value === seed ? 'border-volt ring-2 ring-volt/40' : 'border-border hover:border-volt/60',
           )}
         >
-          <Image src={avatarUrl(seed)} alt={seed} width={64} height={64} className="h-14 w-full" />
+          {/* Plain img: DiceBear serves SVG, which the Next optimizer refuses. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={avatarUrl(seed)} alt={seed} width={64} height={64} className="h-14 w-full" />
         </button>
       ))}
     </div>

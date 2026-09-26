@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AvatarPicker } from '@/components/profile/avatar-picker';
 import { PhotoUpload } from '@/components/profile/photo-upload';
-import Image from 'next/image';
 import { avatarUrl } from '@/lib/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -133,7 +132,9 @@ export function ProfileSection({ initial }: Props) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <Image
+          {/* Plain img: DiceBear serves SVG, which the Next optimizer refuses. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={avatarUrl(avatarSeed)}
             alt="Your avatar"
             width={56}
