@@ -95,13 +95,6 @@ export function AvatarShare({
           <div className="absolute inset-0 bg-black/55" aria-hidden="true" />
           <div className="relative flex flex-col items-center gap-3 px-6 py-6 text-center text-white">
             <DialogHeader className="flex flex-col items-center gap-1">
-              <span className="flex items-center gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icons/icon-192.png" alt="100XU" width={24} height={24} className="h-6 w-6 rounded" />
-                <span className="font-display text-lg tracking-wide">
-                  100<span className="text-volt">X</span>U
-                </span>
-              </span>
               <DialogTitle className="text-white">Hi {name}</DialogTitle>
               <DialogDescription className="text-white/70">
                 Your 100XU flex card. Share it anywhere.
@@ -146,10 +139,8 @@ export function AvatarShare({
                 <span className="ml-2">Copy</span>
               </Button>
             </div>
-            <p className="flex items-center gap-1.5 text-[11px] text-white/70">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/icon-192.png" alt="" width={14} height={14} className="h-3.5 w-3.5 rounded" />
-              Train. Track. Improve. Transform. · {link.replace(/^https?:\/\//, '')}
+            <p className="text-[11px] text-white/70">
+              {link.replace(/^https?:\/\//, '')}
             </p>
           </div>
         </div>
