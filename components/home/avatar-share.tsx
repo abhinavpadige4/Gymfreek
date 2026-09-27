@@ -119,9 +119,30 @@ export function AvatarShare({
                 </div>
               ))}
             </div>
-            <p className="text-sm font-medium">
-              {badges.length === 0 ? 'No badges yet - finish 10 days to earn one.' : `Badges: ${badgeNames}`}
-            </p>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Earned badges">
+                {BLOCK_BADGES.map((b) => {
+                  const has = badges.some((x) => x.blockNumber === b.block);
+                  return (
+                    <span
+                      key={b.block}
+                      title={`${b.name} - Day ${b.block * 10}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold"
+                      style={{
+                        background: has ? b.color : 'rgba(255,255,255,0.12)',
+                        color: has ? '#111' : 'rgba(255,255,255,0.5)',
+                        border: has ? '1px solid rgba(255,255,255,0.6)' : '1px solid rgba(255,255,255,0.2)',
+                      }}
+                    >
+                      {b.block * 10}
+                    </span>
+                  );
+                })}
+              </div>
+              <p className="text-sm font-medium">
+                {badges.length === 0 ? 'No badges yet - finish 10 days to earn one.' : `Badges: ${badgeNames}`}
+              </p>
+            </div>
             {(instagram || facebook) && (
               <p className="text-xs text-white/70">
                 {[instagram && `Instagram: ${instagram}`, facebook && `Facebook: ${facebook}`]
