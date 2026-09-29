@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Check, Lock } from 'lucide-react';
+import { Lock, LockOpen } from 'lucide-react';
 import { requireSession } from '@/lib/auth';
 import { requireAdminUserId } from '@/lib/admin';
 import { db } from '@/lib/db';
@@ -157,13 +157,28 @@ export default async function ChallengeDetailPage({
                     .filter((d) => bestByDay.has(d.id)).length;
                   const isCurrentBlock =
                     enrollment.currentDay >= start && enrollment.currentDay <= end;
+                  // Mirrors the day-page gate: ACTIVE days below the pointer
+                  // are always practicable, plus any touched day.
+                  const canOpen = (n: number, d: { id: string } | undefined) =>
+                    d != null &&
+                    ((active && n < enrollment.currentDay) ||
+                      bestByDay.has(d.id) ||
+                      touchedDays.has(d.id));
+                  const openCount = Array.from(
+                    { length: end - start + 1 },
+                    (_, i) => start + i,
+                  ).filter(
+                    (n) =>
+                      (active && n === enrollment.currentDay && !midnightLocked) ||
+                      canOpen(n, dayByNumber.get(n)),
+                  ).length;
                   return (
                     <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm">
                           Days {start}-{end}
                           <span className="ml-2 font-normal text-muted-foreground">
-                            {done}/{end - start + 1} green
+                            {openCount}/{end - start + 1} open
                           </span>
                         </CardTitle>
                       </CardHeader>
@@ -172,23 +187,20 @@ export default async function ChallengeDetailPage({
                           {Array.from({ length: end - start + 1 }, (_, i) => {
                             const n = start + i;
                             const d = dayByNumber.get(n);
-                            const isDone = d != null && bestByDay.has(d.id);
                             const isToday = n === enrollment.currentDay;
                             const open = active && isToday && !midnightLocked;
-                            // Done or ever-touched days reopen as practice; only
-                            // truly new future days lock.
-                            const review = d != null && (isDone || touchedDays.has(d.id));
-                            const label = isDone
-                              ? `Day ${n} done, tap to practice again`
-                              : open
-                                ? `Start day ${n}`
+                            const unlocked = !open && canOpen(n, d);
+                            const label = open
+                              ? `Start day ${n}`
+                              : unlocked
+                                ? `Day ${n} unlocked, tap to practice`
                                 : `Day ${n} locked`;
-                            const cls = isDone
-                              ? 'border-[#35C759]/50 bg-[#35C759]/15 text-[#35C759]'
-                              : open
-                                ? 'border-volt bg-volt/15 font-bold text-volt'
+                            const cls = open
+                              ? 'border-volt bg-volt font-bold text-black'
+                              : unlocked
+                                ? 'border-volt/50 text-volt'
                                 : 'border-border text-muted-foreground';
-                            return (open || review) && d ? (
+                            return (open || unlocked) && d ? (
                               <Link
                                 key={n}
                                 role="listitem"
@@ -197,6 +209,7 @@ export default async function ChallengeDetailPage({
                                 className={`flex min-h-tap min-w-tap flex-col items-center justify-center rounded-md border py-2 text-sm tabular-nums ${cls}`}
                               >
                                 {n}
+                                {unlocked && <LockOpen className="mt-0.5 size-3" aria-hidden />}
                               </Link>
                             ) : (
                               <span
@@ -205,8 +218,8 @@ export default async function ChallengeDetailPage({
                                 aria-label={label}
                                 className={`flex min-h-tap min-w-tap flex-col items-center justify-center rounded-md border py-2 text-sm tabular-nums ${cls}`}
                               >
-                                {isDone ? <Check className="size-4" /> : n}
-                                {!isDone && !open && <Lock className="mt-0.5 size-3" />}
+                                {n}
+                                <Lock className="mt-0.5 size-3" aria-hidden />
                               </span>
                             );
                           })}
