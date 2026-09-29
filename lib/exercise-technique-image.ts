@@ -63,16 +63,38 @@ export async function getExerciseTechniqueImage(name: string) {
 
 export async function setExerciseTechniqueImage(
   name: string,
-  input: SetExerciseTechniqueImageInput,
+  input: SetExerciseTechniqueImageInput & { caption?: string },
 ) {
   const clean = name.trim();
   if (!clean) throw new ApiError(400, 'Exercise name is required.');
   const decoded = decodeExerciseImage(input.imageBase64, input.mimeType);
+  const caption = input.caption?.trim() ? input.caption.trim().slice(0, 280) : undefined;
   return db.exerciseMediaUpload.upsert({
     where: { name: clean },
-    update: { imageData: decoded.bytes, imageMimeType: decoded.mimeType },
-    create: { name: clean, imageData: decoded.bytes, imageMimeType: decoded.mimeType },
+    update: {
+      imageData: decoded.bytes,
+      imageMimeType: decoded.mimeType,
+      ...(caption !== undefined ? { caption } : {}),
+    },
+    create: {
+      name: clean,
+      imageData: decoded.bytes,
+      imageMimeType: decoded.mimeType,
+      ...(caption !== undefined ? { caption } : {}),
+    },
     select: { name: true, imageMimeType: true, updatedAt: true },
+  });
+}
+
+export async function setExerciseCaption(name: string, caption: string) {
+  const clean = name.trim();
+  if (!clean) throw new ApiError(400, 'Exercise name is required.');
+  const text = caption.trim().slice(0, 280);
+  return db.exerciseMediaUpload.upsert({
+    where: { name: clean },
+    update: { caption: text || null },
+    create: { name: clean, caption: text || null },
+    select: { name: true, updatedAt: true },
   });
 }
 
@@ -180,32 +202,45 @@ export async function getExerciseVideo(name: string): Promise<
   throw new ApiError(404, 'No demo video for this exercise.');
 }
 
-export async function setExerciseVideoUrl(name: string, videoUrl: string) {
+export async function setExerciseVideoUrl(name: string, videoUrl: string, caption?: string) {
   const clean = name.trim();
   if (!clean) throw new ApiError(400, 'Exercise name is required.');
   const url = validateExerciseVideoUrl(videoUrl);
+  const cap = caption?.trim() ? caption.trim().slice(0, 280) : undefined;
   return db.exerciseMediaUpload.upsert({
     where: { name: clean },
-    update: { videoUrl: url, videoData: null, videoMimeType: null },
-    create: { name: clean, videoUrl: url },
+    update: {
+      videoUrl: url,
+      videoData: null,
+      videoMimeType: null,
+      ...(cap !== undefined ? { caption: cap } : {}),
+    },
+    create: { name: clean, videoUrl: url, ...(cap !== undefined ? { caption: cap } : {}) },
     select: { name: true, videoUrl: true, updatedAt: true },
   });
 }
 
 export async function setExerciseVideoFile(
   name: string,
-  input: { imageBase64: string; mimeType: ExerciseVideoMimeType },
+  input: { imageBase64: string; mimeType: ExerciseVideoMimeType; caption?: string },
 ) {
   const clean = name.trim();
   if (!clean) throw new ApiError(400, 'Exercise name is required.');
   const decoded = decodeExerciseVideo(input.imageBase64, input.mimeType);
+  const cap = input.caption?.trim() ? input.caption.trim().slice(0, 280) : undefined;
   return db.exerciseMediaUpload.upsert({
     where: { name: clean },
-    update: { videoUrl: null, videoData: decoded.bytes, videoMimeType: decoded.mimeType },
+    update: {
+      videoUrl: null,
+      videoData: decoded.bytes,
+      videoMimeType: decoded.mimeType,
+      ...(cap !== undefined ? { caption: cap } : {}),
+    },
     create: {
       name: clean,
       videoData: decoded.bytes,
       videoMimeType: decoded.mimeType,
+      ...(cap !== undefined ? { caption: cap } : {}),
     },
     select: { name: true, videoMimeType: true, updatedAt: true },
   });
@@ -242,5 +277,6 @@ export async function getExerciseMediaMeta(name: string) {
     name: clean,
     hasPhoto: Boolean(row?.imageData && row?.imageMimeType),
     hasVideo: Boolean(row?.videoUrl || (row?.videoData && row?.videoMimeType)),
+    caption: row?.caption ?? null,
   };
 }

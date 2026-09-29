@@ -38,6 +38,8 @@ export function ExerciseImageUpload({
   const [hasPhoto, setHasPhoto] = useState<boolean | null>(null);
   const [video, setVideo] = useState<VideoState>({ status: 'unknown' });
   const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [caption, setCaption] = useState('');
+  const [captionSaved, setCaptionSaved] = useState(false);
 
   const photoUrl = `/api/exercise-media?name=${encodeURIComponent(exerciseName)}&v=${version}`;
   const videoSrc = `/api/exercise-media?name=${encodeURIComponent(exerciseName)}&format=video&v=${version}`;
@@ -64,12 +66,48 @@ export function ExerciseImageUpload({
       } catch {
         if (!cancelled) setVideo({ status: 'missing' });
       }
+      try {
+        const meta = await fetch(
+          `/api/exercise-media?name=${encodeURIComponent(exerciseName)}&format=meta`,
+        );
+        if (cancelled) return;
+        if (meta.ok) {
+          const data = (await meta.json()) as { caption?: string | null };
+          if (typeof data.caption === 'string') setCaption(data.caption);
+        }
+      } catch {
+        // caption probe is best-effort
+      }
     }
     void probe();
     return () => {
       cancelled = true;
     };
   }, [exerciseName, version]);
+
+  async function saveCaption() {
+    if (busy) return;
+    setError(null);
+    setCaptionSaved(false);
+    setBusy(true);
+    try {
+      const res = await fetch('/api/exercise-media', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: exerciseName, caption: caption.trim() }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error ?? t('uploadError'));
+      }
+      setCaptionSaved(true);
+      onChanged?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('uploadError'));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   function embedUrl(url: string): string | null {
     try {
@@ -271,6 +309,30 @@ export function ExerciseImageUpload({
               <span className="ml-2">{t('removePhoto')}</span>
             </Button>
           )}
+        </div>
+
+        <div className="border-t pt-3">
+          <label htmlFor={`caption-${exerciseName}`} className="text-sm font-medium">
+            Technique note (shows with the photo in the workout)
+          </label>
+          <textarea
+            id={`caption-${exerciseName}`}
+            value={caption}
+            onChange={(e) => {
+              setCaption(e.target.value.slice(0, 280));
+              setCaptionSaved(false);
+            }}
+            rows={2}
+            maxLength={280}
+            placeholder="e.g. Hips back, chest up, drive through heels."
+            className="mt-1 min-h-tap w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void saveCaption()}>
+              Save note
+            </Button>
+            {captionSaved && <span className="text-xs text-muted-foreground">Saved.</span>}
+          </div>
         </div>
 
         <div className="border-t pt-3">

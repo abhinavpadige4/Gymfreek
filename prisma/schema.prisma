@@ -620,6 +620,11 @@ model Enrollment {
   challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   status      EnrollmentStatus @default(PENDING)
   currentDay  Int              @default(1)
+  // Streak tracking (UTC calendar days). lastCompletedAt stamps the last
+  // valid day finish; streakCount counts consecutive days. A missed day
+  // resets currentDay to 1 but history rows are never deleted, so bests stay.
+  lastCompletedAt DateTime?
+  streakCount     Int              @default(0)
   startDate   DateTime?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -705,5 +710,8 @@ model ExerciseMediaUpload {
   videoUrl      String?
   videoData     Bytes?
   videoMimeType String?
+  // Admin technique note shown with the photo/video in the guided runner.
+  // Only this text shows there; catalog boilerplate is hidden.
+  caption       String?
   updatedAt     DateTime @updatedAt
 }

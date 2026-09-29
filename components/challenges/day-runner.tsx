@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Camera, Check, Lock } from 'lucide-react';
+import { Camera, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 import { createAnalyzer } from '@/lib/form-engine/registry';
+import { voiceService } from '@/lib/form-engine/voice';
 import { LiveWorkout } from '@/components/workout/live-workout';
 import { ExerciseMediaDialog } from '@/components/exercises/exercise-media-dialog';
 
@@ -17,12 +18,27 @@ type Task = {
   loadLabel: string | null;
   instructions: string | null;
   demoVideoUrl: string | null;
+  best: { reps: number; averageScore: number } | null;
 };
 
 const REPS_PER_TASK = 100;
 
-// One movement per screen. Reps persist to localStorage so a refresh never
-// resets the day. Days 1-50 show the 55:00 cap for info only.
+function mmss(totalSec: number): string {
+  const s = Math.max(0, totalSec);
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+interface SessionRecord {
+  reps: number;
+  restSec: number;
+  durationSec: number;
+  recordedAt: number;
+}
+
+// Guided day flow: one movement per screen, two actions only (Technique,
+// Record). In-day progress lives in sessionStorage (temp): the server is
+// written once, when the day finishes. Bests come from stored history and
+// survive streak resets.
 export function DayRunner({
   challengeId,
   challengeDayId,
@@ -38,35 +54,42 @@ export function DayRunner({
   restSec: number;
   requiredTasks: number;
 }) {
-  const key = `100xu-day-${challengeDayId}`;
+  const key = `100xu-sess-${challengeDayId}`;
   const [started, setStarted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [reps, setReps] = useState<number[]>(() => tasks.map(() => 0));
   const [step, setStep] = useState(0);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [restLeft, setRestLeft] = useState(0);
+  const [doneMsg, setDoneMsg] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [badge, setBadge] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const startRef = useRef(0);
+  const doneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Resume persisted progress.
-  useEffect(() => {
+  function readSession(): { reps?: number[]; elapsed?: number } | null {
     try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return;
-      const p = JSON.parse(raw) as { reps?: number[]; elapsed?: number };
-      if (Array.isArray(p.reps) && p.reps.length === tasks.length) {
-        setReps(p.reps);
-        const idx = p.reps.findIndex((r) => r < REPS_PER_TASK);
-        setStep(idx === -1 ? 0 : idx);
-        if (p.reps.some((r) => r > 0)) {
-          setStarted(true);
-          startRef.current = Date.now() - (p.elapsed ?? 0) * 1000;
-        }
-      }
+      const raw = sessionStorage.getItem(key);
+      if (!raw) return null;
+      return JSON.parse(raw) as { reps?: number[]; elapsed?: number };
     } catch {
-      // corrupt cache, start fresh
+      return null;
+    }
+  }
+
+  // Resume temp progress on entry.
+  useEffect(() => {
+    const p = readSession();
+    if (!p) return;
+    if (Array.isArray(p.reps) && p.reps.length === tasks.length) {
+      setReps(p.reps);
+      const idx = p.reps.findIndex((r) => r < REPS_PER_TASK);
+      setStep(idx === -1 ? 0 : idx);
+      if (p.reps.some((r) => r > 0)) {
+        setStarted(true);
+        startRef.current = Date.now() - (p.elapsed ?? 0) * 1000;
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
@@ -74,22 +97,22 @@ export function DayRunner({
   useEffect(() => {
     if (!started) return;
     try {
-      localStorage.setItem(key, JSON.stringify({ reps, elapsed }));
+      sessionStorage.setItem(key, JSON.stringify({ reps, elapsed }));
     } catch {
       // storage full, ignore
     }
   }, [reps, elapsed, started, key]);
 
+  useEffect(() => () => {
+    if (doneTimer.current) clearTimeout(doneTimer.current);
+  }, []);
+
   const need = Math.min(requiredTasks, tasks.length);
   const doneCount = useMemo(() => reps.filter((r) => r >= REPS_PER_TASK).length, [reps]);
   const totalReps = useMemo(() => reps.reduce((a, b) => a + b, 0), [reps]);
   const allDone = doneCount >= need;
-  const isRecovery = need < tasks.length;
   const capEnforced = dayNumber > 50;
-  const capLabel = `${Math.floor(CHALLENGE_DAY_CAP_SEC / 60)}:${String(CHALLENGE_DAY_CAP_SEC % 60).padStart(2, '0')}`;
   const remaining = Math.max(0, CHALLENGE_DAY_CAP_SEC - elapsed);
-  const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
-  const ss = String(remaining % 60).padStart(2, '0');
 
   useEffect(() => {
     if (!started) return;
@@ -113,11 +136,20 @@ export function DayRunner({
     const next = reps.map((v, j) => (j === index ? value : v));
     setReps(next);
     setCameraOpen(false);
+    if (value < REPS_PER_TASK) return;
+    // Auto DONE: announce, rest, then move on with no taps.
+    const name = tasks[index]?.exerciseName ?? '';
+    const msg = `DONE ${name}`;
+    setDoneMsg(msg);
+    voiceService.speak(msg);
     const done = next.filter((r) => r >= REPS_PER_TASK).length;
-    if (value >= REPS_PER_TASK && done < need) setRestLeft(restSec);
-    // Auto-advance to next incomplete movement.
-    const nxt = next.findIndex((r) => r < REPS_PER_TASK);
-    if (nxt !== -1 && nxt !== index) setStep(nxt);
+    if (done < need) setRestLeft(restSec);
+    if (doneTimer.current) clearTimeout(doneTimer.current);
+    doneTimer.current = setTimeout(() => {
+      setDoneMsg(null);
+      const nxt = next.findIndex((r) => r < REPS_PER_TASK);
+      if (nxt !== -1) setStep(nxt);
+    }, 1800);
   }
 
   function logManual(index: number) {
@@ -128,63 +160,60 @@ export function DayRunner({
     setSaving(true);
     setResult(null);
     const durationSec = Math.floor((Date.now() - startRef.current) / 1000);
-    const res = await fetch('/api/ai/results', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        challengeId,
-        challengeDayId,
-        durationSec,
-        results: tasks.map((t, i) => ({
-          exerciseName: t.exerciseName,
-          reps: reps[i] ?? 0,
-          goodReps: reps[i] ?? 0,
-          badReps: 0,
-          averageScore: (reps[i] ?? 0) > 0 ? 80 : 0,
-          durationSec,
-          issues: [],
-        })),
-      }),
-    });
-    const data = (await res.json().catch(() => null)) as {
-      valid?: boolean;
-      awardedBlock?: number | null;
-    } | null;
-    setSaving(false);
     try {
-      localStorage.removeItem(key);
-    } catch {
-      // ignore
+      const res = await fetch('/api/ai/results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeId,
+          challengeDayId,
+          durationSec,
+          results: tasks.map((t, i) => ({
+            exerciseName: t.exerciseName,
+            reps: reps[i] ?? 0,
+            goodReps: reps[i] ?? 0,
+            badReps: 0,
+            averageScore: (reps[i] ?? 0) > 0 ? 80 : 0,
+            durationSec,
+            issues: [],
+          })),
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        valid?: boolean;
+        awardedBlock?: number | null;
+        enrollment?: { reset?: boolean };
+      } | null;
+      try {
+        sessionStorage.removeItem(key);
+      } catch {
+        // ignore
+      }
+      if (data?.awardedBlock) setBadge(data.awardedBlock);
+      setResult(
+        data?.enrollment?.reset
+          ? 'Missed a day. Day 1 again. Bests kept.'
+          : data?.valid
+            ? `Done ${mmss(durationSec)} UTC - VALID. Next opens 00:00 UTC.`
+            : `Stored. ${capEnforced ? 'Over 55:00 or incomplete - redo.' : 'Incomplete - finish all moves.'}`,
+      );
+    } finally {
+      setSaving(false);
     }
-    if (data?.awardedBlock) setBadge(data.awardedBlock);
-    setResult(
-      data?.valid
-        ? `Done in ${Math.floor(durationSec / 60)}:${String(durationSec % 60).padStart(2, '0')} - VALID. Next day unlocked.`
-        : `Stored. ${capEnforced ? `Over ${capLabel} or incomplete - redo inside ${capLabel}.` : 'Incomplete - finish all movements.'}`,
-    );
   }
+
+  // Auto-finish: no manual tap once every move hits 10x10.
+  useEffect(() => {
+    if (started && allDone && !result && !saving) void finish();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone, started]);
 
   if (!started) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">
-          {tasks.length} movements · 100 reps each · one screen at a time.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {capEnforced
-            ? `Finish inside ${capLabel} or redo the day.`
-            : `${capLabel} is info only, no fail.`}{' '}
-          {isRecovery ? `Recovery day: any ${need} of ${tasks.length} count.` : 'Finish every movement.'}
-        </p>
-        <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
-          <p className="font-medium">Coach tip</p>
-          <p className="mt-1 text-muted-foreground">
-            Pause {restSec}s after each movement. Sip water every 2 rounds.
-            Keep early rounds smooth, push the last two.
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">10x10 per move · 55:00 UTC</p>
         <Button onClick={start} size="lg" className="min-h-tap">
-          Start day timer
+          Start Day {dayNumber}
         </Button>
       </div>
     );
@@ -194,25 +223,27 @@ export function DayRunner({
   const taskReps = reps[step] ?? 0;
   const isDone = taskReps >= REPS_PER_TASK;
   const supported = createAnalyzer(t.exerciseName) !== null;
-  const pct = Math.min(100, Math.round((taskReps / REPS_PER_TASK) * 100));
+  const filled = Math.min(REPS_PER_TASK, taskReps);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="font-display text-4xl tabular-nums" aria-live="polite">
-            {mm}:{ss}
-          </p>
-          {!capEnforced && <p className="text-xs text-muted-foreground">Info only, no fail</p>}
-        </div>
+        <p className="font-display text-4xl tabular-nums" aria-live="polite">
+          {mmss(remaining)}
+        </p>
         <p className="text-sm text-muted-foreground tabular-nums">
-          {doneCount}/{need} movements · {totalReps.toLocaleString('en-US')} reps
+          {doneCount}/{need} · {totalReps.toLocaleString('en-US')}
         </p>
       </div>
       <Progress value={tasks.length === 0 ? 0 : (doneCount / need) * 100} />
       {restLeft > 0 && (
         <p className="rounded-md border border-volt/40 bg-volt/10 p-3 text-center text-lg font-semibold tabular-nums">
-          Rest {restLeft}s - Move, breathe, next starts soon
+          Rest {mmss(restLeft)} UTC
+        </p>
+      )}
+      {doneMsg && (
+        <p className="rounded-md border border-[#35C759]/50 bg-[#35C759]/10 p-3 text-center font-bold text-[#35C759]" aria-live="polite">
+          {doneMsg}
         </p>
       )}
 
@@ -221,53 +252,47 @@ export function DayRunner({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Movement {step + 1} of {tasks.length}
+                Move {step + 1} of {tasks.length}
               </p>
               <p className="mt-0.5 font-semibold leading-snug">
-                V{step + 1} {t.exerciseName}
-                {t.loadLabel && (
-                  <span className="font-normal text-muted-foreground"> - {t.loadLabel}</span>
-                )}
-              </p>
-              {t.instructions && <p className="mt-1 text-sm text-muted-foreground">{t.instructions}</p>}
-              <div className="mt-2 rounded-md border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground">
-                {t.loadLabel ? (
-                  <p>
-                    <span className="font-medium text-foreground">Load: </span>
-                    {t.loadLabel}
-                  </p>
-                ) : null}
-                <p className={t.loadLabel ? 'mt-1' : undefined}>
-                  Pause {restSec}s after this, sip water every 2 rounds.
-                </p>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Preferred: do it with camera counting. Alternative below if the camera cannot see you.
+                {t.exerciseName}
               </p>
             </div>
-            {isDone ? (
+            {isDone && (
               <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#35C759]/15 px-2.5 py-1 text-xs font-bold text-[#35C759]">
                 <Check className="size-4" /> {taskReps}
-              </span>
-            ) : (
-              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                {taskReps}/{REPS_PER_TASK}
               </span>
             )}
           </div>
 
+          <div className="grid grid-cols-2 gap-2 text-center" aria-label="Present and best">
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Present</p>
+              <p className="font-display text-2xl tabular-nums">{taskReps}</p>
+            </div>
+            <div className="rounded-md border border-border p-2">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Best</p>
+              <p className="font-display text-2xl tabular-nums">{t.best?.reps ?? 0}</p>
+            </div>
+          </div>
+
           {!isDone && (
             <>
-              <Progress value={pct} />
-              <p className="text-center font-display text-5xl tabular-nums" aria-live="polite">
-                {taskReps}
-              </p>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-10 gap-1" aria-label={`${filled} of ${REPS_PER_TASK}`}>
+                {Array.from({ length: REPS_PER_TASK }, (_, i) => (
+                  <span
+                    key={i}
+                    className={`aspect-square rounded-[3px] ${i < filled ? 'bg-volt' : 'bg-muted'}`}
+                  />
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 <ExerciseMediaDialog
                   exerciseName={t.exerciseName}
                   displayName={t.exerciseName}
-                  notes={t.instructions ?? t.loadLabel}
+                  notes={null}
                   demoUrl={t.demoVideoUrl}
+                  minimal
                 />
                 {supported ? (
                   <Button
@@ -277,89 +302,47 @@ export function DayRunner({
                     onClick={() => setCameraOpen((c) => !c)}
                   >
                     <Camera className="size-4" />
-                    <span className="ml-2">{cameraOpen ? 'Close camera' : 'Count with camera (preferred)'}</span>
+                    <span className="ml-2">{cameraOpen ? 'Close' : 'Record'}</span>
                   </Button>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No camera model for this one - use manual log below.
-                  </p>
-                )}
-                {cameraOpen && supported && (
-                  <div className="rounded-lg border border-border p-3">
-                    <LiveWorkout
-                      key={`cam-${challengeDayId}-${step}`}
-                      exercise={t.exerciseName}
-                      onCount={(n) => addReps(step, n)}
-                    />
-                  </div>
-                )}
-                <details className="rounded-md border border-border p-3">
-                  <summary className="cursor-pointer text-sm font-medium">
-                    Alternative: log without camera
-                  </summary>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Do the 100 reps, rest {restSec}s, then log the full set.
-                  </p>
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 min-h-tap"
-                    disabled={restLeft > 0}
+                    size="lg"
+                    variant="secondary"
+                    className="min-h-tap w-full"
                     onClick={() => logManual(step)}
                   >
-                    Log 100 without camera
+                    Log 10x10
                   </Button>
-                </details>
+                )}
               </div>
+              {cameraOpen && supported && (
+                <div className="rounded-lg border border-border p-3">
+                  <LiveWorkout
+                    key={`cam-${challengeDayId}-${step}`}
+                    exercise={t.exerciseName}
+                    onCount={(n) => addReps(step, n)}
+                  />
+                </div>
+              )}
             </>
           )}
 
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-tap flex-1"
-              disabled={step === 0}
-              onClick={() => {
-                setStep((s) => Math.max(0, s - 1));
-                setCameraOpen(false);
-              }}
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              variant={isDone ? 'default' : 'outline'}
-              className="min-h-tap flex-1"
-              disabled={!isDone && reps.slice(0, step + 1).some((r) => r < REPS_PER_TASK)}
-              onClick={() => {
-                const nxt = reps.findIndex((r) => r < REPS_PER_TASK);
-                if (nxt !== -1) setStep(nxt);
-                else if (step + 1 < tasks.length) setStep(step + 1);
-                setCameraOpen(false);
-              }}
-            >
-              {step + 1 >= tasks.length ? 'Review' : 'Next movement'}
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5" aria-label="All movements">
+          <div className="flex flex-wrap gap-1.5" aria-label="All moves">
             {tasks.map((_, i) => {
               const d = (reps[i] ?? 0) >= REPS_PER_TASK;
+              const firstOpen = reps.findIndex((r) => r < REPS_PER_TASK);
+              const clickable = d || i === firstOpen;
               return (
                 <button
                   key={i}
                   type="button"
+                  disabled={!clickable}
                   onClick={() => {
-                    // Only completed or current-in-order movement is tappable.
-                    const firstOpen = reps.findIndex((r) => r < REPS_PER_TASK);
-                    if (d || i === firstOpen) {
-                      setStep(i);
-                      setCameraOpen(false);
-                    }
+                    setStep(i);
+                    setCameraOpen(false);
                   }}
-                  aria-label={`Go to movement ${i + 1}`}
+                  aria-label={`Go to move ${i + 1}`}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-xs tabular-nums ${
                     i === step
                       ? 'border-volt bg-volt/15 font-bold'
@@ -368,8 +351,7 @@ export function DayRunner({
                         : 'border-border text-muted-foreground'
                   }`}
                 >
-                  {d ? <Check className="size-3" /> : i === 0 ? <Lock className="hidden" /> : null}
-                  {d ? '' : i + 1}
+                  {d ? <Check className="size-3" /> : i + 1}
                 </button>
               );
             })}
@@ -377,9 +359,7 @@ export function DayRunner({
         </CardContent>
       </Card>
 
-      <Button onClick={() => void finish()} disabled={!allDone || saving} size="lg" className="min-h-tap">
-        {saving ? 'Saving...' : allDone ? 'Finish day' : `Complete ${need - doneCount} more`}
-      </Button>
+      {saving && <p className="text-sm text-muted-foreground">Saving...</p>}
       {result && <p className="text-sm text-muted-foreground">{result}</p>}
 
       <AnimatePresence>
