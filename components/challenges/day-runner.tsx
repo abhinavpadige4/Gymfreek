@@ -393,6 +393,7 @@ export function DayRunner({
                     key={`cam-${challengeDayId}-${step}`}
                     exercise={t.exerciseName}
                     onCount={(n) => addReps(step, n)}
+                    autoStart
                   />
                 </div>
               )}

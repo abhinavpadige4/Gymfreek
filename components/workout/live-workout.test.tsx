@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LiveWorkout } from './live-workout';
 
@@ -24,5 +24,25 @@ describe('LiveWorkout voice toggle', () => {
       name: 'Camera counting is not available for box jumps yet',
     });
     expect(start).toBeDisabled();
+  });
+
+  it('auto-starts with a 5-4-3-2-1 countdown and no start tap', () => {
+    vi.useFakeTimers();
+    try {
+      render(<LiveWorkout exercise="squat" autoStart />);
+      // No Start button: the countdown takes its place.
+      expect(screen.queryByRole('button', { name: 'Start camera' })).not.toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(screen.getByText('3')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 });

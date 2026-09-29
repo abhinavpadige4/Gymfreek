@@ -27,6 +27,7 @@ export function LiveWorkout({
   challengeId,
   challengeDayId,
   onCount,
+  autoStart = false,
 }: {
   exercise: string;
   challengeId?: string;
@@ -35,6 +36,9 @@ export function LiveWorkout({
   // handed to the parent and nothing is POSTed. Session logging stays the
   // single write path, so camera sets never double-log.
   onCount?: (reps: number) => void;
+  // Guided-runner mode: skip the Start tap, run a 5-4-3-2-1 countdown and
+  // open the camera directly.
+  autoStart?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -219,6 +223,27 @@ export function LiveWorkout({
     }
   }, [exercise, stopCamera]);
 
+  // Auto-start countdown for the guided runner: 5-4-3-2-1, then the camera
+  // opens with no second tap. Runs once per mount.
+  const [countdown, setCountdown] = useState<number | null>(null);
+  useEffect(() => {
+    if (!autoStart) return;
+    setCountdown(5);
+    let n = 5;
+    const t = setInterval(() => {
+      n -= 1;
+      if (n <= 0) {
+        clearInterval(t);
+        setCountdown(null);
+        void start();
+        return;
+      }
+      setCountdown(n);
+    }, 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
   const finish = useCallback(async () => {
     const analyzer = analyzerRef.current;
     if (!analyzer) return;
@@ -371,9 +396,15 @@ export function LiveWorkout({
         </p>
       )}
       {status === 'idle' || status === 'error' ? (
-        <Button onClick={start} disabled={!supported} size="lg">
-          {supported ? 'Start camera' : `Camera counting is not available for ${exercise} yet`}
-        </Button>
+        countdown != null ? (
+          <p className="py-4 text-center font-display text-6xl tabular-nums" aria-live="polite">
+            {countdown}
+          </p>
+        ) : (
+          <Button onClick={start} disabled={!supported} size="lg">
+            {supported ? 'Start camera' : `Camera counting is not available for ${exercise} yet`}
+          </Button>
+        )
       ) : status === 'running' ? (
         <div className="flex gap-2">
           <Button onClick={() => void finish()} size="lg" variant="secondary" className="flex-1">
