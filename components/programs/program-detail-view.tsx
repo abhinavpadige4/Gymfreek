@@ -16,6 +16,7 @@ import { WorkoutCard } from '@/components/programs/workout-card';
 import { WorkoutFormDialog } from '@/components/programs/workout-form-dialog';
 import { useTrainingName } from '@/components/shared/use-training-name';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { ExerciseMediaDialog } from '@/components/exercises/exercise-media-dialog';
 
 type ProgramExerciseWithExercise = ProgramExercise & { exercise: Exercise };
 type WorkoutWithExercises = Workout & { exercises: ProgramExerciseWithExercise[] };
@@ -24,9 +25,11 @@ export type ProgramFull = Program & { workouts: WorkoutWithExercises[] };
 interface Props {
   program: ProgramFull;
   catalog: Exercise[];
+  // Best e1RM display text per exercise id (server-computed from set history).
+  bests?: Record<string, string>;
 }
 
-export function ProgramDetailView({ program, catalog }: Props) {
+export function ProgramDetailView({ program, catalog, bests = {} }: Props) {
   const t = useTranslations('programs');
   const common = useTranslations('common');
   const trainingName = useTrainingName();
@@ -118,13 +121,30 @@ export function ProgramDetailView({ program, catalog }: Props) {
                 <CardContent>
                   <ul className="flex flex-col gap-2 text-sm">
                     {w.exercises.map((pe) => (
-                      <li key={pe.id} className="flex items-baseline justify-between gap-3">
-                        <span className="min-w-0 truncate font-medium">
-                          {exerciseName(pe.exercise.name)}
-                        </span>
-                        <span className="shrink-0 tabular-nums text-muted-foreground">
-                          {pe.targetSets} x {pe.targetRepsMin}-{pe.targetRepsMax} · {pe.restSec}s
-                        </span>
+                      <li key={pe.id} className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <ExerciseMediaDialog
+                            exerciseName={pe.exercise.name}
+                            displayName={exerciseName(pe.exercise.name)}
+                            equipmentType={pe.exercise.equipmentType}
+                            notes={pe.exercise.notes}
+                            minimal
+                            compact
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">
+                              {exerciseName(pe.exercise.name)}
+                            </p>
+                            <p className="shrink-0 tabular-nums text-muted-foreground">
+                              {pe.targetSets} x {pe.targetRepsMin}-{pe.targetRepsMax} · {pe.restSec}s
+                              {bests[pe.exercise.id] && (
+                                <span className="ml-2 font-semibold text-volt">
+                                  Best {bests[pe.exercise.id]}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>
