@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { VoiceService } from './voice';
 
-function stubSpeech() {
+function stubSpeech(voices: { lang: string }[] = [{ lang: 'en-US' }]) {
   const speak = vi.fn();
   const cancel = vi.fn();
   const state = { speaking: false };
@@ -15,6 +15,8 @@ function stubSpeech() {
       },
       speak,
       cancel,
+      getVoices: () => voices,
+      addEventListener: vi.fn(),
     },
     configurable: true,
   });
@@ -64,6 +66,21 @@ describe('VoiceService', () => {
     voice.speak('First.');
     expect(speak).toHaveBeenCalledTimes(1);
     voice.speak('Second.');
+    expect(speak).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports muted, ready, and no-voice status', () => {
+    stubSpeech();
+    const voice = new VoiceService();
+    expect(voice.status()).toBe('ready');
+    voice.setEnabled(false);
+    expect(voice.status()).toBe('muted');
+  });
+
+  it('unlocks speech silently inside a tap', () => {
+    const { speak } = stubSpeech();
+    const voice = new VoiceService();
+    voice.unlock();
     expect(speak).toHaveBeenCalledTimes(1);
   });
 });

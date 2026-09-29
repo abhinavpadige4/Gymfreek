@@ -143,6 +143,8 @@ export function LiveWorkout({
   const start = useCallback(async () => {
     if (startingRef.current) return;
     startingRef.current = true;
+    // Inside the tap: unlocks mobile speech for every later cue.
+    voiceService.unlock();
     const analyzer = createAnalyzer(exercise);
     if (!analyzer) {
       startingRef.current = false;

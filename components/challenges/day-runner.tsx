@@ -65,8 +65,36 @@ export function DayRunner({
   const [result, setResult] = useState<string | null>(null);
   const [badge, setBadge] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  // Bumps to re-render the sound status after mute/test taps.
+  const [voiceTick, setVoiceTick] = useState(0);
   const startRef = useRef(0);
   const doneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voiceStatus = voiceService.status();
+  const voiceHint =
+    voiceStatus === 'muted'
+      ? 'Sound off'
+      : voiceStatus === 'no-voice'
+        ? 'No voice on this device'
+        : voiceStatus === 'unsupported'
+          ? 'Voice not supported here'
+          : '';
+
+  function testVoice() {
+    voiceService.unlock();
+    voiceService.speak('Ready. 10 by 10.');
+    setVoiceTick((t) => t + 1);
+  }
+
+  function unmute() {
+    voiceService.setEnabled(true);
+    try {
+      window.localStorage.setItem('100xu-voice', 'on');
+    } catch {
+      // storage blocked: in-memory unmute still applies to this session.
+    }
+    voiceService.unlock();
+    setVoiceTick((t) => t + 1);
+  }
 
   function readSession(): { reps?: number[]; elapsed?: number } | null {
     try {
@@ -128,6 +156,8 @@ export function DayRunner({
 
   function start() {
     startRef.current = Date.now() - elapsed * 1000;
+    // Inside the tap: unlocks mobile speech for every later cue.
+    voiceService.unlock();
     setStarted(true);
   }
 
@@ -273,6 +303,22 @@ export function DayRunner({
             <div className="rounded-md border border-border p-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Best</p>
               <p className="font-display text-2xl tabular-nums">{t.best?.reps ?? 0}</p>
+            </div>
+          </div>
+
+          <div key={voiceTick} className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground" aria-live="polite">
+              {voiceHint || 'Sound on'}
+            </p>
+            <div className="flex gap-2">
+              {voiceStatus === 'muted' && (
+                <Button type="button" variant="outline" size="sm" onClick={unmute}>
+                  Sound on
+                </Button>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={testVoice}>
+                Test voice
+              </Button>
             </div>
           </div>
 
