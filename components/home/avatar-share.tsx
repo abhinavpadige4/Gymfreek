@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Share2 } from 'lucide-react';
+import { Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,31 +38,200 @@ export function AvatarShare({
   facebook: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const link = appUrl || (typeof window === 'undefined' ? '' : window.location.origin);
   const text = `Hi I am ${name} - ${workouts} workouts, ${reps} reps, ${minutes} min, ${badges.length} badges on 100XU. Join me: ${link}`;
   const badgeNames = badges
     .map((b) => BLOCK_BADGES[b.blockNumber - 1]?.name ?? `Block ${b.blockNumber}`)
     .join(', ');
+  const earned = new Set(badges.map((b) => b.blockNumber));
+
+  function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  async function renderCard(): Promise<Blob> {
+    const W = 1080;
+    const H = 1350;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas unavailable');
+
+    // Background cover + dark overlay.
+    try {
+      const bg = await loadImage(SHARE_CARD_BG);
+      const scale = Math.max(W / bg.naturalWidth, H / bg.naturalHeight);
+      const dw = bg.naturalWidth * scale;
+      const dh = bg.naturalHeight * scale;
+      ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    } catch {
+      ctx.fillStyle = '#141414';
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+
+    // Brand + name in the app display font when loaded.
+    ctx.fillStyle = '#D94A05';
+    ctx.font = '700 44px sans-serif';
+    ctx.fillText('100XU', W / 2, 110);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '64px "Russo One", sans-serif';
+    ctx.fillText(name.slice(0, 24), W / 2, 190, W - 120);
+
+    // Avatar.
+    try {
+      const av = await loadImage(avatarUrl(seed));
+      const aw = 360;
+      const ah = 440;
+      const ax = (W - aw) / 2;
+      const ay = 240;
+      ctx.save();
+      roundRectPath(ctx, ax, ay, aw, ah, 36);
+      ctx.clip();
+      const s = Math.max(aw / av.naturalWidth, ah / av.naturalHeight);
+      const dw2 = av.naturalWidth * s;
+      const dh2 = av.naturalHeight * s;
+      ctx.drawImage(av, ax + (aw - dw2) / 2, ay, dw2, dh2);
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(217,74,5,0.9)';
+      ctx.lineWidth = 6;
+      roundRectPath(ctx, ax, ay, aw, ah, 36);
+      ctx.stroke();
+    } catch {
+      // avatar optional, stats still render
+    }
+
+    // Stats row.
+    const stats: [string, string][] = [
+      [String(workouts), 'WORKOUTS'],
+      [reps.toLocaleString('en-US'), 'REPS'],
+      [String(minutes), 'MINUTES'],
+    ];
+    const boxW = 300;
+    const boxH = 170;
+    const gap = 30;
+    const rowY = 730;
+    const rowX = (W - (boxW * 3 + gap * 2)) / 2;
+    stats.forEach(([v, label], i) => {
+      const x = rowX + i * (boxW + gap);
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      roundRectPath(ctx, x, rowY, boxW, boxH, 28);
+      ctx.fill();
+      ctx.fillStyle = '#D94A05';
+      ctx.font = '700 64px sans-serif';
+      ctx.fillText(v.slice(0, 10), x + boxW / 2, rowY + 80, boxW - 30);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '32px sans-serif';
+      ctx.fillText(label, x + boxW / 2, rowY + 130);
+    });
+
+    // Badges row: all 10 blocks, earned in full color.
+    const cy = 1010;
+    const r = 40;
+    const totalW = BLOCK_BADGES.length * r * 2 + (BLOCK_BADGES.length - 1) * 18;
+    let cx = (W - totalW) / 2 + r;
+    BLOCK_BADGES.forEach((b) => {
+      const has = earned.has(b.block);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = has ? b.color : 'rgba(255,255,255,0.12)';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = has ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)';
+      ctx.stroke();
+      ctx.fillStyle = has ? '#111111' : 'rgba(255,255,255,0.5)';
+      ctx.font = '700 32px sans-serif';
+      ctx.fillText(String(b.block * 10), cx, cy + 11);
+      cx += r * 2 + 18;
+    });
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '500 36px sans-serif';
+    const badgeLine =
+      badges.length === 0 ? 'No badges yet - finish 10 days to earn one.' : `Badges: ${badgeNames}`;
+    ctx.fillText(badgeLine.slice(0, 60), W / 2, 1100, W - 120);
+
+    // Footer: socials + link.
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '32px sans-serif';
+    const socials = [instagram && `IG: ${instagram}`, facebook && `FB: ${facebook}`]
+      .filter(Boolean)
+      .join('  ·  ');
+    if (socials) ctx.fillText(socials.slice(0, 60), W / 2, 1180, W - 120);
+    ctx.fillText(link.replace(/^https?:\/\//, '').slice(0, 60), W / 2, 1240, W - 120);
+    ctx.fillStyle = '#D94A05';
+    ctx.font = '700 36px sans-serif';
+    ctx.fillText('100XU - CENTURY CHALLENGE', W / 2, 1300);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Render failed');
+    return blob;
+  }
+
+  function downloadBlob(blob: Blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '100xu-flex-card.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
 
   async function share() {
+    setBusy(true);
     try {
+      const blob = await renderCard();
+      const file = new File([blob], '100xu-flex-card.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: '100XU flex card', text });
+        return;
+      }
+      // Desktop / Instagram path: save the PNG, then fall back to text share.
+      downloadBlob(blob);
+      toast.success('Card saved as image. Upload it to Instagram.');
       if (navigator.share) {
         await navigator.share({ title: '100XU', text, url: link });
       } else {
         await navigator.clipboard.writeText(text);
-        toast.success('Copied. Paste it on Instagram or WhatsApp.');
       }
     } catch {
       // user cancelled, no-op
+    } finally {
+      setBusy(false);
     }
   }
 
-  async function copyLink() {
+  async function download() {
+    setBusy(true);
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success('Copied. Paste it anywhere.');
+      downloadBlob(await renderCard());
+      toast.success('Flex card image saved.');
     } catch {
-      toast.error('Copy failed.');
+      toast.error('Image render failed.');
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -95,8 +264,8 @@ export function AvatarShare({
           <div className="absolute inset-0 bg-black/55" aria-hidden="true" />
           <div className="relative flex flex-col items-center gap-3 px-6 py-6 text-center text-white">
             <DialogHeader className="flex flex-col items-center gap-1">
-              <DialogTitle className="text-white">Hi {name}</DialogTitle>
-              <DialogDescription className="text-white/70">
+              <DialogTitle className="font-display text-2xl tracking-wide text-white">{name}</DialogTitle>
+              <DialogDescription className="sr-only">
                 Your 100XU flex card. Share it anywhere.
               </DialogDescription>
             </DialogHeader>
@@ -151,13 +320,13 @@ export function AvatarShare({
               </p>
             )}
             <div className="flex w-full gap-2">
-              <Button onClick={share} className="min-h-tap flex-1">
+              <Button onClick={share} disabled={busy} className="min-h-tap flex-1">
                 <Share2 className="size-4" />
-                <span className="ml-2">Share</span>
+                <span className="ml-2">{busy ? 'Making...' : 'Share card'}</span>
               </Button>
-              <Button onClick={copyLink} variant="secondary" className="min-h-tap flex-1">
-                <Copy className="size-4" />
-                <span className="ml-2">Copy</span>
+              <Button onClick={download} disabled={busy} variant="secondary" className="min-h-tap flex-1">
+                <Download className="size-4" />
+                <span className="ml-2">Save PNG</span>
               </Button>
             </div>
             <p className="text-[11px] text-white/70">
@@ -165,6 +334,9 @@ export function AvatarShare({
             </p>
           </div>
         </div>
+        <p className="bg-background px-6 py-3 text-center text-xs text-muted-foreground">
+          Your 100XU flex card. Share it anywhere.
+        </p>
       </DialogContent>
     </Dialog>
   );
