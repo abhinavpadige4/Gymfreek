@@ -42,21 +42,23 @@ export default async function ChallengeDayPage({
   if (!enrollment) {
     redirect(`/challenges/${challenge.slug}`);
   }
-  // Past days reopen as practice: same flow, saved as a free workout, the
-  // pointer never moves. A day touched before stays open even when a streak
-  // reset moved the pointer behind it; only truly new future days lock.
+  // Past work is always reopenable as practice: same flow, saved as a free
+  // workout, the pointer never moves. Practice does not depend on enrollment
+  // status, so a PENDING user still reaches what they already did. Only the
+  // current day in normal mode requires ACTIVE; truly new future days lock.
+  const isCurrentNormal =
+    enrollment.status === 'ACTIVE' && dayNumber === enrollment.currentDay;
   let practice =
-    enrollment.status === 'COMPLETED'
-      ? dayNumber <= enrollment.currentDay
-      : enrollment.status === 'ACTIVE' && dayNumber < enrollment.currentDay;
-  if (!practice && dayNumber > enrollment.currentDay) {
+    dayNumber < enrollment.currentDay ||
+    (enrollment.status === 'COMPLETED' && dayNumber <= enrollment.currentDay);
+  if (!practice && dayNumber !== enrollment.currentDay) {
     const prior = await db.workoutSession.findFirst({
       where: { userId: session.userId, challengeDayId: day.id },
       select: { id: true },
     });
     practice = prior != null;
   }
-  if (!practice && (enrollment.status !== 'ACTIVE' || dayNumber !== enrollment.currentDay)) {
+  if (!practice && !isCurrentNormal) {
     redirect(`/challenges/${challenge.slug}`);
   }
   // Midnight-UTC unlock: a day that just became current today opens at 00:00 UTC.

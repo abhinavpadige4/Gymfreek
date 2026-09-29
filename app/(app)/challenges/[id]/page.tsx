@@ -121,8 +121,9 @@ export default async function ChallengeDetailPage({
             </Link>
           </div>
         </Card>
-        {enrollment?.status === 'ACTIVE' &&
+        {enrollment && enrollment.status !== 'CANCELLED' &&
           (() => {
+            const active = enrollment.status === 'ACTIVE';
             const dayByNumber = new Map(challenge.days.map((d) => [d.dayNumber, d]));
             // Next day stays locked until 00:00 UTC when today already saw a finish.
             const sameUtcDay = (a: Date, b: Date) =>
@@ -173,7 +174,7 @@ export default async function ChallengeDetailPage({
                             const d = dayByNumber.get(n);
                             const isDone = d != null && bestByDay.has(d.id);
                             const isToday = n === enrollment.currentDay;
-                            const open = isToday && !midnightLocked;
+                            const open = active && isToday && !midnightLocked;
                             // Done or ever-touched days reopen as practice; only
                             // truly new future days lock.
                             const review = d != null && (isDone || touchedDays.has(d.id));
@@ -222,7 +223,7 @@ export default async function ChallengeDetailPage({
                     </Card>
                   );
                 })}
-                {!midnightLocked && (
+                {active && !midnightLocked && (
                   <Link
                     href={`/challenges/${challenge.slug}/day/${enrollment.currentDay}`}
                     className="flex min-h-tap items-center justify-center rounded-md bg-volt px-4 py-3 font-bold text-black"
@@ -230,6 +231,12 @@ export default async function ChallengeDetailPage({
                     Start Day {enrollment.currentDay}
                   </Link>
                 )}
+                <Link
+                  href="/history"
+                  className="flex min-h-tap items-center justify-center rounded-md border border-border px-4 py-3 text-sm font-semibold"
+                >
+                  All past workouts
+                </Link>
               </div>
             );
           })()}
