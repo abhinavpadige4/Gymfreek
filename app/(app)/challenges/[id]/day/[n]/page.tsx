@@ -39,16 +39,24 @@ export default async function ChallengeDayPage({
       });
     }
   }
-  if (!enrollment || dayNumber > enrollment.currentDay) {
+  if (!enrollment) {
     redirect(`/challenges/${challenge.slug}`);
   }
   // Past days reopen as practice: same flow, saved as a free workout, the
-  // pointer never moves. Only future days stay locked.
-  const practice =
+  // pointer never moves. A day touched before stays open even when a streak
+  // reset moved the pointer behind it; only truly new future days lock.
+  let practice =
     enrollment.status === 'COMPLETED'
       ? dayNumber <= enrollment.currentDay
       : enrollment.status === 'ACTIVE' && dayNumber < enrollment.currentDay;
-  if (!practice && enrollment.status !== 'ACTIVE') {
+  if (!practice && dayNumber > enrollment.currentDay) {
+    const prior = await db.workoutSession.findFirst({
+      where: { userId: session.userId, challengeDayId: day.id },
+      select: { id: true },
+    });
+    practice = prior != null;
+  }
+  if (!practice && (enrollment.status !== 'ACTIVE' || dayNumber !== enrollment.currentDay)) {
     redirect(`/challenges/${challenge.slug}`);
   }
   // Midnight-UTC unlock: a day that just became current today opens at 00:00 UTC.

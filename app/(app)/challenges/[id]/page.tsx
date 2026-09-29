@@ -55,8 +55,13 @@ export default async function ChallengeDetailPage({
       })
     : [];
   const bestByDay = new Map<string, number>();
+  // Any session ever (valid or not): the day was touched before, so it stays
+  // reopenable as practice even after a streak reset moves the pointer back.
+  const touchedDays = new Set<string>();
   for (const s of bestSessions) {
-    if (!s.challengeDayId || s.durationSec == null) continue;
+    if (!s.challengeDayId) continue;
+    touchedDays.add(s.challengeDayId);
+    if (s.durationSec == null) continue;
     const prev = bestByDay.get(s.challengeDayId);
     if (prev == null || s.durationSec < prev) bestByDay.set(s.challengeDayId, s.durationSec);
   }
@@ -169,8 +174,9 @@ export default async function ChallengeDetailPage({
                             const isDone = d != null && bestByDay.has(d.id);
                             const isToday = n === enrollment.currentDay;
                             const open = isToday && !midnightLocked;
-                            // Done days reopen as practice; only future days lock.
-                            const review = isDone && d != null;
+                            // Done or ever-touched days reopen as practice; only
+                            // truly new future days lock.
+                            const review = d != null && (isDone || touchedDays.has(d.id));
                             const label = isDone
                               ? `Day ${n} done, tap to practice again`
                               : open
