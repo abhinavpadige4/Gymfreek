@@ -169,13 +169,19 @@ export default async function ChallengeDetailPage({
                             const isDone = d != null && bestByDay.has(d.id);
                             const isToday = n === enrollment.currentDay;
                             const open = isToday && !midnightLocked;
-                            const label = isDone ? `Day ${n} done` : open ? `Start day ${n}` : `Day ${n} locked`;
+                            // Done days reopen as practice; only future days lock.
+                            const review = isDone && d != null;
+                            const label = isDone
+                              ? `Day ${n} done, tap to practice again`
+                              : open
+                                ? `Start day ${n}`
+                                : `Day ${n} locked`;
                             const cls = isDone
                               ? 'border-[#35C759]/50 bg-[#35C759]/15 text-[#35C759]'
                               : open
                                 ? 'border-volt bg-volt/15 font-bold text-volt'
                                 : 'border-border text-muted-foreground';
-                            return open && d ? (
+                            return (open || review) && d ? (
                               <Link
                                 key={n}
                                 role="listitem"

@@ -38,7 +38,10 @@ interface SessionRecord {
 // Guided day flow: one movement per screen, two actions only (Technique,
 // Record). In-day progress lives in sessionStorage (temp): the server is
 // written once, when the day finishes. Bests come from stored history and
-// survive streak resets.
+// survive streak resets. Practice mode reopens a past day: same flow, saved
+// as a free workout, never advances the enrollment.
+const MANUAL_TAP_REPS = 10;
+
 export function DayRunner({
   challengeId,
   challengeDayId,
@@ -46,6 +49,7 @@ export function DayRunner({
   tasks,
   restSec,
   requiredTasks,
+  practice = false,
 }: {
   challengeId: string;
   challengeDayId: string;
@@ -53,6 +57,7 @@ export function DayRunner({
   tasks: Task[];
   restSec: number;
   requiredTasks: number;
+  practice?: boolean;
 }) {
   const key = `100xu-sess-${challengeDayId}`;
   const [started, setStarted] = useState(false);
@@ -182,8 +187,19 @@ export function DayRunner({
     }, 1800);
   }
 
+  // One tap logs one round (10 of the 10x10): ten deliberate taps finish a
+  // move, so an accidental tap can never complete anything.
   function logManual(index: number) {
-    addReps(index, REPS_PER_TASK - Math.min(reps[index] ?? 0, REPS_PER_TASK));
+    addReps(index, Math.min(MANUAL_TAP_REPS, REPS_PER_TASK - Math.min(reps[index] ?? 0, REPS_PER_TASK)));
+  }
+
+  // Redo a finished move: clears this session's count, bests stay (server history).
+  function redoMove(index: number) {
+    if (doneTimer.current) clearTimeout(doneTimer.current);
+    setDoneMsg(null);
+    setCameraOpen(false);
+    setReps((prev) => prev.map((v, j) => (j === index ? 0 : v)));
+    setStep(index);
   }
 
   async function finish() {
@@ -195,8 +211,8 @@ export function DayRunner({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          challengeId,
-          challengeDayId,
+          // Practice replays save as free workouts: no enrollment advance.
+          ...(practice ? {} : { challengeId, challengeDayId }),
           durationSec,
           results: tasks.map((t, i) => ({
             exerciseName: t.exerciseName,
@@ -221,11 +237,13 @@ export function DayRunner({
       }
       if (data?.awardedBlock) setBadge(data.awardedBlock);
       setResult(
-        data?.enrollment?.reset
-          ? 'Missed a day. Day 1 again. Bests kept.'
-          : data?.valid
-            ? `Done ${mmss(durationSec)} UTC - VALID. Next opens 00:00 UTC.`
-            : `Stored. ${capEnforced ? 'Over 55:00 or incomplete - redo.' : 'Incomplete - finish all moves.'}`,
+        practice
+          ? 'Practice saved.'
+          : data?.enrollment?.reset
+            ? 'Missed a day. Day 1 again. Bests kept.'
+            : data?.valid
+              ? `Done ${mmss(durationSec)} UTC - VALID. Next opens 00:00 UTC.`
+              : `Stored. ${capEnforced ? 'Over 55:00 or incomplete - redo.' : 'Incomplete - finish all moves.'}`,
       );
     } finally {
       setSaving(false);
@@ -241,9 +259,11 @@ export function DayRunner({
   if (!started) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">10x10 per move · 55:00 UTC</p>
+        <p className="text-sm text-muted-foreground">
+          10x10 per move · 55:00 UTC{practice ? ' · Practice' : ''}
+        </p>
         <Button onClick={start} size="lg" className="min-h-tap">
-          Start Day {dayNumber}
+          {practice ? `Practice Day ${dayNumber}` : `Start Day ${dayNumber}`}
         </Button>
       </div>
     );
@@ -289,8 +309,13 @@ export function DayRunner({
               </p>
             </div>
             {isDone && (
-              <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#35C759]/15 px-2.5 py-1 text-xs font-bold text-[#35C759]">
-                <Check className="size-4" /> {taskReps}
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="flex items-center gap-1 rounded-full bg-[#35C759]/15 px-2.5 py-1 text-xs font-bold text-[#35C759]">
+                  <Check className="size-4" /> {taskReps}
+                </span>
+                <Button type="button" variant="outline" size="sm" onClick={() => redoMove(step)}>
+                  Redo
+                </Button>
               </span>
             )}
           </div>
@@ -358,7 +383,7 @@ export function DayRunner({
                     className="min-h-tap w-full"
                     onClick={() => logManual(step)}
                   >
-                    Log 10x10
+                    Log +10
                   </Button>
                 )}
               </div>

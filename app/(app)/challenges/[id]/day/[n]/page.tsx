@@ -39,7 +39,16 @@ export default async function ChallengeDayPage({
       });
     }
   }
-  if (!enrollment || enrollment.status !== 'ACTIVE' || enrollment.currentDay !== dayNumber) {
+  if (!enrollment || dayNumber > enrollment.currentDay) {
+    redirect(`/challenges/${challenge.slug}`);
+  }
+  // Past days reopen as practice: same flow, saved as a free workout, the
+  // pointer never moves. Only future days stay locked.
+  const practice =
+    enrollment.status === 'COMPLETED'
+      ? dayNumber <= enrollment.currentDay
+      : enrollment.status === 'ACTIVE' && dayNumber < enrollment.currentDay;
+  if (!practice && enrollment.status !== 'ACTIVE') {
     redirect(`/challenges/${challenge.slug}`);
   }
   // Midnight-UTC unlock: a day that just became current today opens at 00:00 UTC.
@@ -49,6 +58,7 @@ export default async function ChallengeDayPage({
     a.getUTCDate() === b.getUTCDate();
   const now = new Date();
   const midnightLocked =
+    !practice &&
     dayNumber > 1 &&
     enrollment.lastCompletedAt != null &&
     sameUtcDay(new Date(enrollment.lastCompletedAt), now) &&
@@ -93,9 +103,12 @@ export default async function ChallengeDayPage({
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Day {day.dayNumber}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Day {day.dayNumber}
+            {practice && <span className="ml-2 text-base font-medium text-muted-foreground">Practice</span>}
+          </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            10x10 per move · 55:00 UTC
+            10x10 per move · 55:00 UTC{practice ? ' · saved as free workout' : ''}
           </p>
         </div>
         <Card>
@@ -120,6 +133,7 @@ export default async function ChallengeDayPage({
               }))}
               restSec={restSec}
               requiredTasks={requiredTasks}
+              practice={practice}
             />
           </CardContent>
         </Card>
