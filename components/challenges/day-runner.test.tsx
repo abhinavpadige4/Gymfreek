@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DayRunner } from './day-runner';
 
+// Unsupported by the camera registry on purpose: exercises use Log 10x10.
 const TASKS = [
-  { exerciseName: 'Goblet squats', loadLabel: '16 kg KB', instructions: 'Sit deep.', demoVideoUrl: null },
-  { exerciseName: 'Push-ups', loadLabel: null, instructions: null, demoVideoUrl: null },
+  { exerciseName: 'Box Step-Overs', loadLabel: '20 inch Box', instructions: null, demoVideoUrl: null, best: null },
+  { exerciseName: 'Wall March', loadLabel: null, instructions: null, demoVideoUrl: null, best: { reps: 100, averageScore: 80 } },
 ];
 
 function renderRunner(requiredTasks = 2, restSec = 20) {
@@ -23,16 +24,9 @@ function renderRunner(requiredTasks = 2, restSec = 20) {
 
 describe('DayRunner guided flow', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ valid: true }) })));
   });
-
-  async function logCurrent(user: ReturnType<typeof setupUser>) {
-    // Manual log lives inside the Alternative collapsible.
-    const summary = screen.getByText('Alternative: log without camera');
-    await user.click(summary);
-    await user.click(screen.getByRole('button', { name: /log 100 without camera/i }));
-  }
 
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -42,46 +36,65 @@ describe('DayRunner guided flow', () => {
     return userEvent.setup({ delay: null });
   }
 
-  it('unlocks movements one by one and counts reps per task', async () => {
+  it('shows two actions per move plus present and best', async () => {
     const user = setupUser();
     renderRunner();
 
-    await user.click(screen.getByRole('button', { name: 'Start day timer' }));
-    expect(screen.getByText('Movement 1 of 2')).toBeInTheDocument();
-
-    await logCurrent(user);
-    expect(screen.getByText('Movement 2 of 2')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    expect(screen.getByText('Move 1 of 2')).toBeInTheDocument();
+    // Two actions only: technique dialog trigger + record fallback log.
+    expect(
+      screen.getByRole('button', { name: 'View technique for Box Step-Overs' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Log 10x10' })).toBeInTheDocument();
+    // Present vs best tiles.
+    expect(screen.getByText('Present')).toBeInTheDocument();
+    expect(screen.getByText('Best')).toBeInTheDocument();
   });
 
-  it('enables finish only when the required tasks are done', async () => {
+  it('auto-advances with DONE and auto-finishes the day', async () => {
     const user = setupUser();
     renderRunner(2, 1);
 
-    await user.click(screen.getByRole('button', { name: 'Start day timer' }));
-    const finish = screen.getByRole('button', { name: /complete 2 more|finish day/i });
-    expect(finish).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await user.click(screen.getByRole('button', { name: 'Log 10x10' }));
+    expect(await screen.findByText('DONE Box Step-Overs')).toBeInTheDocument();
+    expect(await screen.findByText('Move 2 of 2', {}, { timeout: 5000 })).toBeInTheDocument();
 
-    await logCurrent(user);
-    expect(screen.getByRole('button', { name: /complete 1 more/i })).toBeDisabled();
+    await screen.findByRole('button', { name: 'Log 10x10' });
+    await user.click(screen.getByRole('button', { name: 'Log 10x10' }));
 
-    // Let the 1s inter-task rest elapse, then finish the second movement.
-    await screen.findByRole('button', { name: /log 100 without camera/i });
-    await waitForElementToBeRemoved(() => screen.queryByText(/Rest \ds/), { timeout: 5000 });
-    await logCurrent(user);
-    await user.click(screen.getByRole('button', { name: 'Finish day' }));
     expect(fetch).toHaveBeenCalledWith(
       '/api/ai/results',
       expect.objectContaining({ method: 'POST' }),
     );
-    expect(await screen.findByText(/VALID\. Next day unlocked/)).toBeInTheDocument();
+    expect(await screen.findByText(/VALID\. Next opens 00:00 UTC/)).toBeInTheDocument();
+    // Temp session cleared after the day is stored.
+    expect(sessionStorage.getItem('100xu-sess-d1')).toBeNull();
+  });
+
+  it('keeps in-day progress in session storage across remounts', async () => {
+    const user = setupUser();
+    const { unmount } = renderRunner(2, 20);
+
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await user.click(screen.getByRole('button', { name: 'Log 10x10' }));
+    expect(await screen.findByText('DONE Box Step-Overs')).toBeInTheDocument();
+    unmount();
+
+    renderRunner(2, 20);
+    expect(await screen.findByText('Move 2 of 2', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('lets recovery days finish early', async () => {
     const user = setupUser();
     renderRunner(1);
 
-    await user.click(screen.getByRole('button', { name: 'Start day timer' }));
-    await logCurrent(user);
-    expect(screen.getByRole('button', { name: 'Finish day' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await user.click(screen.getByRole('button', { name: 'Log 10x10' }));
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/ai/results',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 });

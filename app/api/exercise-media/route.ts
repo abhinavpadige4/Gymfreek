@@ -7,6 +7,7 @@ import {
   getExerciseMediaMeta,
   getExerciseTechniqueImage,
   getExerciseVideo,
+  setExerciseCaption,
   setExerciseTechniqueImage,
   setExerciseVideoFile,
   setExerciseVideoUrl,
@@ -65,18 +66,28 @@ export async function PUT(req: Request) {
       const saved = await setExerciseTechniqueImage(input.name, {
         imageBase64: input.imageBase64,
         mimeType: input.mimeType!,
+        caption: input.caption,
       });
       return NextResponse.json({ saved });
     }
     if (input.videoUrl) {
-      const saved = await setExerciseVideoUrl(input.name, input.videoUrl);
+      const saved = await setExerciseVideoUrl(input.name, input.videoUrl, input.caption);
       return NextResponse.json({ saved });
     }
-    const saved = await setExerciseVideoFile(input.name, {
-      imageBase64: input.videoBase64!,
-      mimeType: input.videoMimeType!,
-    });
-    return NextResponse.json({ saved });
+    if (input.videoBase64) {
+      const saved = await setExerciseVideoFile(input.name, {
+        imageBase64: input.videoBase64,
+        mimeType: input.videoMimeType!,
+        caption: input.caption,
+      });
+      return NextResponse.json({ saved });
+    }
+    // Caption-only save: admin technique note without new media.
+    if (input.caption != null) {
+      const saved = await setExerciseCaption(input.name, input.caption);
+      return NextResponse.json({ saved });
+    }
+    return NextResponse.json({ error: 'Nothing to save.' }, { status: 400 });
   } catch (err) {
     return handleApiError(err);
   }

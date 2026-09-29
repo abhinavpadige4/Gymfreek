@@ -16,6 +16,10 @@ export const exerciseTechniqueImageSchema = z.object({
 export type ExerciseTechniqueImageInput = z.infer<typeof exerciseTechniqueImageSchema>;
 
 // One body for photo, video-link, and video-file modes; exactly one wins.
+// caption rides along with any mode: the admin technique note shown in the
+// guided runner (photo/video + this line only).
+export const exerciseMediaCaptionSchema = z.string().trim().max(280);
+
 export const exerciseMediaUpsertSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
@@ -24,13 +28,18 @@ export const exerciseMediaUpsertSchema = z
     videoUrl: z.string().trim().max(2048).optional(),
     videoBase64: z.string().max(maximumVideoBase64Length).optional(),
     videoMimeType: z.enum(EXERCISE_VIDEO_MIME_TYPES).optional(),
+    caption: exerciseMediaCaptionSchema.optional(),
   })
   .refine(
-    (v) =>
-      Number(v.imageBase64 != null) +
+    (v) => {
+      const mediaCount =
+        Number(v.imageBase64 != null) +
         Number(v.videoUrl != null) +
-        Number(v.videoBase64 != null) ===
-      1,
+        Number(v.videoBase64 != null);
+      // Caption-only saves are allowed (admin technique note without new media).
+      if (v.caption != null) return mediaCount <= 1;
+      return mediaCount === 1;
+    },
     { message: 'Choose exactly one: photo upload, video link, or video file.' },
   )
   .refine((v) => v.imageBase64 == null || v.mimeType != null, {

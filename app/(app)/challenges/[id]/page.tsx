@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Check, Lock } from 'lucide-react';
 import { requireSession } from '@/lib/auth';
 import { requireAdminUserId } from '@/lib/admin';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChallengeJoinButton } from '@/components/challenges/challenge-join-button';
 import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
+import { streakFor } from '@/lib/challenge-progress';
 
 export default async function ChallengeDetailPage({
   params,
@@ -21,9 +23,20 @@ export default async function ChallengeDetailPage({
     },
   });
   if (!challenge) notFound();
-  const enrollment = await db.enrollment.findUnique({
+  let enrollment = await db.enrollment.findUnique({
     where: { userId_challengeId: { userId: session.userId, challengeId: challenge.id } },
   });
+  // Missed-day reset on view: a UTC gap since the last finish sends the
+  // pointer back to Day 1. History rows stay, so bests survive.
+  if (enrollment?.status === 'ACTIVE' && enrollment.currentDay > 1) {
+    const streak = streakFor(enrollment.lastCompletedAt, enrollment.streakCount, new Date());
+    if (streak.resetToDayOne) {
+      enrollment = await db.enrollment.update({
+        where: { id: enrollment.id },
+        data: { currentDay: 1, streakCount: 1 },
+      });
+    }
+  }
   // Same gate as the create-order bypass: admins join free.
   let adminBypass = false;
   try {
@@ -103,60 +116,119 @@ export default async function ChallengeDetailPage({
             </Link>
           </div>
         </Card>
-        {enrollment?.status === 'ACTIVE' && (
-          <div className="grid gap-2 sm:grid-cols-2" aria-label="10-day blocks">
-            {Array.from({ length: Math.ceil(challenge.days.length / 10) }, (_, b) => {
-              const start = b * 10 + 1;
-              const end = Math.min((b + 1) * 10, challenge.days.length);
-              const done = challenge.days
-                .filter((d) => d.dayNumber >= start && d.dayNumber <= end)
-                .filter((d) => bestByDay.has(d.id)).length;
-              const isCurrentBlock =
-                enrollment.currentDay >= start && enrollment.currentDay <= end;
-              const current = challenge.days.find((d) => d.dayNumber === enrollment.currentDay);
-              return (
-                <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">
-                      Block {b + 1}: Days {start}-{end}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    <p className="text-xs text-muted-foreground">
-                      {done}/{end - start + 1} days · same V1-V10 circuit each day
-                    </p>
-                    {isCurrentBlock && current && (
-                      <Link
-                        href={`/challenges/${challenge.slug}/day/${current.dayNumber}`}
-                        className="text-sm font-semibold text-volt hover:underline"
-                      >
-                        Continue Day {current.dayNumber}: {current.title}
-                      </Link>
-                    )}
-                    {!isCurrentBlock && done >= end - start + 1 && (
-                      <p className="text-xs font-semibold text-[#35C759]">Badge earned</p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+        {enrollment?.status === 'ACTIVE' &&
+          (() => {
+            const dayByNumber = new Map(challenge.days.map((d) => [d.dayNumber, d]));
+            // Next day stays locked until 00:00 UTC when today already saw a finish.
+            const sameUtcDay = (a: Date, b: Date) =>
+              a.getUTCFullYear() === b.getUTCFullYear() &&
+              a.getUTCMonth() === b.getUTCMonth() &&
+              a.getUTCDate() === b.getUTCDate();
+            const now = new Date();
+            const midnightLocked =
+              enrollment.currentDay > 1 &&
+              enrollment.lastCompletedAt != null &&
+              sameUtcDay(new Date(enrollment.lastCompletedAt), now) &&
+              sameUtcDay(new Date(enrollment.updatedAt), now);
+            return (
+              <div className="flex flex-col gap-3" aria-label="Pick your day">
+                <ol className="flex gap-2 text-xs text-muted-foreground">
+                  <li><span className="font-bold text-volt">1</span> Pick block</li>
+                  <li aria-hidden>·</li>
+                  <li><span className="font-bold text-volt">2</span> Pick day</li>
+                  <li aria-hidden>·</li>
+                  <li><span className="font-bold text-volt">3</span> Record each move</li>
+                </ol>
+                <p className="text-sm font-semibold" aria-live="polite">
+                  Streak {enrollment.streakCount} · Day {enrollment.currentDay} of{' '}
+                  {challenge.days.length}
+                </p>
+                {Array.from({ length: Math.ceil(challenge.days.length / 10) }, (_, b) => {
+                  const start = b * 10 + 1;
+                  const end = Math.min((b + 1) * 10, challenge.days.length);
+                  const done = challenge.days
+                    .filter((d) => d.dayNumber >= start && d.dayNumber <= end)
+                    .filter((d) => bestByDay.has(d.id)).length;
+                  const isCurrentBlock =
+                    enrollment.currentDay >= start && enrollment.currentDay <= end;
+                  return (
+                    <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">
+                          Days {start}-{end}
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            {done}/{end - start + 1} green
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-5 gap-2" role="list" aria-label={`Days ${start} to ${end}`}>
+                          {Array.from({ length: end - start + 1 }, (_, i) => {
+                            const n = start + i;
+                            const d = dayByNumber.get(n);
+                            const isDone = d != null && bestByDay.has(d.id);
+                            const isToday = n === enrollment.currentDay;
+                            const open = isToday && !midnightLocked;
+                            const label = isDone ? `Day ${n} done` : open ? `Start day ${n}` : `Day ${n} locked`;
+                            const cls = isDone
+                              ? 'border-[#35C759]/50 bg-[#35C759]/15 text-[#35C759]'
+                              : open
+                                ? 'border-volt bg-volt/15 font-bold text-volt'
+                                : 'border-border text-muted-foreground';
+                            return open && d ? (
+                              <Link
+                                key={n}
+                                role="listitem"
+                                aria-label={label}
+                                href={`/challenges/${challenge.slug}/day/${n}`}
+                                className={`flex min-h-tap min-w-tap flex-col items-center justify-center rounded-md border py-2 text-sm tabular-nums ${cls}`}
+                              >
+                                {n}
+                              </Link>
+                            ) : (
+                              <span
+                                key={n}
+                                role="listitem"
+                                aria-label={label}
+                                className={`flex min-h-tap min-w-tap flex-col items-center justify-center rounded-md border py-2 text-sm tabular-nums ${cls}`}
+                              >
+                                {isDone ? <Check className="size-4" /> : n}
+                                {!isDone && !open && <Lock className="mt-0.5 size-3" />}
+                              </span>
+                            );
+                          })}
+                        </div>
+                        {isCurrentBlock && midnightLocked && (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Day {enrollment.currentDay} opens 00:00 UTC. Bests stay.
+                          </p>
+                        )}
+                        {!isCurrentBlock && done >= end - start + 1 && (
+                          <p className="mt-2 text-xs font-semibold text-[#35C759]">Badge earned</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {!midnightLocked && (
+                  <Link
+                    href={`/challenges/${challenge.slug}/day/${enrollment.currentDay}`}
+                    className="flex min-h-tap items-center justify-center rounded-md bg-volt px-4 py-3 font-bold text-black"
+                  >
+                    Start Day {enrollment.currentDay}
+                  </Link>
+                )}
+              </div>
+            );
+          })()}
         <div className="flex flex-col gap-2">
-          {enrollment && (
+          {enrollment && enrollment.status !== 'ACTIVE' && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">
-                  Day {enrollment.currentDay}
-                </CardTitle>
+                <CardTitle className="text-sm">Day {enrollment.currentDay}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link
-                  href={`/challenges/${challenge.slug}/day/${enrollment.currentDay}`}
-                  className="text-sm font-semibold text-volt hover:underline"
-                >
-                  Open today circuit
-                </Link>
+                <p className="text-sm text-muted-foreground">{enrollment.status}</p>
               </CardContent>
             </Card>
           )}
@@ -169,7 +241,7 @@ export default async function ChallengeDetailPage({
               </CardHeader>
               <CardContent className="flex flex-col gap-1">
                 <p className="text-xs text-muted-foreground">
-                  10 movements x 100 reps, one screen at a time, 55:00 info timer.
+                  10x10 per move · 55:00 UTC timer
                 </p>
               </CardContent>
             </Card>

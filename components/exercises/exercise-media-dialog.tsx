@@ -34,6 +34,9 @@ interface Props {
   notes?: string | null;
   // Challenge task demo link. Shown only when no uploaded video exists.
   demoUrl?: string | null;
+  // Guided-runner mode: photo/video + admin caption only. Catalog extras
+  // (equipment, disclaimer, commons search) stay hidden for minimal text.
+  minimal?: boolean;
 }
 
 export function commonsQuery(exerciseName: string): string {
@@ -52,6 +55,7 @@ export function ExerciseMediaDialog({
   compact = false,
   notes = null,
   demoUrl = null,
+  minimal = false,
 }: Props) {
   const t = useTranslations('exercises.media');
   const exerciseT = useTranslations('exercises');
@@ -69,11 +73,14 @@ export function ExerciseMediaDialog({
     | { status: 'link'; url: string }
     | { status: 'file' }
   >({ status: 'unknown' });
+  // Admin technique note (minimal mode shows photo/video + this line only).
+  const [caption, setCaption] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setUpload('unknown');
     setVideo({ status: 'unknown' });
+    setCaption(null);
     let cancelled = false;
     async function probe() {
       try {
@@ -83,17 +90,31 @@ export function ExerciseMediaDialog({
         if (cancelled) return;
         if (!res.ok) {
           setVideo({ status: 'missing' });
-          return;
-        }
-        const contentType = res.headers.get('content-type') ?? '';
-        if (contentType.includes('application/json')) {
-          const data = (await res.json()) as { url?: string };
-          setVideo(data.url ? { status: 'link', url: data.url } : { status: 'missing' });
         } else {
-          setVideo({ status: 'file' });
+          const contentType = res.headers.get('content-type') ?? '';
+          if (contentType.includes('application/json')) {
+            const data = (await res.json()) as { url?: string };
+            setVideo(data.url ? { status: 'link', url: data.url } : { status: 'missing' });
+          } else {
+            setVideo({ status: 'file' });
+          }
         }
       } catch {
         if (!cancelled) setVideo({ status: 'missing' });
+      }
+      try {
+        const meta = await fetch(
+          `/api/exercise-media?name=${encodeURIComponent(exerciseName)}&format=meta`,
+        );
+        if (cancelled) return;
+        if (meta.ok) {
+          const data = (await meta.json()) as { caption?: string | null };
+          if (typeof data.caption === 'string' && data.caption.trim()) {
+            setCaption(data.caption.trim().slice(0, 280));
+          }
+        }
+      } catch {
+        // caption probe is best-effort
       }
     }
     void probe();
@@ -249,7 +270,48 @@ export function ExerciseMediaDialog({
           <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
-        {media ? (
+        {minimal && open && upload === 'unknown' && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={uploadUrl}
+            alt=""
+            aria-hidden
+            className="hidden"
+            onLoad={() => setUpload('ok')}
+            onError={() => setUpload('missing')}
+          />
+        )}
+        {minimal ? (
+          <div className="space-y-4">
+            {video.status === 'file' || demoEmbed || fallbackEmbed ? (
+              <div className="relative aspect-video overflow-hidden rounded-md border bg-black">
+                {video.status === 'file' ? (
+                  <video src={videoSrc} controls playsInline className="h-full w-full" />
+                ) : (
+                  <iframe
+                    src={(demoEmbed ?? fallbackEmbed) ?? undefined}
+                    title={t('demoVideo')}
+                    className="h-full w-full"
+                    allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            ) : upload === 'ok' ? (
+              <div className="relative aspect-[3/2] overflow-hidden rounded-md border bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={uploadUrl}
+                  alt={t('uploadedAlt', { name: displayName })}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t('missing')}</p>
+            )}
+            {caption && <p className="text-sm leading-relaxed">{caption}</p>}
+          </div>
+        ) : media ? (
           <div className="space-y-4">
             <div className="relative aspect-[3/2] overflow-hidden rounded-md border bg-black">
               {media.frames.map((source, index) => (

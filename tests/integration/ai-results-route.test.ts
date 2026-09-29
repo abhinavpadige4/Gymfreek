@@ -64,9 +64,16 @@ describe('POST /api/ai/results - challenge advancement', () => {
     mockUserId.mockResolvedValue(user.id);
     const res = await postResults(jsonReq(resultBody(day1.id, challenge.id)));
     expect(res.status).toBe(201);
-    expect((await res.json()).enrollment).toEqual({ status: 'ACTIVE', currentDay: 2 });
+    expect((await res.json()).enrollment).toEqual({
+      status: 'ACTIVE',
+      currentDay: 2,
+      streakCount: 1,
+      reset: false,
+    });
     const row = await db.enrollment.findFirstOrThrow({ where: { userId: user.id } });
     expect(row.currentDay).toBe(2);
+    expect(row.streakCount).toBe(1);
+    expect(row.lastCompletedAt).not.toBeNull();
   });
 
   it('completes the enrollment on the last day', async () => {
@@ -81,7 +88,12 @@ describe('POST /api/ai/results - challenge advancement', () => {
     mockUserId.mockResolvedValue(user.id);
     const res = await postResults(jsonReq(resultBody(day2.id, challenge.id)));
     expect(res.status).toBe(201);
-    expect((await res.json()).enrollment).toEqual({ status: 'COMPLETED', currentDay: 2 });
+    expect((await res.json()).enrollment).toEqual({
+      status: 'COMPLETED',
+      currentDay: 2,
+      streakCount: 1,
+      reset: false,
+    });
   });
 
   it('stores free workouts without touching any enrollment', async () => {
@@ -174,6 +186,59 @@ describe('POST /api/ai/results - challenge advancement', () => {
       }),
     );
     expect(res.status).toBe(201);
-    expect((await res.json()).enrollment).toEqual({ status: 'ACTIVE', currentDay: 6 });
+    expect((await res.json()).enrollment).toEqual({
+      status: 'ACTIVE',
+      currentDay: 6,
+      streakCount: 1,
+      reset: false,
+    });
+  });
+
+  it('increments the streak on consecutive UTC days', async () => {
+    const { user, challenge, day1 } = await seedChallenge(3);
+    // Yesterday noon UTC: exactly one UTC day behind any current time.
+    const yesterday = new Date();
+    yesterday.setUTCHours(12, 0, 0, 0);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    await db.enrollment.updateMany({
+      where: { userId: user.id },
+      data: { lastCompletedAt: yesterday, streakCount: 2 },
+    });
+    mockUserId.mockResolvedValue(user.id);
+    const res = await postResults(jsonReq(resultBody(day1.id, challenge.id)));
+    expect(res.status).toBe(201);
+    expect((await res.json()).enrollment).toEqual({
+      status: 'ACTIVE',
+      currentDay: 2,
+      streakCount: 3,
+      reset: false,
+    });
+  });
+
+  it('resets to day 1 after a missed day but keeps the session history', async () => {
+    const { user, challenge } = await seedChallenge(7);
+    // Three UTC days back at noon: always a missed-day gap.
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setUTCHours(12, 0, 0, 0);
+    threeDaysAgo.setUTCDate(threeDaysAgo.getUTCDate() - 3);
+    await db.enrollment.updateMany({
+      where: { userId: user.id },
+      data: { currentDay: 5, lastCompletedAt: threeDaysAgo, streakCount: 4 },
+    });
+    const day5 = await db.challengeDay.findFirstOrThrow({
+      where: { challengeId: challenge.id, dayNumber: 5 },
+    });
+    mockUserId.mockResolvedValue(user.id);
+    const res = await postResults(jsonReq(resultBody(day5.id, challenge.id)));
+    expect(res.status).toBe(201);
+    expect((await res.json()).enrollment).toEqual({
+      status: 'ACTIVE',
+      currentDay: 1,
+      streakCount: 1,
+      reset: true,
+    });
+    // The attempt itself is stored: bests survive the reset.
+    expect(await db.workoutSession.count({ where: { userId: user.id } })).toBe(1);
+    expect(await db.exerciseResult.count()).toBe(1);
   });
 });
