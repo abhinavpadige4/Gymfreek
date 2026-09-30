@@ -8,6 +8,7 @@ const profile = {
   goal: 'HYPERTROPHY',
   weeklyFrequency: 3,
   experienceLevel: 'BEGINNER',
+  termsAccepted: true,
 } as const;
 
 describe('registerSchema', () => {
@@ -52,6 +53,17 @@ describe('registerSchema', () => {
       ...profile,
     });
     expect(r.success).toBe(true);
+  });
+
+  it('rejects a missing or declined Terms acceptance', () => {
+    expect(
+      registerSchema.safeParse({ email: 'a@b.com', password: 'longenough', ...profile, termsAccepted: false })
+        .success,
+    ).toBe(false);
+    expect(
+      registerSchema.safeParse({ email: 'a@b.com', password: 'longenough', ...profile, termsAccepted: undefined })
+        .success,
+    ).toBe(false);
   });
 
   it('rejects unknown enum values and future birth dates', () => {

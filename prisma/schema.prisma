@@ -70,6 +70,11 @@ model User {
   payments          Payment[]
   workoutSessions   WorkoutSession[]
   badgeAwards       BadgeAward[]
+  // Explicit legal consent (issue: production security audit). Set at signup
+  // from the unchecked Terms checkbox; null on older accounts (backward-safe).
+  termsVersion      String?
+  privacyVersion    String?
+  consentedAt       DateTime?
 }
 
 // One row per 10-day block badge (block 1-10). Awarded when all days in the

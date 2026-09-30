@@ -30,6 +30,15 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Settings', href: '/settings' },
     ],
   },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Terms', href: '/terms' },
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Refunds', href: '/refunds' },
+      { label: 'Support', href: '/support' },
+    ],
+  },
 ];
 
 export function LandingFooter() {

@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { SettingsClient } from '@/components/settings/settings-client';
+import { DeleteAccountSection } from '@/components/settings/delete-account-section';
 import { ProfileSection } from '@/components/settings/profile-section';
 import { ImportSection } from '@/components/settings/import-section';
 import { GymProfilesSection } from '@/components/settings/gym-profiles-section';
@@ -86,6 +87,8 @@ export default async function SettingsPage() {
         <ImportSection />
 
         <SettingsClient />
+
+        <DeleteAccountSection email={auth.email} />
       </div>
     </main>
   );

@@ -19,6 +19,9 @@ export const registerSchema = z.object({
   experienceLevel: z.nativeEnum(ExperienceLevel),
   medicalConditions: z.string().trim().max(1000).nullable().optional(),
   injuries: z.string().trim().max(1000).nullable().optional(),
+  // Explicit unchecked-by-default consent. The route stores the accepted
+  // policy versions + timestamp; the UI links the live Terms/Privacy pages.
+  termsAccepted: z.boolean().refine((v) => v === true, 'You must accept the Terms and Privacy Policy.'),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
+import { rateLimit } from '@/lib/rate-limit';
 import { workoutResultsSchema } from '@/lib/schemas/ai';
 import { advanceEnrollment, streakFor } from '@/lib/challenge-progress';
 import { isValidAttemptForDay, requiredRepsForDay } from '@/lib/challenge-rules';
@@ -13,6 +14,10 @@ import { maybeAwardBadge } from '@/lib/badges';
 export async function POST(req: Request) {
   try {
     const userId = await requireApiUserId();
+    const rl = rateLimit(`ai-results:${userId}`, 30, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many requests. Retry in ${rl.retryAfterSec}s.`);
+    }
     const data = await parseJsonBody(req, workoutResultsSchema);
 
     let advance: {

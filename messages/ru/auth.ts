@@ -53,6 +53,10 @@ export const auth = {
     medicalPlaceholder: 'Астма, диабет, давление...',
     injuries: 'Травмы или боли (необязательно)',
     injuriesPlaceholder: 'Боль в колене, плече...',
+    consentBefore: 'Я принимаю ',
+    consentTerms: 'Условия',
+    consentAnd: ' и ',
+    consentPrivacy: 'Политику конфиденциальности',
   },
   logout: 'Выйти',
   validation: {
@@ -62,5 +66,6 @@ export const auth = {
     passwordMin: 'Пароль должен содержать не менее 8 символов',
     required: 'Обязательно',
     datePast: 'Должна быть в прошлом',
+    consentRequired: 'Примите Условия и Политику конфиденциальности',
   },
 } satisfies MessageShape<typeof english>;

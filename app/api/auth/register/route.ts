@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
 import { signSession, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '@/lib/auth';
 import { registerSchema } from '@/lib/schemas/auth';
+import { LEGAL } from '@/lib/legal';
 import { seedExerciseCatalog } from '@/lib/exercise-catalog';
 import { BASIC_EXERCISE_NAMES } from '@/lib/basic-exercises';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
@@ -58,6 +59,9 @@ export async function POST(req: Request) {
         medicalConditions: emptyToNull(profile.medicalConditions),
         injuries: emptyToNull(profile.injuries),
         onboardingCompleted: true,
+        termsVersion: LEGAL.termsVersion,
+        privacyVersion: LEGAL.privacyVersion,
+        consentedAt: new Date(),
       },
     });
 

@@ -53,6 +53,10 @@ export const auth = {
     medicalPlaceholder: 'Asthme, diabète, tension...',
     injuries: 'Blessures ou douleurs (optionnel)',
     injuriesPlaceholder: 'Douleur au genou, épaule...',
+    consentBefore: "J'accepte les ",
+    consentTerms: 'Conditions',
+    consentAnd: ' et la ',
+    consentPrivacy: 'Politique de confidentialité',
   },
   logout: 'Se déconnecter',
   validation: {
@@ -62,5 +66,6 @@ export const auth = {
     passwordMin: 'Le mot de passe doit contenir au moins 8 caractères',
     required: 'Requis',
     datePast: 'Doit être dans le passé',
+    consentRequired: 'Veuillez accepter les Conditions et la Politique de confidentialité',
   },
 } satisfies MessageShape<typeof english>;

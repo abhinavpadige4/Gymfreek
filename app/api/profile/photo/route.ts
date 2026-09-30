@@ -1,12 +1,30 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
+import { rateLimit } from '@/lib/rate-limit';
 import { requireAdminUserId } from '@/lib/admin';
 import {
   PROFILE_PHOTO_MAX_BYTES,
   PROFILE_PHOTO_MIMES,
   profilePhotoSchema,
 } from '@/lib/schemas/profile';
+
+function matchesImageSignature(bytes: Buffer, mime: string): boolean {
+  if (mime === 'image/jpeg') {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (mime === 'image/png') {
+    return (
+      bytes.length >= 8 &&
+      bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+    );
+  }
+  return (
+    bytes.length >= 12 &&
+    bytes.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    bytes.subarray(8, 12).toString('ascii') === 'WEBP'
+  );
+}
 
 function parseDataUrl(dataUrl: string): { mime: string; bytes: Buffer } {
   const match = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(dataUrl);
@@ -19,6 +37,11 @@ function parseDataUrl(dataUrl: string): { mime: string; bytes: Buffer } {
     bytes.length > PROFILE_PHOTO_MAX_BYTES
   ) {
     throw new ApiError(400, 'Photo must be jpeg, png or webp under 500KB.');
+  }
+  // Declared MIME is attacker-controlled: verify the magic bytes match so a
+  // script renamed to .png cannot be stored and served back.
+  if (!matchesImageSignature(bytes, mime)) {
+    throw new ApiError(400, 'Photo bytes do not match the declared image type.');
   }
   return { mime, bytes };
 }
@@ -55,6 +78,10 @@ export async function GET(req: Request) {
 export async function PUT(req: Request) {
   try {
     const userId = await requireApiUserId();
+    const rl = rateLimit(`photo:${userId}`, 10, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many requests. Retry in ${rl.retryAfterSec}s.`);
+    }
     const data = await parseJsonBody(req, profilePhotoSchema);
     const { mime, bytes } = parseDataUrl(data.dataUrl);
     await db.user.update({

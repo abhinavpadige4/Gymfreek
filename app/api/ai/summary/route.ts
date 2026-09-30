@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
+import { rateLimit } from '@/lib/rate-limit';
 import {
   isAiServiceConfigured,
   summarizeWorkoutViaService,
@@ -12,7 +13,12 @@ import {
 // 503 when AI_SERVICE_URL is unset - the browser-only flow does not depend on it.
 export async function POST(req: Request) {
   try {
-    await requireApiUserId();
+    const userId = await requireApiUserId();
+    // External LLM cost lives behind this route: strict per-user bucket.
+    const rl = rateLimit(`ai-summary:${userId}`, 10, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many AI requests. Retry in ${rl.retryAfterSec}s.`);
+    }
     const summary = await parseJsonBody(req, workoutSummarySchema);
     if (!isAiServiceConfigured()) {
       throw new ApiError(503, 'AI service is not configured.');

@@ -401,9 +401,16 @@ export function LiveWorkout({
             {countdown}
           </p>
         ) : (
-          <Button onClick={start} disabled={!supported} size="lg">
-            {supported ? 'Start camera' : `Camera counting is not available for ${exercise} yet`}
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            <Button onClick={start} disabled={!supported} size="lg">
+              {supported ? 'Start camera' : `Camera counting is not available for ${exercise} yet`}
+            </Button>
+            {supported && (
+              <p className="max-w-xs text-center text-xs text-muted-foreground">
+                The camera counts your reps on this device - video never leaves your phone.
+              </p>
+            )}
+          </div>
         )
       ) : status === 'running' ? (
         <div className="flex gap-2">
@@ -445,7 +452,8 @@ export function LiveWorkout({
       )}
       {coaching && (
         <div className="rounded-lg border p-4">
-          <p className="font-medium">{coaching.summary}</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">AI coaching</p>
+          <p className="mt-1 font-medium">{coaching.summary}</p>
           {coaching.improvements.length > 0 && (
             <ul className="mt-2 list-disc pl-5 text-sm">
               {coaching.improvements.map((i) => (
@@ -453,6 +461,10 @@ export function LiveWorkout({
               ))}
             </ul>
           )}
+          <p className="mt-2 text-xs text-muted-foreground">
+            AI guidance for fitness support only - not medical advice. Stop and get help if you
+            feel pain, dizziness, or chest discomfort.
+          </p>
           <Button
             className="mt-2"
             variant="outline"

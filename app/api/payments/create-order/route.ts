@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
+import { rateLimit } from '@/lib/rate-limit';
 import { requireAdminUserId } from '@/lib/admin';
 import { createOrderSchema } from '@/lib/schemas/challenge';
 
@@ -10,6 +11,10 @@ import { createOrderSchema } from '@/lib/schemas/challenge';
 export async function POST(req: Request) {
   try {
     const userId = await requireApiUserId();
+    const rl = rateLimit(`pay-order:${userId}`, 10, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many requests. Retry in ${rl.retryAfterSec}s.`);
+    }
     const { enrollmentId } = await parseJsonBody(req, createOrderSchema);
     const enrollment = await db.enrollment.findUnique({
       where: { id: enrollmentId },

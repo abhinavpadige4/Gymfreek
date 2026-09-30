@@ -50,6 +50,10 @@ export const auth = {
     medicalPlaceholder: 'Asthma, diabetes, blood pressure...',
     injuries: 'Injuries or pain (optional)',
     injuriesPlaceholder: 'Knee pain, shoulder issue...',
+    consentBefore: 'I accept the ',
+    consentTerms: 'Terms',
+    consentAnd: ' and ',
+    consentPrivacy: 'Privacy Policy',
   },
   logout: 'Log out',
   validation: {
@@ -59,5 +63,6 @@ export const auth = {
     passwordMin: 'Password must contain at least 8 characters',
     required: 'Required',
     datePast: 'Must be in the past',
+    consentRequired: 'Please accept the Terms and Privacy Policy',
   },
 };

@@ -37,6 +37,7 @@ type FormValues = {
   experienceLevel: string;
   medicalConditions: string;
   injuries: string;
+  acceptTerms: boolean;
 };
 
 // Two-step signup: account first, full training profile second (body metrics,
@@ -76,6 +77,7 @@ export function SignupForm() {
           .refine((v) => (EXPERIENCE as readonly string[]).includes(v), t('validation.required')),
         medicalConditions: z.string().trim().max(1000),
         injuries: z.string().trim().max(1000),
+        acceptTerms: z.boolean().refine((v) => v === true, t('validation.consentRequired')),
       }),
     [t],
   );
@@ -101,6 +103,7 @@ export function SignupForm() {
       experienceLevel: '',
       medicalConditions: '',
       injuries: '',
+      acceptTerms: false,
     },
   });
 
@@ -131,6 +134,7 @@ export function SignupForm() {
         experienceLevel: values.experienceLevel,
         medicalConditions: values.medicalConditions.trim() || null,
         injuries: values.injuries.trim() || null,
+        termsAccepted: values.acceptTerms,
       }),
     });
 
@@ -404,6 +408,36 @@ export function SignupForm() {
                 <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
                   {serverError}
                 </p>
+              )}
+
+              <div className="flex items-start gap-2">
+                <Controller
+                  control={control}
+                  name="acceptTerms"
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      id="acceptTerms"
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className="mt-0.5 size-5 shrink-0 accent-[#D94A05]"
+                    />
+                  )}
+                />
+                <Label htmlFor="acceptTerms" className="text-sm font-normal leading-snug">
+                  {t('signup.consentBefore')}
+                  <Link href="/terms" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">
+                    {t('signup.consentTerms')}
+                  </Link>
+                  {t('signup.consentAnd')}
+                  <Link href="/privacy" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">
+                    {t('signup.consentPrivacy')}
+                  </Link>
+                  .
+                </Label>
+              </div>
+              {errors.acceptTerms && (
+                <p className="text-sm text-destructive">{errors.acceptTerms.message}</p>
               )}
 
               <div className="flex gap-2">

@@ -13,6 +13,7 @@ import {
 } from '@/lib/prisma-client';
 import { db } from '@/lib/db';
 import { ApiError, handleApiError, parseJsonBody, requireApiUserId } from '@/lib/api';
+import { rateLimit } from '@/lib/rate-limit';
 import {
   AVG_HR_MAX,
   AVG_HR_MIN,
@@ -75,6 +76,10 @@ const BACKUP_TOO_LARGE_MESSAGE =
 export async function GET() {
   try {
     const userId = await requireApiUserId();
+    const rl = rateLimit(`backup-export:${userId}`, 10, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many requests. Retry in ${rl.retryAfterSec}s.`);
+    }
 
     const [imageBudget] = await db.$queryRaw<Array<{ encodedBytes: bigint }>>`
       SELECT COALESCE(SUM(4 * CEIL(OCTET_LENGTH(e."imageData")::numeric / 3)), 0)::bigint AS "encodedBytes"
@@ -605,6 +610,10 @@ const importBodySchema = z.object({
 export async function POST(req: Request) {
   try {
     const userId = await requireApiUserId();
+    const rl = rateLimit(`backup-import:${userId}`, 5, 60_000);
+    if (!rl.ok) {
+      throw new ApiError(429, `Too many requests. Retry in ${rl.retryAfterSec}s.`);
+    }
     const { payload } = await parseJsonBody(req, importBodySchema, {
       maxBytes: MAX_BACKUP_BYTES,
     });

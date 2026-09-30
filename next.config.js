@@ -55,6 +55,34 @@ const withNextIntl = require('next-intl/plugin')('./i18n/request.ts');
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  // Baseline hardening headers. No full-enforce CSP: Razorpay checkout,
+  // YouTube/Vimeo embeds and the PWA worker need scripts from allowlisted
+  // third parties, so CSP ships report-only until those sources are pinned.
+  async headers() {
+    // HSTS only in production: sending it from localhost/dev would pin
+    // HTTPS on a loopback origin in the browser.
+    const securityHeaders = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(self), microphone=(self), geolocation=()',
+      },
+      {
+        key: 'Content-Security-Policy-Report-Only',
+        value:
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' checkout.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' checkout.razorpay.com api.razorpay.com; frame-src checkout.razorpay.com www.youtube-nocookie.com player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self'",
+      },
+    ];
+    if (process.env.NODE_ENV === 'production') {
+      securityHeaders.push({
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains',
+      });
+    }
+    return [{ source: '/:path*', headers: securityHeaders }];
+  },
 };
 
 module.exports = withPWA(withNextIntl(nextConfig));
