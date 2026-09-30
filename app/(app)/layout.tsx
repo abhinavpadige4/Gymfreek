@@ -24,11 +24,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-  const me = await db.user.findUnique({
-    where: { id: session.userId },
-    select: { status: true },
-  });
-  if (!me || me.status === 'BLOCKED') {
+  // Block check is best-effort here: if the lookup itself fails (e.g. the
+  // User.status migration has not been applied yet), fail open and render -
+  // API routes enforce independently via requireApiUserId, and the page's own
+  // queries will surface a real DB outage on their own.
+  let suspended = false;
+  try {
+    const me = await db.user.findUnique({
+      where: { id: session.userId },
+      select: { status: true },
+    });
+    suspended = !me || me.status === 'BLOCKED';
+  } catch (err) {
+    console.error('[layout] status check failed:', err);
+  }
+  if (suspended) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
         <p className="font-display text-3xl">Account suspended</p>
