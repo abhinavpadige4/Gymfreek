@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminNav } from '@/components/admin/admin-nav';
+import { AdminUserActions } from '@/components/admin/admin-user-actions';
 import { AdminUserCharts } from '@/components/admin/admin-charts';
 import { volumeBuckets } from '@/lib/admin-stats';
 import { avatarUrl, BLOCK_BADGES } from '@/lib/avatar';
@@ -38,6 +39,7 @@ export default async function AdminUserPage(props: Props) {
       email: true,
       displayName: true,
       role: true,
+      status: true,
       onboardingCompleted: true,
       avatarSeed: true,
       photoMimeType: true,
@@ -112,8 +114,8 @@ export default async function AdminUserPage(props: Props) {
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <AdminNav />
-        <Link href="/admin" className="text-sm text-muted-foreground underline">
-          Back to admin
+        <Link href="/admin/users" className="text-sm text-muted-foreground underline">
+          Back to users
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -158,6 +160,14 @@ export default async function AdminUserPage(props: Props) {
           )}
         </div>
 
+        <AdminUserActions
+          userId={user.id}
+          email={user.email}
+          status={user.status}
+          isSelf={user.id === session.userId}
+          enrollments={user.enrollments}
+        />
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Badges ({user.badgeAwards.length}/10)</CardTitle>
@@ -193,25 +203,6 @@ export default async function AdminUserPage(props: Props) {
         </Card>
 
         <AdminUserCharts weeks={training} unit="kg" />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Enrollments ({user.enrollments.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            {user.enrollments.map((e) => (
-              <div key={e.id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate">{e.challenge.title}</span>
-                <Badge variant="secondary">
-                  {e.status} d{e.currentDay}
-                </Badge>
-              </div>
-            ))}
-            {user.enrollments.length === 0 && (
-              <p className="text-muted-foreground">No enrollments.</p>
-            )}
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>

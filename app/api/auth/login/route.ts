@@ -37,6 +37,9 @@ export async function POST(req: Request) {
     );
 
     if (!user) return invalid;
+    if (user.status === 'BLOCKED') {
+      return NextResponse.json({ error: 'Account suspended. Contact support.' }, { status: 403 });
+    }
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return invalid;
 

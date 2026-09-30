@@ -6,8 +6,12 @@ import { cn } from '@/lib/utils';
 
 const TABS = [
   { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/users', label: 'Users' },
+  { href: '/admin/payments', label: 'Payments' },
+  { href: '/admin/challenges', label: 'Challenges' },
   { href: '/admin/media', label: 'Media' },
   { href: '/admin/programs', label: 'Programs' },
+  { href: '/admin/settings', label: 'Settings' },
 ] as const;
 
 // Shared tab bar for every admin page so the console reads as one place.

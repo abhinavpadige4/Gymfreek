@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Prisma } from '@/prisma/generated/client';
+import { db } from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
 
 // ============================================================
@@ -22,6 +23,15 @@ export async function requireApiUserId(): Promise<string> {
   const userId = await getCurrentUserId();
   if (!userId) {
     throw new ApiError(401, 'Unauthorized');
+  }
+  // Single choke point for every API route: a blocked account loses API
+  // access immediately, even with a still-valid session cookie.
+  const user = await db.user.findUnique({ where: { id: userId }, select: { status: true } });
+  if (!user) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+  if (user.status === 'BLOCKED') {
+    throw new ApiError(403, 'Account suspended. Contact support.');
   }
   return userId;
 }

@@ -53,6 +53,7 @@ model User {
   activeGymId       String?
   activeGym         Gym?               @relation("ActiveGym", fields: [activeGymId], references: [id], onDelete: SetNull)
   role              UserRole           @default(USER)
+  status            UserStatus         @default(ACTIVE)
   dateOfBirth       DateTime?
   medicalConditions String?
   injuries          String?
@@ -121,6 +122,13 @@ enum WeightUnit {
 enum UserRole {
   USER
   ADMIN
+}
+
+// Account standing. BLOCKED rejects login and every protected route but
+// keeps all data (reversible). Erasure is a real delete, not a status.
+enum UserStatus {
+  ACTIVE
+  BLOCKED
 }
 
 enum ExperienceLevel {
@@ -643,6 +651,9 @@ enum PaymentStatus {
   CREATED
   CAPTURED
   FAILED
+  // Money moves in the Razorpay dashboard; REFUNDED records it locally with
+  // the Razorpay refund id so support has one source of truth.
+  REFUNDED
 }
 
 model Payment {
@@ -656,6 +667,8 @@ model Payment {
   razorpayOrderId   String?       @unique
   razorpayPaymentId String?
   status            PaymentStatus @default(CREATED)
+  refundId          String?
+  refundNote        String?
   createdAt         DateTime      @default(now())
 
   @@index([enrollmentId, createdAt])
@@ -704,6 +717,15 @@ model FormIssue {
   severity   String?
 
   @@index([resultId])
+}
+
+// Admin-editable site content (support contact, business details, refund
+// policy shown on the legal pages). Key-value rows edited at /admin/settings;
+// legal.ts reads these first and falls back to env placeholders.
+model SiteSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
 }
 
 // Admin-uploaded technique photo, shared across users by exercise name

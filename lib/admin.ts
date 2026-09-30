@@ -5,7 +5,9 @@ import { ApiError } from '@/lib/api';
 export async function requireAdminUserId(): Promise<string> {
   const userId = await getCurrentUserId();
   if (!userId) throw new ApiError(401, 'Unauthorized');
-  const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+  const user = await db.user.findUnique({ where: { id: userId }, select: { role: true, status: true } });
+  if (!user) throw new ApiError(401, 'Unauthorized');
+  if (user.status === 'BLOCKED') throw new ApiError(403, 'Account suspended. Contact support.');
   const adminEmails = (process.env.ADMIN_EMAILS ?? '')
     .split(',')
     .map((s) => s.trim().toLowerCase())

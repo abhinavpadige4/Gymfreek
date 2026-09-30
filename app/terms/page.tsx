@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { LEGAL } from '@/lib/legal';
+import { resolveLegal } from '@/lib/legal';
 import { LegalShell, LegalH } from '@/components/legal/legal-shell';
 
 export const metadata: Metadata = { title: 'Terms and Conditions - 100XU' };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const LEGAL = await resolveLegal();
   return (
     <LegalShell title="Terms and Conditions" updated="2026-09-30">
       <p>

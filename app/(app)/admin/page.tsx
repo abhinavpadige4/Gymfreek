@@ -3,14 +3,9 @@ import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { EXERCISE_CATALOG } from '@/lib/exercise-catalog';
 import { buildExerciseReadiness } from '@/lib/exercise-readiness';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReadinessTable } from '@/components/admin/readiness-table';
 import { AdminNav } from '@/components/admin/admin-nav';
-import { AdminUsers } from '@/components/admin/admin-users';
-import { AdminEnrollments } from '@/components/admin/admin-enrollments';
-import { AdminChallengeCreate } from '@/components/admin/admin-challenge-create';
 import { AdminActivityChart } from '@/components/admin/admin-charts';
 import { activityBuckets } from '@/lib/admin-stats';
 
@@ -45,9 +40,6 @@ export default async function AdminPage() {
   const windowStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
   const [
     challenges,
-    users,
-    enrollments,
-    payments,
     userCount,
     workoutsToday,
     uploads,
@@ -58,24 +50,6 @@ export default async function AdminPage() {
     db.challenge.findMany({
       orderBy: { createdAt: 'asc' },
       include: { _count: { select: { days: true, enrollments: true } } },
-    }),
-    db.user.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      select: { id: true, email: true, displayName: true, role: true, onboardingCompleted: true },
-    }),
-    db.enrollment.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: { challenge: { select: { title: true } }, user: { select: { email: true } } },
-    }),
-    db.payment.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: {
-        user: { select: { email: true } },
-        enrollment: { select: { challenge: { select: { title: true } } } },
-      },
     }),
     db.user.count(),
     db.session.count({ where: { startedAt: { gte: dayStart } } }),
@@ -145,7 +119,11 @@ export default async function AdminPage() {
             <ol className="flex flex-col gap-2 text-sm">
               <li>
                 <span className="font-display text-volt">01 - </span>
-                Create the challenge below (title, link-name, price).
+                Create the challenge under{' '}
+                <Link href="/admin/challenges" className="font-medium underline-offset-4 hover:underline">
+                  Challenges
+                </Link>{' '}
+                (title, link-name, price).
               </li>
               <li>
                 <span className="font-display text-volt">02 - </span>
@@ -160,7 +138,15 @@ export default async function AdminPage() {
               </li>
               <li>
                 <span className="font-display text-volt">04 - </span>
-                Watch enrollments and payments arrive below.
+                Watch enrollments under{' '}
+                <Link href="/admin/users" className="font-medium underline-offset-4 hover:underline">
+                  Users
+                </Link>{' '}
+                and orders under{' '}
+                <Link href="/admin/payments" className="font-medium underline-offset-4 hover:underline">
+                  Payments
+                </Link>
+                .
               </li>
             </ol>
           </CardContent>
@@ -182,77 +168,6 @@ export default async function AdminPage() {
         </div>
 
         <ReadinessTable rows={readiness} />
-
-        <AdminUsers users={users} currentUserId={session.userId} />
-
-        <AdminChallengeCreate />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Challenges ({challenges.length})</CardTitle>
-            <CardDescription>
-              Manage days opens the full builder: days, movements, videos, settings, delete.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            {challenges.map((c) => (
-              <div key={c.id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate">
-                  <span className="font-medium">{c.title}</span>{' '}
-                  <span className="text-muted-foreground">/{c.slug}</span>
-                </span>
-                <span className="flex shrink-0 items-center gap-2">
-                  <Badge variant="secondary">{c._count.days}d</Badge>
-                  <Badge variant="secondary">{c._count.enrollments} users</Badge>
-                  {!c.isActive && <Badge variant="destructive">off</Badge>}
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/admin/challenges/${c.slug}`}>Manage days</Link>
-                  </Button>
-                  <Link
-                    href={`/challenges/${c.slug}/leaderboard`}
-                    className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-                  >
-                    Leaderboard
-                  </Link>
-                </span>
-              </div>
-            ))}
-            {challenges.length === 0 && (
-              <p className="text-muted-foreground">Seed 100XU with: npm run db:seed:challenge</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <AdminEnrollments enrollments={enrollments} />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent payments</CardTitle>
-            <CardDescription>
-              Latest Razorpay orders. CAPTURED means the member was activated.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate">
-                  {p.user.email} - {p.enrollment?.challenge.title ?? 'deleted challenge'}
-                </span>
-                <span className="flex shrink-0 items-center gap-2">
-                  <span className="text-muted-foreground">
-                    Rs {(p.amountPaise / 100).toLocaleString('en-IN')}
-                  </span>
-                  <Badge variant={p.status === 'CAPTURED' ? undefined : 'secondary'}>
-                    {p.status}
-                  </Badge>
-                </span>
-              </div>
-            ))}
-            {payments.length === 0 && (
-              <p className="text-muted-foreground">No payments yet.</p>
-            )}
-          </CardContent>
-        </Card>
 
         <Link href="/challenges" className="text-sm text-muted-foreground underline">
           View challenges

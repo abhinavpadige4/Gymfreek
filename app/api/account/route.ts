@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { SESSION_COOKIE } from '@/lib/auth';
 import { handleApiError, parseJsonBody, requireApiUserId, ApiError } from '@/lib/api';
 import { rateLimit } from '@/lib/rate-limit';
+import { eraseUserAccount } from '@/lib/user-erase';
 
 const deleteAccountSchema = z.object({
   // Typed confirmation: the user's own email. Prevents one-click accidents
@@ -31,17 +32,7 @@ export async function DELETE(req: Request) {
     if (user.email.toLowerCase() !== confirmEmail.trim().toLowerCase()) {
       throw new ApiError(400, 'Confirmation email does not match this account.');
     }
-    await db.$transaction([
-      db.session.deleteMany({ where: { userId } }),
-      db.workoutSession.deleteMany({ where: { userId } }),
-      db.conversation.deleteMany({ where: { userId } }),
-      db.program.deleteMany({ where: { userId } }),
-      db.exercise.deleteMany({ where: { userId } }),
-      db.gym.deleteMany({ where: { userId } }),
-      db.coachSession.deleteMany({ where: { userId } }),
-      db.enrollment.deleteMany({ where: { userId } }),
-      db.user.delete({ where: { id: userId } }),
-    ]);
+    await eraseUserAccount(userId);
     (await cookies()).delete(SESSION_COOKIE);
     return NextResponse.json({ ok: true });
   } catch (err) {

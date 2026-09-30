@@ -1,48 +1,41 @@
 import { LogoutButton } from '@/components/auth/logout-button';
+import { LandingMenu } from '@/components/landing/landing-menu';
 import { NavLinks } from '@/components/shared/nav-links';
 import { OfflineIndicator } from '@/components/shared/offline-indicator';
 import { SyncBootstrap } from '@/components/shared/sync-bootstrap';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { LanguageSelector } from '@/components/shared/language-selector';
 import { getCurrentSession } from '@/lib/auth';
+import { db } from '@/lib/db';
 import Image from 'next/image';
 import Link from 'next/link';
 
 // Layout for app routes. The landing page (/) is public, so logged-out
-// visitors get a slim marketing header instead of the app chrome.
+// visitors get a slim marketing header instead of the app chrome. Blocked
+// accounts get a suspended screen (API routes reject them separately via
+// requireApiUserId; logout stays available so they can leave).
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col">
-        <div className="fixed right-3 top-3 z-40">
-          <details className="group relative">
-            <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-black/60 text-xl text-white backdrop-blur-xl [&::-webkit-details-marker]:hidden">
-              =
-            </summary>
-            <nav
-              aria-label="Primary"
-              className="absolute right-0 top-13 flex w-52 flex-col gap-1 rounded-2xl border border-white/10 bg-black/80 p-2 backdrop-blur-xl"
-            >
-              <a href="#how" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
-                How it works
-              </a>
-              <a href="#challenge" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
-                Challenge
-              </a>
-              <a href="#pricing" className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 hover:bg-white/10 hover:text-white">
-                Pricing
-              </a>
-              <Link href="/login" className="rounded-lg px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/10 hover:text-white">
-                Log in
-              </Link>
-              <Link href="/signup" className="rounded-lg bg-volt px-3 py-2.5 text-sm font-semibold text-white">
-                Join the challenge
-              </Link>
-            </nav>
-          </details>
-        </div>
+        <LandingMenu />
         {children}
+      </div>
+    );
+  }
+  const me = await db.user.findUnique({
+    where: { id: session.userId },
+    select: { status: true },
+  });
+  if (!me || me.status === 'BLOCKED') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="font-display text-3xl">Account suspended</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          This account has been suspended. Contact support if you think this is a mistake.
+        </p>
+        <LogoutButton />
       </div>
     );
   }

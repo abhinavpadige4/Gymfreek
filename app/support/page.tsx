@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { LEGAL } from '@/lib/legal';
+import { resolveLegal } from '@/lib/legal';
 import { LegalShell, LegalH } from '@/components/legal/legal-shell';
 
 export const metadata: Metadata = { title: 'Support - 100XU' };
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const LEGAL = await resolveLegal();
   return (
     <LegalShell title="Support" updated="2026-09-30">
       <p>

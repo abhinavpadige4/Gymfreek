@@ -10,13 +10,17 @@ export async function requireAdminPage() {
   const me = session
     ? await db.user.findUnique({
         where: { id: session.userId },
-        select: { role: true, email: true },
+        select: { role: true, email: true, status: true },
       })
     : null;
   const adminEmails = (process.env.ADMIN_EMAILS ?? '')
     .split(',')
     .map((s) => s.trim().toLowerCase());
-  if (!me || (me.role !== 'ADMIN' && !adminEmails.includes(session!.email.toLowerCase()))) {
+  if (
+    !me ||
+    me.status === 'BLOCKED' ||
+    (me.role !== 'ADMIN' && !adminEmails.includes(session!.email.toLowerCase()))
+  ) {
     notFound();
   }
   return session!;

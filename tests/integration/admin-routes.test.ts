@@ -9,6 +9,11 @@ const mockUserId = vi.mocked(getCurrentUserId);
 const mockSession = vi.mocked(getCurrentSession);
 
 import { PUT as putEnrollments } from '@/app/api/admin/enrollments/route';
+import { PUT as putAdminUsers, DELETE as deleteAdminUser } from '@/app/api/admin/users/route';
+import { PUT as putAdminPayments } from '@/app/api/admin/payments/route';
+import { GET as getAdminSettings, PUT as putAdminSettings } from '@/app/api/admin/settings/route';
+import { POST as postLogin } from '@/app/api/auth/login/route';
+import { requireApiUserId } from '@/lib/api';
 import {
   DELETE as deleteTask,
   PATCH as patchTask,
@@ -272,5 +277,133 @@ describe('admin console routes', () => {
     const res = await deleteChallenge(challenge.id);
     expect(res.status).toBe(409);
     expect(await db.challenge.findUnique({ where: { id: challenge.id } })).not.toBeNull();
+  });
+
+  it('blocks and unblocks members end to end', async () => {
+    const admin = await adminUser('sheriff@test.dev');
+    const member = await db.user.create({ data: { email: 'rowdy@test.dev', passwordHash: 'x' } });
+
+    const block = await putAdminUsers(
+      jsonReq('http://test.local/api/admin/users', 'PUT', { userId: member.id, status: 'BLOCKED' }),
+    );
+    expect(block.status).toBe(200);
+
+    // Blocked: login rejected and API choke point throws 403.
+    const login = await postLogin(
+      jsonReq('http://test.local/api/auth/login', 'POST', {
+        email: 'rowdy@test.dev',
+        password: 'whatever-long-enough',
+      }),
+    );
+    expect(login.status).toBe(403);
+    mockUserId.mockResolvedValue(member.id);
+    await expect(requireApiUserId()).rejects.toMatchObject({ status: 403 });
+
+    // Unblock restores access.
+    mockUserId.mockResolvedValue(admin.id);
+    const unblock = await putAdminUsers(
+      jsonReq('http://test.local/api/admin/users', 'PUT', { userId: member.id, status: 'ACTIVE' }),
+    );
+    expect(unblock.status).toBe(200);
+    mockUserId.mockResolvedValue(member.id);
+    await expect(requireApiUserId()).resolves.toBe(member.id);
+  });
+
+  it('refuses self-block, self-delete, and last-admin removal', async () => {
+    const admin = await adminUser('only@test.dev');
+
+    const selfBlock = await putAdminUsers(
+      jsonReq('http://test.local/api/admin/users', 'PUT', { userId: admin.id, status: 'BLOCKED' }),
+    );
+    expect(selfBlock.status).toBe(400);
+
+    const selfDelete = await deleteAdminUser(
+      jsonReq('http://test.local/api/admin/users', 'DELETE', { userId: admin.id }),
+    );
+    expect(selfDelete.status).toBe(400);
+
+    const selfDemote = await putAdminUsers(
+      jsonReq('http://test.local/api/admin/users', 'PUT', { userId: admin.id, role: 'USER' }),
+    );
+    expect(selfDemote.status).toBe(400);
+  });
+
+  it('deletes a member with all their data', async () => {
+    await adminUser('janitor@test.dev');
+    const member = await db.user.create({ data: { email: 'gone@test.dev', passwordHash: 'x' } });
+    const session = await db.session.create({ data: { userId: member.id } });
+    await db.program.create({ data: { userId: member.id, name: 'P', phase: 'x' } });
+
+    const res = await deleteAdminUser(
+      jsonReq('http://test.local/api/admin/users', 'DELETE', { userId: member.id }),
+    );
+    expect(res.status).toBe(200);
+    expect(await db.user.findUnique({ where: { id: member.id } })).toBeNull();
+    expect(await db.session.findUnique({ where: { id: session.id } })).toBeNull();
+  });
+
+  it('records refunds and cancels the subscription', async () => {
+    await adminUser('support@test.dev');
+    const member = await db.user.create({ data: { email: 'refund@test.dev', passwordHash: 'x' } });
+    const { challenge } = await seedChallengeWithDay();
+    const enrollment = await db.enrollment.create({
+      data: { userId: member.id, challengeId: challenge.id, status: 'ACTIVE', currentDay: 5 },
+    });
+    const payment = await db.payment.create({
+      data: {
+        userId: member.id,
+        enrollmentId: enrollment.id,
+        amountPaise: 299900,
+        currency: 'INR',
+        razorpayOrderId: `order_test_${Date.now()}`,
+        status: 'CAPTURED',
+      },
+    });
+
+    const res = await putAdminPayments(
+      jsonReq('http://test.local/api/admin/payments', 'PUT', {
+        paymentId: payment.id,
+        refundId: 'rfnd_test_123',
+        refundNote: 'requested within window',
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(
+      expect.objectContaining({ status: 'REFUNDED', refundId: 'rfnd_test_123' }),
+    );
+    expect(
+      (await db.enrollment.findUniqueOrThrow({ where: { id: enrollment.id } })).status,
+    ).toBe('CANCELLED');
+
+    // One-way: a refunded payment cannot be marked again.
+    const again = await putAdminPayments(
+      jsonReq('http://test.local/api/admin/payments', 'PUT', {
+        paymentId: payment.id,
+        refundId: 'rfnd_test_456',
+      }),
+    );
+    expect(again.status).toBe(400);
+  });
+
+  it('reads and writes site settings with validation', async () => {
+    await adminUser('editor2@test.dev');
+    const get = await getAdminSettings();
+    expect(get.status).toBe(200);
+
+    const bad = await putAdminSettings(
+      jsonReq('http://test.local/api/admin/settings', 'PUT', { contactEmail: 'not-an-email' }),
+    );
+    expect(bad.status).toBe(400);
+
+    const ok = await putAdminSettings(
+      jsonReq('http://test.local/api/admin/settings', 'PUT', {
+        businessName: 'Test Gym',
+        contactEmail: 'help@test.dev',
+      }),
+    );
+    expect(ok.status).toBe(200);
+    expect(await db.siteSetting.findUniqueOrThrow({ where: { key: 'businessName' } })).toEqual(
+      expect.objectContaining({ value: 'Test Gym' }),
+    );
   });
 });
