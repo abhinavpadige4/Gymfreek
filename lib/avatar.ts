@@ -14,14 +14,14 @@ export const SHARE_CARD_BG = '/cards/share-bg.png';
 
 // 10 block badges: name + color only, rendered as SVG medal in UI.
 export const BLOCK_BADGES = [
-  { block: 1, name: 'Foundational', color: '#CD7F32' },
-  { block: 2, name: 'Thruster Engine', color: '#CD7F32' },
-  { block: 3, name: 'Grip Iron', color: '#C0C0C0' },
-  { block: 4, name: 'Density Armor', color: '#C0C0C0' },
-  { block: 5, name: 'Century Half', color: '#C0C0C0' },
-  { block: 6, name: 'Unilateral', color: '#FFD700' },
-  { block: 7, name: 'Explosive', color: '#FFD700' },
-  { block: 8, name: 'Lactic Lord', color: '#FFD700' },
-  { block: 9, name: 'Speed Demon', color: '#B9F' },
-  { block: 10, name: 'Century Finisher', color: '#B9F' },
+  { block: 1, name: 'IRON WILL', color: '#CD7F32' },
+  { block: 2, name: 'BLOCK OUT', color: '#CD7F32' },
+  { block: 3, name: 'PAIN TO POWER', color: '#C0C0C0' },
+  { block: 4, name: 'ALPHA MODE', color: '#C0C0C0' },
+  { block: 5, name: 'WILD CORE', color: '#C0C0C0' },
+  { block: 6, name: 'AFTER BURN', color: '#FFD700' },
+  { block: 7, name: 'NO SURRENDER', color: '#FFD700' },
+  { block: 8, name: 'MISSION IMPOSSIBLE', color: '#FFD700' },
+  { block: 9, name: 'THE FINAL SHOWDOWN', color: '#B9F' },
+  { block: 10, name: '100XU', color: '#B9F' },
 ] as const;

@@ -13,7 +13,7 @@ export const RECOVERY =
 
 export const BLOCKS: Block[] = [
   {
-    title: 'Foundational Swings & Functional Box Power',
+    title: 'IRON WILL',
     focus:
       'Calibrating posterior chain acceleration with kettlebell swings, box jump absorption, and upper body push-press density. Target 42-55 min.',
     tasks: [
@@ -30,7 +30,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'Thruster Engine & Ballistic Overhead Force',
+    title: 'BLOCK OUT',
     focus:
       'Synchronized lower-to-upper kinetic drive with dumbbell thrusters, overhead American swings, and horizontal plyometrics. Target 42-55 min.',
     tasks: [
@@ -47,7 +47,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: "Farmer's Grip, Heavy Carries & Sled Simulator",
+    title: 'PAIN TO POWER',
     focus:
       'Maximum forearm grip endurance, heavy loaded locomotion, wall-drive sled mechanics, and push-press density. Grip recovery emphasis post-session.',
     tasks: [
@@ -64,7 +64,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: "Dumbbell Density, Core Rigidity & Devil's Press",
+    title: 'ALPHA MODE',
     focus:
       "Uncompromising multi-plane loaded endurance featuring the Devil's Press, Russian twists, and posterior chain deadlifts. Protect lumbar alignment on RDLs.",
     tasks: [
@@ -81,7 +81,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'The Functional Century Simulation Matrix',
+    title: 'WILD CORE',
     focus:
       'The ultimate functional conditioning crucible: row pulls, sled locomotion, broad jumps, wall-ball thrusters. Day 45: reduce to 600 reps if sore.',
     tasks: [
@@ -98,7 +98,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'Unilateral Power, Box Rebounds & Asymmetry',
+    title: 'AFTER BURN',
     focus:
       'Eliminating left-right strength discrepancies with single-arm thrusters, asymmetric carries, and rebound plyometrics. Weaker side first.',
     tasks: [
@@ -115,7 +115,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'Explosive Functional Capacity & Clusters',
+    title: 'NO SURRENDER',
     focus:
       'High-output compound complexes combining cleans, thrusters, and explosive kettlebell-to-squat transitions. Soft landing mechanics on box jumps.',
     tasks: [
@@ -132,7 +132,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'Lactic Threshold & Heavy Load Locomotive Overload',
+    title: 'MISSION IMPOSSIBLE',
     focus:
       'Testing physiological stamina under severe muscular fatigue with heavy double kettlebell swings and overhead lunges. Carb-rich pre-workout nutrition.',
     tasks: [
@@ -149,7 +149,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'Speed Turnover & Rapid Cycle Rate',
+    title: 'THE FINAL SHOWDOWN',
     focus:
       'Shaving seconds off transitions, maximizing cadence, unbroken speed thrusters, and rapid kettlebell turnover. Track round times as benchmark.',
     tasks: [
@@ -166,7 +166,7 @@ export const BLOCKS: Block[] = [
     ],
   },
   {
-    title: 'The 100XU Grandmaster Century Summit',
+    title: '100XU',
     focus:
       'The ultimate test of athletic character: heavy thrusters, heavy swings, farmer carries, box jumps, and Devil presses. Flawless standard across all reps.',
     tasks: [

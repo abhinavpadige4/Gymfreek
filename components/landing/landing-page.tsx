@@ -23,16 +23,16 @@ const MOVEMENTS = [  'Kettlebell Swings',
 ];
 
 const BLOCKS = [
-  'Foundational Swings & Box Power',
-  'Thruster Engine & Overhead Force',
-  "Farmer's Grip & Sled Simulator",
-  "Density, Core & Devil's Press",
-  'Century Simulation Matrix',
-  'Unilateral Power & Asymmetry',
-  'Explosive Capacity & Clusters',
-  'Lactic Threshold & Heavy Load',
-  'Speed Turnover & Rapid Cycles',
-  'Grandmaster Century Summit',
+  'IRON WILL',
+  'BLOCK OUT',
+  'PAIN TO POWER',
+  'ALPHA MODE',
+  'WILD CORE',
+  'AFTER BURN',
+  'NO SURRENDER',
+  'MISSION IMPOSSIBLE',
+  'THE FINAL SHOWDOWN',
+  '100XU',
 ];
 
 const FEATURES = [

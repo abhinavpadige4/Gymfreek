@@ -18,7 +18,7 @@ AI fitness coach with live form checks and the century challenge. Train 100 days
 10 blocks x 10 days. Every day runs variations V1-V10, 10 reps each, 10 rounds:
 1,000 reps a day, 100,000 total. One payment unlocks all 100 days.
 
-- Block 01: Foundational Swings and Box Power ... Block 10: Grandmaster Century Summit
+- Block 01: IRON WILL ... Block 10: 100XU
 - Day 5 and 10 of each block allow reduced recovery volume
 - Each task carries its prescribed load and execution cue; demo-video slots included
 

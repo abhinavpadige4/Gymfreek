@@ -97,7 +97,7 @@ export function ExercisesView({ exercises }: ExercisesViewProps) {
               <SelectTrigger className="h-9 w-auto min-w-[10rem]" aria-label={t('muscleGroup')}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" side="bottom">
                 <SelectItem value={ALL}>{t('all')}</SelectItem>
                 {Object.keys(muscleGroupMessageKeys).map((m) => (
                   <SelectItem key={m} value={m}>
@@ -110,7 +110,7 @@ export function ExercisesView({ exercises }: ExercisesViewProps) {
               <SelectTrigger className="h-9 w-auto min-w-[10rem]" aria-label={t('category')}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" side="bottom">
                 <SelectItem value={ALL}>{t('all')}</SelectItem>
                 {Object.keys(exerciseCategoryMessageKeys).map((c) => (
                   <SelectItem key={c} value={c}>
@@ -123,7 +123,7 @@ export function ExercisesView({ exercises }: ExercisesViewProps) {
               <SelectTrigger className="h-9 w-auto min-w-[10rem]" aria-label={t('equipmentType')}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" side="bottom">
                 <SelectItem value={ALL}>{t('all')}</SelectItem>
                 {Object.keys(equipmentTypeMessageKeys).map((e) => (
                   <SelectItem key={e} value={e}>
@@ -136,7 +136,7 @@ export function ExercisesView({ exercises }: ExercisesViewProps) {
               <SelectTrigger className="h-9 w-auto min-w-[10rem]" aria-label={t('aiTracking')}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" side="bottom">
                 <SelectItem value={ALL}>{t('aiTracking')}</SelectItem>
                 <SelectItem value="ready">{t('aiReady')}</SelectItem>
               </SelectContent>

@@ -41,6 +41,7 @@ export function NavLinks() {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={false}
               aria-current={active ? 'page' : undefined}
               aria-label={t(link.label)}
               title={t(link.label)}

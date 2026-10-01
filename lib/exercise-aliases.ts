@@ -6,7 +6,7 @@
 // every BLOCKS + TRIAL_BLOCK task must resolve, and every target must exist
 // in EXERCISE_CATALOG. Add new movements here, never fuzzy-match.
 export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
-  // Block 01 - Foundational Swings & Functional Box Power
+  // Block 01 - IRON WILL
   'Russian Kettlebell Swings': 'Russian kettlebell swings',
   'Plyo Box Jumps (Step Down)': 'Plyo box jumps with step down',
   'Dual DB Front Squats': 'Dual dumbbell front squats',
@@ -17,7 +17,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'KB Goblet Sumo Deadlifts': 'Kettlebell goblet sumo deadlifts',
   'Piston Mountain Climbers': 'Piston mountain climbers',
   'Full Chest-to-Deck Burpees': 'Full chest-to-deck burpees',
-  // Block 02 - Thruster Engine & Ballistic Overhead Force
+  // Block 02 - BLOCK OUT
   'Dual Dumbbell Thrusters': 'Dual dumbbell thrusters',
   'American Kettlebell Swings': 'American kettlebell swings',
   'Burpee Broad Jumps': 'Burpee broad jumps',
@@ -28,7 +28,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Front-Rack Walking DB Lunges': 'Front-rack walking dumbbell lunges',
   'Plank Up-Downs (Forearm to Palm)': 'Plank up-downs',
   'Alternating DB Snatch': 'Alternating dumbbell snatch',
-  // Block 03 - Farmer's Grip, Heavy Carries & Sled Simulator
+  // Block 03 - PAIN TO POWER
   "Heavy KB Farmer's Walk": 'Heavy kettlebell farmer walk',
   'Dumbbell Push Press': 'Dumbbell push press',
   'Single-Arm Kettlebell Swings': 'Single-arm kettlebell swings',
@@ -39,7 +39,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Deficit Push-Ups on Hex DBs': 'Deficit push-ups on hex dumbbells',
   'Lateral Box Step-Overs': 'Lateral box step-overs',
   'KB Clean & Push Press': 'Kettlebell clean and push press',
-  // Block 04 - Dumbbell Density, Core Rigidity & Devil's Press
+  // Block 04 - ALPHA MODE
   "Dumbbell Devil's Press": 'Dumbbell devil press',
   'KB Goblet Reverse Lunges': 'Kettlebell goblet reverse lunges',
   'Dumbbell Hang Clean & Squat': 'Dumbbell hang clean and squat',
@@ -50,7 +50,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Spiderman Push-Ups on DBs': 'Spiderman push-ups on dumbbells',
   'Dumbbell Romanian Deadlifts': 'Dumbbell Romanian deadlifts',
   'Hollow Body DB Pullover': 'Hollow body dumbbell pullover',
-  // Block 05 - Functional Century Simulation Matrix
+  // Block 05 - WILD CORE
   'Ski-Pull Simulator: DB Hinge Drives': 'Ski-pull simulator dumbbell hinge drives',
   'Low Sled Drive: Quad Bear Crawls': 'Quad bear crawls',
   'Sled Pull Simulator: Bent KB Rows': 'Sled pull simulator bent kettlebell rows',
@@ -61,7 +61,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Wall-Ball Simulator Thrusters': 'Wall-ball simulator thrusters',
   'Plyo Box High Jumps': 'Plyo box high jumps',
   'KB American Overhead Swings': 'American kettlebell overhead swings',
-  // Block 06 - Unilateral Power, Box Rebounds & Asymmetry
+  // Block 06 - AFTER BURN
   'Single-Arm Kettlebell Thrusters': 'Single-arm kettlebell thrusters',
   'Box Rebound Jumps': 'Box rebound jumps',
   'Single-Leg DB Romanian Deadlift': 'Single-leg dumbbell Romanian deadlift',
@@ -72,7 +72,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Single-Arm DB Push Press': 'Single-arm dumbbell push press',
   'Side Plank DB Rotations': 'Side plank dumbbell rotations',
   'Burpee Box Step-Overs': 'Burpee box step-overs',
-  // Block 07 - Explosive Functional Capacity & Clusters
+  // Block 07 - NO SURRENDER
   'Dual DB Clean & Thruster (Cluster)': 'Dual dumbbell clean and thruster cluster',
   'KB Swing-to-Goblet Squat': 'Kettlebell swing to goblet squat',
   'High Box Jumps (Step Down)': 'High box jumps with step down',
@@ -83,7 +83,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Alternating DB Hang Snatches': 'Alternating dumbbell hang snatches',
   'KB Gorilla Rows (Alternating)': 'Kettlebell gorilla rows',
   'Burpee Box-Over Jumps': 'Burpee box-over jumps',
-  // Block 08 - Lactic Threshold & Heavy Load Locomotive Overload
+  // Block 08 - MISSION IMPOSSIBLE
   'Heavy KB Goblet Thrusters': 'Heavy kettlebell goblet thrusters',
   "Heavy Farmer's Carry Turnover": 'Heavy farmer carry turnover',
   'Double Kettlebell Swings': 'Double kettlebell swings',
@@ -94,7 +94,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Wall-Sit DB Bicep Curls': 'Wall-sit dumbbell bicep curls',
   'Box Lateral Shuffle Taps': 'Box lateral shuffle taps',
   'Navy SEAL 3-Pump Burpees': 'Navy SEAL 3-pump burpees',
-  // Block 09 - Speed Turnover & Rapid Cycle Rate
+  // Block 09 - THE FINAL SHOWDOWN
   'Speed Dual DB Thrusters': 'Speed dual dumbbell thrusters',
   'Rapid Touch & Go KB Swings': 'Rapid touch and go kettlebell swings',
   "Speed Farmer's Carry Strides": 'Speed farmer carry strides',
@@ -104,7 +104,7 @@ export const BLUEPRINT_TO_CATALOG: Record<string, string> = {
   'Sumo Deadlift High Pulls': 'Sumo deadlift high pulls',
   'Burpee Jump Over Dumbbell': 'Burpee jump over dumbbell',
   'High Knees to Sprawl Drop': 'High knees to sprawl drop',
-  // Block 10 - Grandmaster Century Summit
+  // Block 10 - 100XU
   'Heavy Dual DB Thrusters': 'Heavy dual dumbbell thrusters',
   'Heavy Russian KB Swings': 'Heavy Russian kettlebell swings',
   'Box Jumps to Stand Tall': 'Box jumps to stand tall',
