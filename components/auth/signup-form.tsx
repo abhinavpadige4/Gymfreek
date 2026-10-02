@@ -173,8 +173,17 @@ export function SignupForm() {
           <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
             {step === 1 ? t('signup.stepAccount') : t('signup.stepProfile')}
           </p>
+          <div className="flex items-center gap-1.5" aria-hidden>
+            {[1, 2].map((n) => (
+              <span
+                key={n}
+                className={`h-1.5 rounded-full transition-all duration-200 ${step >= n ? 'w-8 bg-volt' : 'w-4 bg-muted'}`}
+              />
+            ))}
+          </div>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+          <div key={step} className="animate-auth-step-in flex flex-col gap-4">
           {step === 1 ? (
             <>
               <div className="space-y-2">
@@ -321,14 +330,54 @@ export function SignupForm() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="weeklyFrequency">{t('signup.frequency')}</Label>
-                  <Input
-                    id="weeklyFrequency"
-                    type="number"
-                    min={1}
-                    max={14}
-                    className="min-h-tap"
-                    {...register('weeklyFrequency', { valueAsNumber: true })}
+                  <Label>{t('signup.frequency')}</Label>
+                  <Controller
+                    control={control}
+                    name="weeklyFrequency"
+                    render={({ field }) => {
+                      const value = typeof field.value === 'number' ? field.value : 3;
+                      const clamp = (n: number) => field.onChange(Math.min(14, Math.max(1, n)));
+                      return (
+                        <div className="flex flex-col gap-2">
+                          <div className="grid grid-cols-7 gap-1.5" role="group" aria-label={t('signup.frequency')}>
+                            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                aria-pressed={value === n}
+                                onClick={() => field.onChange(n)}
+                                className={`min-h-tap rounded-lg text-sm font-bold tabular-nums transition-all duration-150 active:scale-95 ${value === n ? 'scale-105 bg-volt text-black shadow' : 'border border-border text-muted-foreground hover:border-volt/60 hover:text-foreground'}`}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => clamp(value - 1)}
+                              disabled={value <= 1}
+                              aria-label="Fewer days"
+                              className="flex min-h-tap min-w-tap items-center justify-center rounded-lg border border-border text-lg font-bold transition-all active:scale-95 disabled:opacity-40"
+                            >
+                              -
+                            </button>
+                            <p className="text-sm tabular-nums text-muted-foreground" aria-live="polite">
+                              {value} / week{value > 7 ? ' (double sessions)' : ''}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => clamp(value + 1)}
+                              disabled={value >= 14}
+                              aria-label="More days"
+                              className="flex min-h-tap min-w-tap items-center justify-center rounded-lg border border-border text-lg font-bold transition-all active:scale-95 disabled:opacity-40"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }}
                   />
                   {errors.weeklyFrequency && (
                     <p className="text-sm text-destructive">{errors.weeklyFrequency.message}</p>
@@ -455,6 +504,7 @@ export function SignupForm() {
               </div>
             </>
           )}
+          </div>
         </form>
       </CardContent>
     </Card>

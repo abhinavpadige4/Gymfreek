@@ -128,11 +128,17 @@ export function LiveWorkout({
     setRecording(false);
   }
 
-  function toggleRecording() {
-    if (recording) {
-      stopRecording();
-      return;
-    }
+  // Auto-record preference for guided-runner mode: when on, recording starts
+  // by itself the moment the countdown ends. Persisted, defaults on.
+  const [autoRecOn, setAutoRecOn] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.localStorage.getItem('100xu-autorecord') !== 'off';
+  });
+  const recStateRef = useRef({ canRecord: false, recording: false, pref: true });
+  recStateRef.current = { canRecord, recording, pref: autoRecOn };
+
+  const startRecording = useCallback(() => {
+    if (recorderRef.current) return;
     const stream = videoRef.current?.srcObject as MediaStream | null;
     if (!stream) return;
     chunksRef.current = [];
@@ -163,6 +169,22 @@ export function LiveWorkout({
       recorder.start();
     }
     setRecording(true);
+  }, []);
+  const startRecordingRef = useRef(startRecording);
+  startRecordingRef.current = startRecording;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('100xu-autorecord', autoRecOn ? 'on' : 'off');
+    }
+  }, [autoRecOn]);
+
+  function toggleRecording() {
+    if (recording) {
+      stopRecording();
+      return;
+    }
+    startRecording();
   }
 
   async function shareReplay() {
@@ -313,6 +335,9 @@ export function LiveWorkout({
       if (n <= 0) {
         clearInterval(t);
         setCountdown(null);
+        // Guided runner: recording starts by itself when the countdown ends.
+        const s = recStateRef.current;
+        if (s.pref && s.canRecord && !s.recording) startRecordingRef.current();
         return;
       }
       setCountdown(n);
@@ -499,6 +524,18 @@ export function LiveWorkout({
           </div>
         )
       ) : status === 'running' ? (
+        <>
+        {autoStart && canRecord && (
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={autoRecOn}
+              onChange={(e) => setAutoRecOn(e.target.checked)}
+              className="size-4 shrink-0 accent-[#D94A05]"
+            />
+            Auto-record when the countdown ends
+          </label>
+        )}
         <div className="flex gap-2">
           <Button onClick={() => void finish()} size="lg" variant="secondary" className="flex-1">
             {onCount ? `Use ${reps} reps` : 'Finish set'}
@@ -513,6 +550,7 @@ export function LiveWorkout({
             </Button>
           )}
         </div>
+        </>
       ) : null}
       {(status === 'saving') && (
         <p className="text-sm text-muted-foreground">Saving...</p>

@@ -53,8 +53,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen flex-col">
       <SyncBootstrap />
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-2" aria-label="100XU home">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
+          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="100XU home">
             <Image
               src="/icons/icon-192.png"
               alt="100XU"
@@ -63,7 +63,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               className="h-8 w-8 rounded-md"
             />
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-0.5 sm:gap-2">
             <OfflineIndicator />
             <LanguageSelector />
             <ThemeToggle />
@@ -73,6 +73,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <NavLinks />
       </header>
       {children}
+      {/* Spacer so the fixed mobile dock never covers page content */}
+      <div className="h-20 md:hidden" aria-hidden />
     </div>
   );
 }

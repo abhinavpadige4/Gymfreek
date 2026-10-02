@@ -70,16 +70,16 @@ export default async function ChallengeDetailPage({
   }
 
   return (
-    <main className="flex-1 px-4 py-6">
+    <main className="flex-1 px-4 pb-28 pt-4 sm:py-6 lg:pb-6">
       <div className="mx-auto flex max-w-4xl flex-col gap-4">
         <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_340px]">
         <Card className="h-full overflow-hidden border-volt/40">
-          <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-6">
-            <div>
+          <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-4 sm:p-6">
+            <div className="min-w-0">
               <p className="font-display text-xs tracking-[0.3em] text-volt">
                 100XU CHALLENGE
               </p>
-              <h1 className="mt-1 font-display text-3xl tracking-tight sm:text-4xl">
+              <h1 className="mt-1 break-words font-display text-2xl tracking-tight sm:text-4xl">
                 {challenge.title}
               </h1>
               {challenge.description && (
@@ -98,9 +98,9 @@ export default async function ChallengeDetailPage({
                   'One-time',
                 ],
               ].map(([v, label]) => (
-                <div key={label} className="flex min-w-0 flex-col rounded-xl bg-background/60 p-3">
-                  <span className="truncate whitespace-nowrap font-display text-xl tabular-nums text-volt sm:text-2xl">{v}</span>
-                  <span className="mt-0.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <div key={label} className="flex min-h-[76px] min-w-0 flex-col justify-center rounded-xl bg-background/60 p-3">
+                  <span className="truncate whitespace-nowrap font-display text-lg tabular-nums text-volt sm:text-2xl">{v}</span>
+                  <span className="mt-0.5 truncate text-[11px] uppercase tracking-widest text-muted-foreground">
                     {label}
                   </span>
                 </div>
@@ -152,7 +152,7 @@ export default async function ChallengeDetailPage({
               sameUtcDay(new Date(enrollment.updatedAt), now);
             return (
               <div className="flex flex-col gap-3" aria-label="Pick your day">
-                <ol className="flex gap-2 text-xs text-muted-foreground">
+                <ol className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground">
                   <li><span className="font-bold text-volt">1</span> Pick block</li>
                   <li aria-hidden>·</li>
                   <li><span className="font-bold text-volt">2</span> Pick day</li>
@@ -189,10 +189,12 @@ export default async function ChallengeDetailPage({
                   return (
                     <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">
-                          {blockName ? `Block ${b + 1} - ${blockName}` : `Days ${start}-${end}`}
-                          <span className="ml-2 font-normal text-muted-foreground">
-                            Days {start}-{end} · {openCount}/{end - start + 1} open
+                        <CardTitle className="flex items-center gap-2 text-sm">
+                          <span className="min-w-0 flex-1 truncate">
+                            {blockName ? `Block ${b + 1} - ${blockName}` : `Days ${start}-${end}`}
+                          </span>
+                          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal tabular-nums text-muted-foreground">
+                            {openCount}/{end - start + 1}
                           </span>
                         </CardTitle>
                       </CardHeader>
@@ -253,7 +255,7 @@ export default async function ChallengeDetailPage({
                 {active && !midnightLocked && (
                   <Link
                     href={`/challenges/${challenge.slug}/day/${enrollment.currentDay}`}
-                    className="flex min-h-tap items-center justify-center rounded-md bg-volt px-4 py-3 font-bold text-black"
+                    className="sticky bottom-20 flex min-h-tap items-center justify-center rounded-xl bg-volt px-4 py-3 font-bold text-black shadow-lg lg:static"
                   >
                     Start Day {enrollment.currentDay}
                   </Link>

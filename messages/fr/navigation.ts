@@ -10,4 +10,5 @@ export const navigation = {
   catalog: 'Catalogue',
   admin: 'Admin',
   settings: 'Réglages',
+  more: 'Plus',
 } satisfies MessageShape<typeof english>;

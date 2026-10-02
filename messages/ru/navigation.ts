@@ -10,4 +10,5 @@ export const navigation = {
   catalog: 'Упражнения',
   admin: 'Админ',
   settings: 'Настройки',
+  more: 'Ещё',
 } satisfies MessageShape<typeof english>;

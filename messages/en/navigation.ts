@@ -7,4 +7,5 @@ export const navigation = {
   catalog: 'Catalog',
   admin: 'Admin',
   settings: 'Settings',
+  more: 'More',
 };
