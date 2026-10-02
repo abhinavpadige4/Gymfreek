@@ -86,25 +86,32 @@ export default async function ChallengeDetailPage({
                 <p className="mt-2 text-sm text-muted-foreground">{challenge.description}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 [String(challenge.days.length), challenge.days.length === 1 ? 'Day' : 'Days'],
                 ['1,000', 'Reps daily'],
                 ['55:00', 'Time cap'],
-                [
-                  challenge.pricePaise === 0
-                    ? 'Free'
-                    : `Rs ${(challenge.pricePaise / 100).toLocaleString('en-IN')}`,
-                  'One-time',
-                ],
               ].map(([v, label]) => (
-                <div key={label} className="flex min-h-[76px] min-w-0 flex-col justify-center rounded-xl bg-background/60 p-3">
-                  <span className="truncate whitespace-nowrap font-display text-lg tabular-nums text-volt sm:text-2xl">{v}</span>
+                <div key={label} className="flex min-h-[72px] min-w-0 flex-col justify-center rounded-xl bg-background/60 p-3">
+                  <span className="whitespace-nowrap font-display text-lg tabular-nums text-volt sm:text-2xl">{v}</span>
                   <span className="mt-0.5 truncate text-[11px] uppercase tracking-widest text-muted-foreground">
                     {label}
                   </span>
                 </div>
               ))}
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-volt/40 bg-volt/10 p-4">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Entry - one time</p>
+                <p className="font-display text-3xl tabular-nums text-volt sm:text-4xl">
+                  {challenge.pricePaise === 0
+                    ? 'Free'
+                    : `Rs ${(challenge.pricePaise / 100).toLocaleString('en-IN')}`}
+                </p>
+              </div>
+              <p className="shrink-0 rounded-full bg-volt px-3 py-1 text-xs font-bold text-black">
+                7-day refund
+              </p>
             </div>
             <ChallengeJoinButton
               challengeId={challenge.id}
