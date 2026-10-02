@@ -128,7 +128,7 @@ export default async function DashboardPage() {
     ...finishedSessions.map((s) => s.startedAt),
     ...challengeSessions.map((s) => s.completedAt ?? s.startedAt),
   ];
-  const activityDays = buildActivityDays(activityDates, 12);
+  const activityDays = buildActivityDays(activityDates, 26);
   const dayStreak = currentDayStreak(activityDates);
 
   return (

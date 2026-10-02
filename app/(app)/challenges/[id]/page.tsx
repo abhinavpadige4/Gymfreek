@@ -128,7 +128,7 @@ export default async function ChallengeDetailPage({
         <StreakShowcase
           days={buildActivityDays(
             bestSessions.map((s) => s.startedAt),
-            12,
+            26,
           )}
           streak={enrollment?.status === 'CANCELLED' ? 0 : (enrollment?.streakCount ?? 0)}
           currentDay={enrollment?.currentDay ?? 1}

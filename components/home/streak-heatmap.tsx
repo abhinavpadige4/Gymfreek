@@ -13,19 +13,42 @@ function cellClass(count: number): string {
 
 export function ActivityHeatGrid({ days }: { days: ActivityDay[] }) {
   const activeDays = days.filter((d) => d.count > 0).length;
+  // Month-wise groups, oldest first, so the strip reads Jan | Feb | Mar and
+  // scrolls sideways into the past.
+  const months: Array<{ key: string; label: string; days: ActivityDay[] }> = [];
+  for (const d of days) {
+    const key = d.dateKey.slice(0, 7);
+    const last = months[months.length - 1];
+    if (last && last.key === key) {
+      last.days.push(d);
+    } else {
+      const dt = new Date(`${d.dateKey}T00:00:00Z`);
+      const label = Number.isNaN(dt.getTime())
+        ? key
+        : dt.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+      months.push({ key, label, days: [d] });
+    }
+  }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-w-0 flex-col gap-2">
       <div
-        className="grid grid-flow-col grid-rows-7 justify-start gap-1"
+        className="flex max-w-full gap-4 overflow-x-auto pb-1"
         role="img"
-        aria-label={`${activeDays} active days in the last ${Math.round(days.length / 7)} weeks`}
+        aria-label={`${activeDays} active days, month by month, oldest first`}
       >
-        {days.map((d) => (
-          <span
-            key={d.dateKey}
-            title={`${d.dateKey}: ${d.count} workout${d.count === 1 ? '' : 's'}`}
-            className={`size-3 rounded-[4px] ${cellClass(d.count)}`}
-          />
+        {months.map((m) => (
+          <div key={m.key} className="flex shrink-0 flex-col gap-1.5">
+            <div className="grid grid-flow-col grid-rows-7 justify-start gap-1">
+              {m.days.map((d) => (
+                <span
+                  key={d.dateKey}
+                  title={`${d.dateKey}: ${d.count} workout${d.count === 1 ? '' : 's'}`}
+                  className={`size-3 rounded-[4px] ${cellClass(d.count)}`}
+                />
+              ))}
+            </div>
+            <p className="text-[11px] font-medium text-muted-foreground">{m.label}</p>
+          </div>
         ))}
       </div>
       <div className="flex items-center gap-1 text-[11px] text-muted-foreground" aria-hidden>
