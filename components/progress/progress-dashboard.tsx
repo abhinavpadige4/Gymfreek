@@ -34,8 +34,8 @@ import {
 import { roundWeight, toDisplayWeight, unitLabel } from '@/lib/units';
 import { computeLoadingTable } from '@/lib/loading-table';
 import { ExerciseGoalCard, type GoalView } from '@/components/progress/exercise-goal-card';
-import { MuscleMapCard } from '@/components/progress/muscle-map-card';
-import { buildMuscleMap, type MuscleMapRegion } from '@/lib/muscle-map';
+import { HumanBodyHeatmap } from '@/components/fitness/HumanBodyHeatmap/HumanBodyHeatmap';
+import type { HeatmapData } from '@/components/fitness/HumanBodyHeatmap/muscleData';
 import { VolumeTargetEditor } from '@/components/progress/volume-target-editor';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
 
@@ -91,11 +91,8 @@ interface Props {
   exercisePoints: ExerciseChartPoint[];
   weeklyPoints: SerializedWeeklyPoint[];
   volumeLandmarks: VolumeLandmarks | null;
-  // Issue #299: silhouette regions for the same week as volumeLandmarks.
-  muscleMap: MuscleMapRegion[];
-  // The ISO week the muscle map describes (gym + challenge work merged).
-  // Falls back to the landmarks week label when absent.
-  muscleMapWeekKey: string | null;
+  // Period training load for the human body heatmap (gym + challenge work).
+  heatmapData: HeatmapData;
   // Issue #211: the user's saved per-muscle targets (muscleGroup -> band) and
   // the global defaults, for the inline editor.
   defaultBand: { mev: number; mrv: number };
@@ -144,8 +141,7 @@ export function ProgressDashboard({
   exercisePoints,
   weeklyPoints,
   volumeLandmarks,
-  muscleMap,
-  muscleMapWeekKey,
+  heatmapData,
   defaultBand,
   recap,
   unit,
@@ -443,13 +439,8 @@ export function ProgressDashboard({
         </Card>
       )}
 
-      {/* Muscle heat map (issue #299): same week as the landmarks card.
-          Always rendered so front/back silhouettes show even with no data;
-          gray means untouched, deeper colour means more sets. */}
-      <MuscleMapCard
-        regions={muscleMap.length > 0 ? muscleMap : buildMuscleMap({})}
-        weekLabel={muscleMapWeekKey ? weekLabel(muscleMapWeekKey) : volumeLandmarks ? weekLabel(volumeLandmarks.weekKey) : 'This week'}
-      />
+      {/* Human body heatmap: training load by muscle across periods */}
+      <HumanBodyHeatmap data={heatmapData} />
 
       {/* Volume landmarks: latest week vs the MEV/MRV band */}
       {volumeLandmarks && landmarkRows.length > 0 && (

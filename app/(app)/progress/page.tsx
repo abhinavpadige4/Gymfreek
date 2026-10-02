@@ -2,7 +2,6 @@ import { TrendingUp } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { EmptyState } from '@/components/ui/empty-state';
 import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
 import {
   applyBodyweight,
@@ -21,7 +20,7 @@ import {
   WEEKLY_SETS_MEV,
   WEEKLY_SETS_MRV,
 } from '@/lib/stats';
-import { buildMuscleMap, challengeResultSets, classifyChallengeExercise } from '@/lib/muscle-map';
+import { buildHeatmapData } from '@/lib/muscle-load';
 import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 import {
   DELOAD_READINESS_LOOKBACK,
@@ -31,7 +30,7 @@ import {
 } from '@/lib/deload';
 import { exerciseRecords } from '@/lib/records';
 import { ProgressDashboard } from '@/components/progress/progress-dashboard';
-import { MuscleMapCard } from '@/components/progress/muscle-map-card';
+import { HumanBodyHeatmap } from '@/components/fitness/HumanBodyHeatmap/HumanBodyHeatmap';
 import { ProgressSummary, type SummaryCards } from '@/components/progress/progress-summary';
 import { ConsistencyCard } from '@/components/progress/consistency-card';
 import { DeloadBanner } from '@/components/progress/deload-banner';
@@ -52,7 +51,6 @@ export default async function ProgressPage(
   }
 ) {
   const t = await getTranslations('progress');
-  const tDashboard = await getTranslations('progress.dashboard');
   const exerciseT = await getTranslations('exercises');
   const searchParams = await props.searchParams;
   const auth = await requireSession();
@@ -204,7 +202,7 @@ export default async function ProgressPage(
       durationSec: true,
       distanceM: true,
       sessionId: true,
-      exercise: { select: { muscleGroup: true, usesBodyweight: true } },
+      exercise: { select: { name: true, muscleGroup: true, usesBodyweight: true } },
       session: { select: { startedAt: true } },
     },
   });
@@ -295,52 +293,33 @@ export default async function ProgressPage(
       }
     : null;
 
-  // Muscle heat map: gym sets merged with challenge work. Challenge moves
-  // carry no muscle link, so each completed move is attributed by keyword
-  // (~10 reps read as one working set, capped at the 10-round circuit) and
-  // bucketed into ISO weeks exactly like the gym series. Landmarks stay
-  // gym-only; the figure reflects every workout that lights up a muscle.
-  const challengeSetsByWeek = new Map<string, Record<string, number>>();
-  for (const session of challengeDays) {
-    const weekKey = isoWeekKey(session.completedAt ?? session.startedAt);
-    let bucket = challengeSetsByWeek.get(weekKey);
-    if (!bucket) {
-      bucket = {};
-      challengeSetsByWeek.set(weekKey, bucket);
-    }
-    for (const result of session.results) {
-      const sets = challengeResultSets(result.reps);
-      if (sets <= 0) continue;
-      for (const group of classifyChallengeExercise(result.exerciseName)) {
-        bucket[group] = (bucket[group] ?? 0) + sets;
-      }
-    }
-  }
-  const mergedSetsByWeek = new Map<string, Record<string, number>>();
-  for (const point of weeklySetsPoints) {
-    mergedSetsByWeek.set(point.weekKey, { ...point.byMuscleGroup });
-  }
-  for (const [weekKey, groups] of challengeSetsByWeek) {
-    const bucket = mergedSetsByWeek.get(weekKey) ?? {};
-    for (const [group, sets] of Object.entries(groups)) {
-      bucket[group] = (bucket[group] ?? 0) + sets;
-    }
-    mergedSetsByWeek.set(weekKey, bucket);
-  }
-  const challengeWeekKeys = [...challengeSetsByWeek.keys()].sort();
-  const muscleMapWeekKey =
-    latestCompletedWeek?.weekKey ?? challengeWeekKeys[challengeWeekKeys.length - 1] ?? null;
-  const muscleMapSets =
-    (muscleMapWeekKey != null ? mergedSetsByWeek.get(muscleMapWeekKey) : undefined) ?? {};
-  const muscleMap = buildMuscleMap(muscleMapSets, volumeTargets);
-  const hasMuscleSignal = Object.values(muscleMapSets).some((n) => n > 0);
-  // Label for the figure when the dashboard (which owns the formatter) is
-  // not on screen: same "W{n}" shape, plain fallback without a week.
-  const muscleMapWeekLabel = (() => {
-    if (muscleMapWeekKey == null) return 'This week';
-    const n = muscleMapWeekKey.split('-W')[1];
-    return n ? tDashboard('weekLabel', { week: n }) : muscleMapWeekKey;
-  })();
+  // Human body heatmap: gym sets plus classified challenge work, bucketed
+  // into TODAY / 7D / 30D / ALL inside the aggregator. The figure reads this
+  // directly; landmarks further down stay gym-only.
+  const heatmapData = buildHeatmapData({
+    gymSets: weeklySetsRaw.map((s) => ({
+      muscleGroup: s.exercise.muscleGroup,
+      exerciseName: s.exercise.name,
+      reps: s.reps,
+      weight: s.weight,
+      usesBodyweight: s.exercise.usesBodyweight,
+      isWarmup: s.isWarmup,
+      durationSec: s.durationSec,
+      at: s.session.startedAt,
+    })),
+    challengeResults: challengeDays.flatMap((session) =>
+      session.results.map((r) => ({
+        exerciseName: r.exerciseName,
+        reps: r.reps,
+        at: session.completedAt ?? session.startedAt,
+      })),
+    ),
+    bodyweight,
+    targets: volumeTargets,
+  });
+  const hasMuscleSignal = (['7D', '30D', 'ALL'] as const).some((p) =>
+    Object.values(heatmapData[p].groups).some((g) => g.intensity > 0),
+  );
 
   // Recap table: per exercise, first and last session in the period,
   // delta of the max load and the 1RM.
@@ -612,15 +591,7 @@ export default async function ProgressPage(
         )}
 
         {exercisesWithSets.length === 0 && !hasMuscleSignal ? (
-          <>
-            <MuscleMapCard regions={muscleMap} weekLabel={muscleMapWeekLabel} />
-            <EmptyState
-              icon={TrendingUp}
-              title={t('emptyTitle')}
-              description={t('emptyDescription', { weeks: RECENT_WEEKS })}
-              action={{ label: t('firstSession'), href: '/session/new' }}
-            />
-          </>
+          <HumanBodyHeatmap data={heatmapData} />
         ) : (
           <>
             {(deload.recommended || deloadActive) && (
@@ -649,8 +620,7 @@ export default async function ProgressPage(
                 total: w.total,
               }))}
               volumeLandmarks={volumeLandmarks}
-              muscleMap={muscleMap}
-              muscleMapWeekKey={muscleMapWeekKey}
+              heatmapData={heatmapData}
               defaultBand={{ mev: WEEKLY_SETS_MEV, mrv: WEEKLY_SETS_MRV }}
               recap={recap}
               unit={unit}
