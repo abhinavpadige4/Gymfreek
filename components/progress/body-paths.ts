@@ -25,12 +25,12 @@ function capsule(cx: number, top: number, bottom: number, r: number): string {
 export const BODY_OUTLINE_PATHS: readonly string[] = [
   ellipse(100, 26, 16, 17), // head
   capsule(100, 42, 56, 7), // neck
-  // Torso: rounded shoulders tapering to the waist, then the hips.
-  'M 58 68 Q 100 52 142 68 L 135 172 L 129 212 L 71 212 L 65 172 Z',
-  capsule(44, 72, 194, 10), // left arm
-  capsule(156, 72, 194, 10), // right arm
-  capsule(82, 212, 402, 16), // left leg
-  capsule(118, 212, 402, 16), // right leg
+  // Torso: round shoulders tapering to the waist, then full hips.
+  'M 56 70 Q 100 50 144 70 L 136 172 L 130 212 L 70 212 L 64 172 Z',
+  capsule(44, 72, 194, 11), // left arm
+  capsule(156, 72, 194, 11), // right arm
+  capsule(82, 212, 402, 17), // left leg
+  capsule(118, 212, 402, 17), // right leg
 ];
 
 // Paintable regions per view, keyed by the ids MUSCLE_REGIONS references.

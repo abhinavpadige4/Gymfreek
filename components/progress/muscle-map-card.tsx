@@ -13,21 +13,21 @@ import { cn } from '@/lib/utils';
 // tells you HOW trained (the MEV/MRV band). Screen-reader labels and the
 // tap-for-details line carry the same truth, so color is never load-bearing.
 export const GROUP_FILL: Record<MuscleGroup, string> = {
-  CHEST: '#FF5A3C',
-  ABS: '#FFD23F',
-  SHOULDERS_FRONT: '#FFC53D',
-  SHOULDERS_LATERAL: '#FFC53D',
-  SHOULDERS_REAR: '#FF9F1C',
-  BICEPS: '#A855F7',
+  CHEST: '#FF6B52',
+  ABS: '#FFD93B',
+  SHOULDERS_FRONT: '#FFC93C',
+  SHOULDERS_LATERAL: '#FFC93C',
+  SHOULDERS_REAR: '#FFA41B',
+  BICEPS: '#BB6CFF',
   TRICEPS: '#A855F7',
-  FOREARMS: '#F472B6',
-  QUADS: '#FB923C',
-  HAMSTRINGS: '#16A34A',
-  GLUTES: '#34D399',
-  BACK_WIDTH: '#60A5FA',
-  BACK_THICKNESS: '#3B82F6',
-  LOWER_BACK: '#818CF8',
-  CALVES: '#2DD4BF',
+  FOREARMS: '#F97FBF',
+  QUADS: '#FFA94D',
+  HAMSTRINGS: '#22C55E',
+  GLUTES: '#40E0A0',
+  BACK_WIDTH: '#6AAFFF',
+  BACK_THICKNESS: '#4B8DFF',
+  LOWER_BACK: '#8F97FF',
+  CALVES: '#35E0CB',
   OTHER: BODY_FILL,
 };
 
@@ -75,8 +75,9 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
   }
 
   function regionGlow(region: MuscleMapRegion): string | undefined {
-    if (region.level === 'optimal') return `drop-shadow(0 0 5px ${GROUP_FILL[region.group]})`;
-    if (region.level === 'high') return `drop-shadow(0 0 9px ${GROUP_FILL[region.group]})`;
+    const c = GROUP_FILL[region.group];
+    if (region.level === 'optimal') return `drop-shadow(0 0 5px ${c}) drop-shadow(0 0 16px ${c})`;
+    if (region.level === 'high') return `drop-shadow(0 0 7px ${c}) drop-shadow(0 0 24px ${c})`;
     return undefined;
   }
 
@@ -112,7 +113,7 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
             // accessibility tree, which would silence the per-region labels.
             role="group"
             aria-label={t(view)}
-            className="h-auto w-full max-w-[240px]"
+            className="h-auto w-full max-w-[300px]"
           >
             {BODY_OUTLINE_PATHS.map((d) => (
               <path key={d} d={d} style={{ fill: BODY_FILL }} />
