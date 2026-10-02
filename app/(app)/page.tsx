@@ -183,8 +183,8 @@ export default async function DashboardPage() {
         <BadgeShelf badges={badgeAwards} />
 
         {/* CHALLENGE + STREAK - side by side so the fire is visible */}
-        <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+        <div className="grid items-stretch gap-4 md:grid-cols-2">
+        <Card className="h-full border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
           <CardHeader className="pb-3">
             <p className="font-display text-sm tracking-[0.3em] text-volt">
               {t('challengeEyebrow')}

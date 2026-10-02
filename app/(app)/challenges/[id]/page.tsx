@@ -72,8 +72,8 @@ export default async function ChallengeDetailPage({
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-4xl flex-col gap-4">
-        <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-        <Card className="overflow-hidden border-volt/40">
+        <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_340px]">
+        <Card className="h-full overflow-hidden border-volt/40">
           <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-6">
             <div>
               <p className="font-display text-xs tracking-[0.3em] text-volt">
@@ -98,8 +98,8 @@ export default async function ChallengeDetailPage({
                   'One-time',
                 ],
               ].map(([v, label]) => (
-                <div key={label} className="flex flex-col rounded-xl bg-background/60 p-3">
-                  <span className="font-display text-2xl text-volt">{v}</span>
+                <div key={label} className="flex min-w-0 flex-col rounded-xl bg-background/60 p-3">
+                  <span className="truncate whitespace-nowrap font-display text-xl tabular-nums text-volt sm:text-2xl">{v}</span>
                   <span className="mt-0.5 text-[11px] uppercase tracking-widest text-muted-foreground">
                     {label}
                   </span>

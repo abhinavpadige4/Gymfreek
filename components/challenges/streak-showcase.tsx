@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Flame } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ActivityHeatGrid } from '@/components/home/streak-heatmap';
 import type { ActivityDay } from '@/lib/activity';
 
@@ -28,20 +28,20 @@ export function StreakShowcase({
   const pct =
     currentDay != null && totalDays ? Math.min(100, Math.round((currentDay / totalDays) * 100)) : null;
   return (
-    <Card className="border-volt/40 bg-gradient-to-br from-volt/15 via-card to-card shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+    <Card className="flex h-full flex-col border-volt/40 bg-gradient-to-br from-volt/15 via-card to-card shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <span
-            className={`flex size-12 items-center justify-center rounded-2xl ${streak > 0 ? 'bg-volt text-black' : 'bg-muted text-muted-foreground'}`}
+            className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${streak > 0 ? 'bg-volt text-black' : 'bg-muted text-muted-foreground'}`}
           >
             <Flame className="size-7" aria-hidden />
           </span>
-          <div className="min-w-0">
-            <CardTitle className="font-display text-3xl tabular-nums">
-              {streak}
-              <span className="ml-2 align-middle text-sm font-normal text-muted-foreground">day streak</span>
-            </CardTitle>
-            <p className="truncate text-sm font-medium text-volt">{hype(streak)}</p>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-baseline gap-2 leading-none">
+              <span className="text-3xl font-bold tabular-nums">{streak}</span>
+              <span className="text-sm font-normal text-muted-foreground">day streak</span>
+            </p>
+            <p className="mt-1 truncate text-sm font-medium text-volt">{hype(streak)}</p>
           </div>
         </div>
         {pct != null && (
@@ -55,8 +55,10 @@ export function StreakShowcase({
           </div>
         )}
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <ActivityHeatGrid days={days} />
+      <CardContent className="flex flex-1 flex-col gap-2">
+        <div className="max-w-full overflow-x-auto">
+          <ActivityHeatGrid days={days} />
+        </div>
         <Link href="/history" className="text-xs font-semibold text-volt underline-offset-4 hover:underline">
           View workout history
         </Link>
