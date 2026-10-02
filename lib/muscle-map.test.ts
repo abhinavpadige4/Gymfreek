@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { MuscleGroup } from '@/lib/prisma-client';
 import { WEEKLY_SETS_MEV, WEEKLY_SETS_MRV, resolveVolumeBand } from '@/lib/stats';
-import { MUSCLE_REGIONS, buildMuscleMap, muscleHeat } from './muscle-map';
+import { BLOCKS } from './challenge-blueprint';
+import {
+  MUSCLE_REGIONS,
+  buildMuscleMap,
+  challengeResultSets,
+  classifyChallengeExercise,
+  muscleHeat,
+} from './muscle-map';
 
 const DEFAULT_BAND = { mev: WEEKLY_SETS_MEV, mrv: WEEKLY_SETS_MRV, custom: false };
 
@@ -67,5 +74,61 @@ describe('buildMuscleMap', () => {
     const byId = new Map(buildMuscleMap({}).map((r) => [r.regionId, r.view]));
     expect(byId.get('chest-left')).toBe('front');
     expect(byId.get('ham-right')).toBe('back');
+  });
+});
+
+describe('classifyChallengeExercise', () => {
+  it('attributes every blueprint move to at least one painted muscle', () => {
+    const names = BLOCKS.flatMap((b) => b.tasks.map((t) => t.name));
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      const groups = classifyChallengeExercise(name);
+      expect(groups.length, name).toBeGreaterThan(0);
+      for (const g of groups) {
+        expect(MUSCLE_REGIONS[g], `${name} -> ${g}`).not.toBeNull();
+      }
+    }
+  });
+
+  it('prefers specific compounds over generic families', () => {
+    expect(classifyChallengeExercise('Dumbbell Renegade Rows')).toEqual([
+      'BACK_WIDTH',
+      'TRICEPS',
+    ]);
+    expect(classifyChallengeExercise('KB Goblet Sumo Deadlifts')).toEqual([
+      'HAMSTRINGS',
+      'GLUTES',
+    ]);
+    expect(classifyChallengeExercise('Dumbbell Floor Press (Bridge Hold)')).toEqual([
+      'CHEST',
+      'GLUTES',
+    ]);
+    expect(classifyChallengeExercise('Rowing Simulator: Sumo Squat Rows')).toEqual([
+      'BACK_WIDTH',
+      'BICEPS',
+    ]);
+    expect(classifyChallengeExercise('Wall-Sit DB Bicep Curls')).toEqual([
+      'BICEPS',
+      'QUADS',
+    ]);
+    expect(classifyChallengeExercise('Strict Hand-Release Push-Ups')).toEqual([
+      'CHEST',
+      'TRICEPS',
+    ]);
+  });
+
+  it('returns [] for unknown names so they stay unpainted', () => {
+    expect(classifyChallengeExercise('Mystery Dance Break')).toEqual([]);
+    expect(classifyChallengeExercise('')).toEqual([]);
+  });
+});
+
+describe('challengeResultSets', () => {
+  it('reads ~10 reps as one set, capped at the 10-round circuit', () => {
+    expect(challengeResultSets(0)).toBe(0);
+    expect(challengeResultSets(-5)).toBe(0);
+    expect(challengeResultSets(5)).toBe(1);
+    expect(challengeResultSets(100)).toBe(10);
+    expect(challengeResultSets(1000)).toBe(10);
   });
 });

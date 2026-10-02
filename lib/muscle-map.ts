@@ -78,3 +78,50 @@ export function buildMuscleMap(
     }));
   });
 }
+
+// Challenge moves are free-text names (ChallengeTask/ExerciseResult carry no
+// muscle link), so the progress page attributes them by keyword. First match
+// wins: specific compounds before generic families. Unknown names return []
+// and are skipped, never painted.
+const CHALLENGE_PATTERNS: Array<{ match: RegExp; groups: MuscleGroup[] }> = [
+  { match: /bridge/, groups: ['CHEST', 'GLUTES'] },
+  { match: /renegade/, groups: ['BACK_WIDTH', 'TRICEPS'] },
+  { match: /pullover/, groups: ['CHEST', 'BACK_WIDTH'] },
+  { match: /high.pull/, groups: ['SHOULDERS_LATERAL', 'BACK_THICKNESS'] },
+  { match: /halo/, groups: ['SHOULDERS_FRONT', 'QUADS'] },
+  { match: /devil/, groups: ['CHEST', 'SHOULDERS_FRONT'] },
+  { match: /spiderman/, groups: ['CHEST', 'ABS'] },
+  { match: /up.down/, groups: ['ABS', 'TRICEPS'] },
+  { match: /bulgarian/, groups: ['QUADS', 'GLUTES'] },
+  { match: /snatch/, groups: ['HAMSTRINGS', 'GLUTES', 'SHOULDERS_FRONT'] },
+  { match: /thruster/, groups: ['QUADS', 'SHOULDERS_FRONT'] },
+  { match: /push press|overhead press|press overhead|overhead db walking/, groups: ['SHOULDERS_FRONT', 'TRICEPS'] },
+  { match: /curl/, groups: ['BICEPS', 'QUADS'] },
+  { match: /press|push.up|push-up|dip/, groups: ['CHEST', 'TRICEPS'] },
+  { match: /row|pull.up|chin.up|\bpull\b/, groups: ['BACK_WIDTH', 'BICEPS'] },
+  { match: /burpee/, groups: ['CHEST', 'QUADS'] },
+  { match: /climber/, groups: ['ABS', 'QUADS'] },
+  { match: /swing|hinge|deadlift|good morning/, groups: ['HAMSTRINGS', 'GLUTES'] },
+  { match: /toe.tap|shuffle|tap/, groups: ['QUADS', 'CALVES'] },
+  { match: /jump/, groups: ['QUADS', 'GLUTES', 'CALVES'] },
+  { match: /squat|goblet|lunge/, groups: ['QUADS', 'GLUTES'] },
+  { match: /sprawl/, groups: ['QUADS', 'ABS'] },
+  { match: /drop|depth/, groups: ['QUADS', 'CALVES'] },
+  { match: /step|box/, groups: ['QUADS', 'GLUTES'] },
+  { match: /carry|farmer|suitcase/, groups: ['FOREARMS', 'ABS'] },
+  { match: /march/, groups: ['QUADS', 'GLUTES'] },
+  { match: /plank|hollow|twist/, groups: ['ABS'] },
+  { match: /crawl/, groups: ['QUADS', 'SHOULDERS_FRONT'] },
+];
+
+export function classifyChallengeExercise(name: string): MuscleGroup[] {
+  const lower = name.toLowerCase();
+  return CHALLENGE_PATTERNS.find((p) => p.match.test(lower))?.groups ?? [];
+}
+
+// One bodyweight round of ~10 reps reads as one working set, capped at the
+// 10-round circuit so a single day cannot exceed a full day of work.
+export function challengeResultSets(reps: number): number {
+  if (!Number.isFinite(reps) || reps <= 0) return 0;
+  return Math.min(10, Math.max(1, Math.round(reps / 10)));
+}

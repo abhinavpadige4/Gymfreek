@@ -93,6 +93,9 @@ interface Props {
   volumeLandmarks: VolumeLandmarks | null;
   // Issue #299: silhouette regions for the same week as volumeLandmarks.
   muscleMap: MuscleMapRegion[];
+  // The ISO week the muscle map describes (gym + challenge work merged).
+  // Falls back to the landmarks week label when absent.
+  muscleMapWeekKey: string | null;
   // Issue #211: the user's saved per-muscle targets (muscleGroup -> band) and
   // the global defaults, for the inline editor.
   defaultBand: { mev: number; mrv: number };
@@ -142,6 +145,7 @@ export function ProgressDashboard({
   weeklyPoints,
   volumeLandmarks,
   muscleMap,
+  muscleMapWeekKey,
   defaultBand,
   recap,
   unit,
@@ -444,7 +448,7 @@ export function ProgressDashboard({
           gray means untouched, deeper colour means more sets. */}
       <MuscleMapCard
         regions={muscleMap.length > 0 ? muscleMap : buildMuscleMap({})}
-        weekLabel={volumeLandmarks ? weekLabel(volumeLandmarks.weekKey) : 'This week'}
+        weekLabel={muscleMapWeekKey ? weekLabel(muscleMapWeekKey) : volumeLandmarks ? weekLabel(volumeLandmarks.weekKey) : 'This week'}
       />
 
       {/* Volume landmarks: latest week vs the MEV/MRV band */}
