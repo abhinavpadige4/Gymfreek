@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { AdminUserActions } from '@/components/admin/admin-user-actions';
+import { AdminSampleData } from '@/components/admin/admin-sample-data';
 import { AdminUserCharts } from '@/components/admin/admin-charts';
 import { volumeBuckets } from '@/lib/admin-stats';
 import { avatarUrl, BLOCK_BADGES } from '@/lib/avatar';
@@ -167,6 +168,8 @@ export default async function AdminUserPage(props: Props) {
           isSelf={user.id === session.userId}
           enrollments={user.enrollments}
         />
+
+        <AdminSampleData userId={user.id} email={user.email} />
 
         <Card>
           <CardHeader>
