@@ -194,5 +194,8 @@ export const progress = {
       '{name}: {sets, plural, one {# подход} few {# подхода} many {# подходов} other {# подхода}} за неделю, {status}',
     hint: 'Нажмите на мышцу, чтобы увидеть детали.',
     empty: 'За эту неделю нет рабочих подходов; запишите тренировку, и тело загорится.',
+    preview: 'Пример',
+    sampleWeek: 'пример недели',
+    showingSample: 'Показаны примерные данные - ваши тренировки раскрасят эту фигуру.',
   },
 } satisfies MessageShape<typeof english>;

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
 import type { BodyView, HeatLevel, MuscleMapRegion } from '@/lib/muscle-map';
+import { buildMuscleMap } from '@/lib/muscle-map';
 import type { MuscleGroup } from '@/lib/prisma-client';
 import { BODY_FILL, BODY_OUTLINE_PATHS, BODY_VIEWBOX, REGION_PATHS } from './body-paths';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,26 @@ const LEGEND_SWATCH: Record<HeatLevel, CSSProperties> = {
 
 const LEGEND_LEVELS: readonly HeatLevel[] = ['none', 'low', 'optimal', 'high'];
 
+// Sample week so anyone (including a brand-new account) can see what a lit
+// figure looks like. Display-only: toggling it writes nothing anywhere.
+const SAMPLE_SETS: Record<string, number> = {
+  CHEST: 14,
+  BACK_WIDTH: 12,
+  BACK_THICKNESS: 11,
+  SHOULDERS_FRONT: 11,
+  SHOULDERS_LATERAL: 8,
+  SHOULDERS_REAR: 6,
+  BICEPS: 6,
+  TRICEPS: 9,
+  FOREARMS: 3,
+  QUADS: 25,
+  HAMSTRINGS: 16,
+  GLUTES: 12,
+  CALVES: 4,
+  ABS: 10,
+  LOWER_BACK: 2,
+};
+
 interface Props {
   regions: MuscleMapRegion[];
   // Preformatted label of the week the map describes (same week as the
@@ -56,8 +77,15 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
   const exerciseT = useTranslations('exercises');
   const [selected, setSelected] = useState<MuscleMapRegion | null>(null);
   const [view, setView] = useState<BodyView>('front');
+  const [preview, setPreview] = useState(false);
 
-  const trained = regions.some((r) => r.level !== 'none');
+  const shown = preview ? buildMuscleMap(SAMPLE_SETS) : regions;
+  const trained = shown.some((r) => r.level !== 'none');
+
+  function togglePreview() {
+    setPreview((v) => !v);
+    setSelected(null);
+  }
 
   function regionLabel(region: MuscleMapRegion): string {
     return t('regionLabel', {
@@ -84,8 +112,32 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="text-base font-semibold">{t('title')}</h2>
-        <p className="text-xs text-muted-foreground">{t('description', { week: weekLabel })}</p>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold">
+            <span className="truncate">{t('title')}</span>
+            {preview && (
+              <span className="shrink-0 rounded-full bg-volt px-2 py-0.5 text-[11px] font-bold text-black">
+                {t('preview')}
+              </span>
+            )}
+          </h2>
+          <button
+            type="button"
+            onClick={togglePreview}
+            aria-pressed={preview}
+            className={cn(
+              'min-h-tap shrink-0 rounded-lg px-3 text-xs font-semibold transition-all duration-150 active:scale-95',
+              preview
+                ? 'bg-volt text-black'
+                : 'border border-border text-muted-foreground hover:border-volt/60 hover:text-foreground',
+            )}
+          >
+            {t('preview')}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {t('description', { week: preview ? t('sampleWeek') : weekLabel })}
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex gap-1 self-center rounded-xl bg-muted p-1" role="tablist">
@@ -118,7 +170,7 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
             {BODY_OUTLINE_PATHS.map((d) => (
               <path key={d} d={d} style={{ fill: BODY_FILL }} />
             ))}
-            {regions
+            {shown
               .filter((r) => r.view === view)
               .map((region) => {
                 const lit = region.level !== 'none';
@@ -162,7 +214,13 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
         </div>
 
         <p className="min-h-5 text-sm" data-testid="muscle-map-detail">
-          {selected ? regionLabel(selected) : trained ? t('hint') : t('empty')}
+          {selected
+            ? regionLabel(selected)
+            : preview
+              ? t('showingSample')
+              : trained
+                ? t('hint')
+                : t('empty')}
         </p>
       </CardContent>
     </Card>

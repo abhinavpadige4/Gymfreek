@@ -186,5 +186,8 @@ export const progress = {
     regionLabel: '{name}: {sets, plural, one {# set} other {# sets}} this week, {status}',
     hint: 'Tap a muscle for details.',
     empty: 'No working sets that week; log a session and the body lights up.',
+    preview: 'Preview',
+    sampleWeek: 'sample week',
+    showingSample: 'Showing sample data - your workouts will paint this figure.',
   },
 };

@@ -193,5 +193,8 @@ export const progress = {
     regionLabel: '{name} : {sets, plural, one {# série} other {# séries}} cette semaine, {status}',
     hint: 'Touchez un muscle pour les détails.',
     empty: 'Aucune série effective cette semaine-là ; enregistrez une séance et le corps s’illumine.',
+    preview: 'Aperçu',
+    sampleWeek: 'semaine type',
+    showingSample: 'Données d’exemple - vos séances illumineront ce corps.',
   },
 } satisfies MessageShape<typeof english>;

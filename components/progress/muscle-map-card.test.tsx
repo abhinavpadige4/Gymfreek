@@ -63,6 +63,21 @@ describe('MuscleMapCard', () => {
     );
   });
 
+  it('lights up a sample week on preview toggle without touching real data', async () => {
+    const user = userEvent.setup();
+    render(<MuscleMapCard regions={buildMuscleMap({})} weekLabel={WEEK} />);
+
+    expect(screen.getByTestId('muscle-map-detail')).toHaveTextContent(
+      /no working sets that week/i,
+    );
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(screen.getByTestId('muscle-map-detail')).toHaveTextContent(/sample data/i);
+    expect(
+      screen.getAllByLabelText('Chest: 14 sets this week, within range'),
+    ).toHaveLength(2);
+    expect(screen.getAllByLabelText('Quads: 25 sets this week, above MRV')[0]).toBeInTheDocument();
+  });
+
   it('keeps regions focusable by keyboard', () => {
     render(<MuscleMapCard regions={buildMuscleMap({})} weekLabel={WEEK} />);
     const figure = screen.getByRole('group', { name: 'Front' });
