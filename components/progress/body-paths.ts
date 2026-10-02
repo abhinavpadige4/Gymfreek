@@ -5,6 +5,11 @@
 
 export const BODY_VIEWBOX = '0 0 200 420';
 
+// Fixed dark figure so the heatmap reads the same in both themes: trained
+// muscles glow on top of it, untrained ones melt into it.
+export const BODY_FILL = '#1b1b1f';
+export const BODY_STROKE = '#3a3a42';
+
 // Ellipse as path data, so regions render as <path> and stay easy to swap for
 // hand-drawn outlines later.
 function ellipse(cx: number, cy: number, rx: number, ry: number): string {
@@ -20,8 +25,8 @@ function capsule(cx: number, top: number, bottom: number, r: number): string {
 export const BODY_OUTLINE_PATHS: readonly string[] = [
   ellipse(100, 26, 16, 17), // head
   capsule(100, 42, 56, 7), // neck
-  // Torso: shoulders tapering to the waist, then the hips.
-  'M 60 66 Q 100 52 140 66 L 133 172 L 127 210 L 73 210 L 67 172 Z',
+  // Torso: rounded shoulders tapering to the waist, then the hips.
+  'M 58 68 Q 100 52 142 68 L 135 172 L 129 212 L 71 212 L 65 172 Z',
   capsule(44, 72, 194, 10), // left arm
   capsule(156, 72, 194, 10), // right arm
   capsule(82, 212, 402, 16), // left leg

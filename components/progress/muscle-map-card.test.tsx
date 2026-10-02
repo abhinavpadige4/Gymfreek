@@ -1,24 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MuscleMapCard } from './muscle-map-card';
+import { GROUP_FILL, MuscleMapCard } from './muscle-map-card';
+import { BODY_FILL } from './body-paths';
 import { buildMuscleMap } from '@/lib/muscle-map';
 
 const WEEK = 'W33 2026';
 
 describe('MuscleMapCard', () => {
-  it('renders both views with a region per silhouette area', () => {
+  it('renders the front figure by default with a region per front area', () => {
     render(<MuscleMapCard regions={buildMuscleMap({})} weekLabel={WEEK} />);
 
     expect(screen.getByRole('group', { name: 'Front' })).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'Back' })).toBeInTheDocument();
-    // Each region is its own img so screen readers reach the per-region labels.
-    expect(screen.getAllByRole('img').length).toBe(27);
-    // 13 front + 14 back paintable regions.
-    expect(document.querySelectorAll('svg path[aria-label]')).toHaveLength(27);
+    expect(screen.queryByRole('group', { name: 'Back' })).not.toBeInTheDocument();
+    // 13 paintable front regions.
+    expect(document.querySelectorAll('svg path[aria-label]')).toHaveLength(13);
   });
 
-  it('applies the level fill and the accessible label with the set count', () => {
+  it('switches to the back figure with its regions on tab tap', async () => {
+    const user = userEvent.setup();
+    render(<MuscleMapCard regions={buildMuscleMap({})} weekLabel={WEEK} />);
+
+    await user.click(screen.getByRole('tab', { name: 'Back' }));
+    expect(screen.getByRole('group', { name: 'Back' })).toBeInTheDocument();
+    // 14 paintable back regions.
+    expect(document.querySelectorAll('svg path[aria-label]')).toHaveLength(14);
+  });
+
+  it('paints each muscle in its identity hue with the set count in the label', () => {
     // 14 sets sit inside the default 10-20 band; 25 sits above it.
     render(
       <MuscleMapCard regions={buildMuscleMap({ CHEST: 14, QUADS: 25 })} weekLabel={WEEK} />,
@@ -26,16 +35,18 @@ describe('MuscleMapCard', () => {
 
     const chest = screen.getAllByLabelText('Chest: 14 sets this week, within range');
     expect(chest).toHaveLength(2);
-    expect(chest[0]).toHaveClass('fill-orange-500');
+    expect(chest[0]).toHaveStyle({ fill: GROUP_FILL.CHEST });
+    expect(chest[0]!.style.filter).toContain('drop-shadow');
 
     const quads = screen.getAllByLabelText('Quads: 25 sets this week, above MRV');
-    expect(quads[0]).toHaveClass('fill-red-700');
+    expect(quads[0]).toHaveStyle({ fill: GROUP_FILL.QUADS });
 
     const untouched = screen.getAllByLabelText('Abs: 0 sets this week, untrained');
-    expect(untouched[0]).toHaveClass('fill-muted');
+    expect(untouched[0]).toHaveStyle({ fill: BODY_FILL });
+    expect(untouched[0]!.style.filter).toBe('');
   });
 
-  it('shows the tapped region detail below the figures', async () => {
+  it('shows the tapped region detail below the figure', async () => {
     const user = userEvent.setup();
     render(<MuscleMapCard regions={buildMuscleMap({ CHEST: 14 })} weekLabel={WEEK} />);
 
@@ -50,5 +61,13 @@ describe('MuscleMapCard', () => {
     expect(screen.getByTestId('muscle-map-detail')).toHaveTextContent(
       /no working sets that week/i,
     );
+  });
+
+  it('keeps regions focusable by keyboard', () => {
+    render(<MuscleMapCard regions={buildMuscleMap({})} weekLabel={WEEK} />);
+    const figure = screen.getByRole('group', { name: 'Front' });
+    const firstRegion = within(figure).getAllByRole('img')[0]!;
+    firstRegion.focus();
+    expect(firstRegion).toHaveFocus();
   });
 });
