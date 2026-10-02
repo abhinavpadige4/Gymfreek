@@ -71,8 +71,34 @@ export function LiveWorkout({
   const chunksRef = useRef<Blob[]>([]);
   const replayUrlRef = useRef<string | null>(null);
 
+  const [replayMime, setReplayMime] = useState('video/webm');
+  const [replayExt, setReplayExt] = useState('webm');
+  const [sharing, setSharing] = useState(false);
+
+  function pickMime(): { mime: string; ext: string } {
+    // ponytail: probe order prefers mp4 (iOS Safari) then webm.
+    const candidates: Array<[string, string]> = [
+      ['video/mp4', 'mp4'],
+      ['video/webm;codecs=h264,opus', 'webm'],
+      ['video/webm', 'webm'],
+    ];
+    try {
+      for (const [mime, ext] of candidates) {
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported?.(mime)) {
+          return { mime, ext };
+        }
+      }
+    } catch {
+      // ignore probe failure, fall through
+    }
+    return { mime: 'video/webm', ext: 'webm' };
+  }
+
   useEffect(() => {
-    setCanRecord(typeof MediaRecorder !== 'undefined');
+    setCanRecord(
+      typeof MediaRecorder !== 'undefined' &&
+        !!navigator.mediaDevices?.getUserMedia,
+    );
   }, []);
 
   useEffect(() => {
@@ -110,16 +136,56 @@ export function LiveWorkout({
     const stream = videoRef.current?.srcObject as MediaStream | null;
     if (!stream) return;
     chunksRef.current = [];
-    const recorder = new MediaRecorder(stream);
+    const { mime, ext } = pickMime();
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType: mime });
+    } catch {
+      try {
+        recorder = new MediaRecorder(stream);
+      } catch {
+        return;
+      }
+    }
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunksRef.current.push(event.data);
     };
     recorder.onstop = () => {
-      setReplay(URL.createObjectURL(new Blob(chunksRef.current, { type: 'video/webm' })));
+      const type = recorder.mimeType || mime;
+      setReplayMime(type);
+      setReplayExt(type.includes('mp4') ? 'mp4' : ext);
+      setReplay(URL.createObjectURL(new Blob(chunksRef.current, { type })));
     };
     recorderRef.current = recorder;
-    recorder.start();
+    try {
+      recorder.start(250);
+    } catch {
+      recorder.start();
+    }
     setRecording(true);
+  }
+
+  async function shareReplay() {
+    if (!replayUrl) return;
+    try {
+      setSharing(true);
+      const res = await fetch(replayUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `100xu-${exercise}.${replayExt}`, { type: replayMime });
+      const nav = navigator as Navigator & { share?: (d: { files: File[]; title: string }) => Promise<void>; canShare?: (d: { files: File[] }) => boolean };
+      if (nav.canShare?.({ files: [file] }) || nav.share) {
+        await nav.share({ files: [file], title: '100XU form check' });
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = replayUrl;
+      a.download = `100xu-${exercise}.${replayExt}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      setSharing(false);
+    }
   }
   const [coaching, setCoaching] = useState<Coaching | null>(null);
   const [coachUnavailable, setCoachUnavailable] = useState(false);
@@ -149,6 +215,12 @@ export function LiveWorkout({
     startingRef.current = true;
     // Inside the tap: unlocks mobile speech for every later cue.
     voiceService.unlock();
+    if (!navigator.mediaDevices?.getUserMedia) {
+      startingRef.current = false;
+      setStatus('error');
+      setError('Camera needs HTTPS and a browser with camera support (Safari 14.3+).');
+      return;
+    }
     const analyzer = createAnalyzer(exercise);
     if (!analyzer) {
       startingRef.current = false;
@@ -170,12 +242,15 @@ export function LiveWorkout({
     startedAtRef.current = Date.now();
     const throttle = new CueThrottle();
     try {
+      const existing = videoRef.current?.srcObject as MediaStream | null;
+      const live = existing?.getVideoTracks().some((t) => t.readyState === 'live') ? existing : null;
       const [landmarker, stream] = await Promise.all([
         loadPoseLandmarker(),
-        navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480, facingMode: 'user' },
-          audio: false,
-        }),
+        live ??
+          navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+            audio: false,
+          }),
       ]);
       const video = videoRef.current;
       if (!video) throw new Error('Video element missing.');
@@ -223,19 +298,21 @@ export function LiveWorkout({
     }
   }, [exercise, stopCamera]);
 
-  // Auto-start countdown for the guided runner: 5-4-3-2-1, then the camera
-  // opens with no second tap. Runs once per mount.
+  // Auto-start countdown for the guided runner: 5-4-3-2-1 over live camera
+  // preview so the user can frame themselves while it ticks, then counting
+  // begins with no second tap. Runs once per mount. The countdown shows
+  // immediately (no Start button); the camera stream attaches behind it.
   const [countdown, setCountdown] = useState<number | null>(null);
   useEffect(() => {
     if (!autoStart) return;
     setCountdown(5);
     let n = 5;
+    void start();
     const t = setInterval(() => {
       n -= 1;
       if (n <= 0) {
         clearInterval(t);
         setCountdown(null);
-        void start();
         return;
       }
       setCountdown(n);
@@ -317,10 +394,19 @@ export function LiveWorkout({
         <video
           ref={videoRef}
           playsInline
+          autoPlay
           muted
           className="aspect-[4/3] w-full -scale-x-100 object-cover"
         />
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+        {countdown != null && status === 'running' && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+            <p className="font-display text-6xl tabular-nums text-white" aria-live="polite">
+              {countdown}
+            </p>
+            <p className="mt-1 text-sm text-white/80">Get in frame - counting starts soon</p>
+          </div>
+        )}
         {(status === 'idle' || status === 'loading' || status === 'running') && (
           <div
             aria-hidden
@@ -440,13 +526,23 @@ export function LiveWorkout({
             playsInline
             className="aspect-[4/3] w-full rounded-md bg-black"
           />
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
               Your replay - stored on this device only, never uploaded.
             </p>
-            <Button variant="ghost" size="sm" onClick={() => setReplay(null)}>
-              Discard
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <a href={replayUrl} download={`100xu-${exercise}.${replayExt}`}>
+                  Download
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" onClick={shareReplay} disabled={sharing}>
+                {sharing ? 'Sharing...' : 'Share'}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setReplay(null)}>
+                Discard
+              </Button>
+            </div>
           </div>
         </div>
       )}

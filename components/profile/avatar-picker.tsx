@@ -11,7 +11,7 @@ export function AvatarPicker({
   onChange: (seed: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
       {AVATAR_SEEDS.map((seed) => (
         <button
           key={seed}
@@ -20,13 +20,13 @@ export function AvatarPicker({
           aria-label={`Pick ${seed}`}
           aria-pressed={value === seed}
           className={cn(
-            'rounded-xl border p-1 transition-colors',
+            'flex aspect-square items-center justify-center rounded-xl border p-1 transition-colors',
             value === seed ? 'border-volt ring-2 ring-volt/40' : 'border-border hover:border-volt/60',
           )}
         >
-          {/* Plain img: DiceBear serves SVG, which the Next optimizer refuses. */}
+          {/* Plain img: local PNG bitmoji, object-contain so heads never crop on phones. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={avatarUrl(seed)} alt={seed} width={64} height={64} className="h-16 w-full rounded-lg object-cover object-top" />
+          <img src={avatarUrl(seed)} alt={seed} width={96} height={96} loading="lazy" className="h-full w-full rounded-lg object-contain" />
         </button>
       ))}
     </div>

@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy } from 'lucide-react';
+import { Trophy, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type ChallengeWithMeta = {
@@ -22,6 +22,7 @@ type EnrollmentInfo = {
   challengeId: string;
   status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   currentDay: number;
+  streakCount: number;
 };
 
 function priceLabel(c: ChallengeWithMeta): string {
@@ -102,7 +103,7 @@ export default async function ChallengesPage() {
     }),
     db.enrollment.findMany({
       where: { userId: session.userId },
-      select: { challengeId: true, status: true, currentDay: true },
+      select: { challengeId: true, status: true, currentDay: true, streakCount: true },
     }),
   ]);
   const byId = new Map(enrollments.map((e) => [e.challengeId, e]));
@@ -227,6 +228,12 @@ export default async function ChallengesPage() {
                       <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                         {c.title}
                         {en && <StatusBadge status={en.status} />}
+                        {en && en.status === 'ACTIVE' && en.streakCount > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-volt/15 px-2 py-0.5 text-xs font-bold text-volt">
+                            <Flame className="size-3" aria-hidden />
+                            {en.streakCount}
+                          </span>
+                        )}
                       </CardTitle>
                       <CardDescription>
                         {c._count.days} days - {priceLabel(c)}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 declare global {
@@ -27,6 +28,7 @@ export function ChallengeJoinButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
 
   async function ensureEnrollment(): Promise<string> {
     if (enrollment) return enrollment.id;
@@ -41,6 +43,10 @@ export function ChallengeJoinButton({
   }
 
   async function join() {
+    if (!accepted) {
+      setError('Please accept the Terms, Privacy Policy and Refunds policy to continue.');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -109,7 +115,27 @@ export function ChallengeJoinButton({
 
   return (
     <div className="flex flex-col gap-2">
-      <Button onClick={join} disabled={busy} className="min-h-tap">
+      <p className="text-xs text-muted-foreground">
+        One-time payment{pricePaise > 0 ? ` of Rs ${(pricePaise / 100).toLocaleString('en-IN')}` : ''}. 7-day refund to the original payment method.
+      </p>
+      <label className="flex cursor-pointer items-start gap-2 text-xs leading-snug">
+        <input
+          type="checkbox"
+          checked={accepted}
+          onChange={(e) => setAccepted(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-[#D94A05]"
+        />
+        <span>
+          I agree to the{' '}
+          <Link href="/terms" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">Terms</Link>
+          {', '}
+          <Link href="/privacy" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">Privacy Policy</Link>
+          {' and '}
+          <Link href="/refunds" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">Refunds</Link>
+          .
+        </span>
+      </label>
+      <Button onClick={join} disabled={busy || !accepted} className="min-h-tap">
         {busy
           ? 'Working...'
           : adminBypass

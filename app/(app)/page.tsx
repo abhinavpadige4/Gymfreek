@@ -6,6 +6,8 @@ import { getCurrentSession, requireSession } from '@/lib/auth';
 import { LandingPage } from '@/components/landing/landing-page';
 import { AvatarShare } from '@/components/home/avatar-share';
 import { BadgeShelf } from '@/components/home/badge-shelf';
+import { StreakShowcase } from '@/components/challenges/streak-showcase';
+import { buildActivityDays, currentDayStreak } from '@/lib/activity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,6 +122,14 @@ export default async function DashboardPage() {
   const totalWorkouts = workoutCount + challengeSessions.length;
   const totalReps = (repSum._sum.reps ?? 0) + (challengeReps._sum.reps ?? 0);
   const displayName = profile?.displayName || session.email;
+  // Streak heatmap input: every finished gym day plus every finished
+  // challenge day, so challenge-only users see their real history.
+  const activityDates = [
+    ...finishedSessions.map((s) => s.startedAt),
+    ...challengeSessions.map((s) => s.completedAt ?? s.startedAt),
+  ];
+  const activityDays = buildActivityDays(activityDates, 12);
+  const dayStreak = currentDayStreak(activityDates);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -172,7 +182,8 @@ export default async function DashboardPage() {
 
         <BadgeShelf badges={badgeAwards} />
 
-        {/* CHALLENGE */}
+        {/* CHALLENGE + STREAK - side by side so the fire is visible */}
+        <div className="grid gap-4 md:grid-cols-2">
         <Card className="border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
           <CardHeader className="pb-3">
             <p className="font-display text-sm tracking-[0.3em] text-volt">
@@ -190,6 +201,8 @@ export default async function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
+        <StreakShowcase days={activityDays} streak={dayStreak} />
+        </div>
 
         {insight && (
           <Link href={insight.href} className="block">

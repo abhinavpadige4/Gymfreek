@@ -162,8 +162,8 @@ export function SignupForm() {
   };
 
   return (
-    <Card className="w-full max-w-sm rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
-      <CardContent className="flex flex-col gap-4 p-6">
+    <Card className="w-full max-w-md rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
+      <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="font-display text-4xl tracking-wide">
             100<span className="text-volt">X</span>U
@@ -260,7 +260,7 @@ export function SignupForm() {
             </>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>{t('signup.sex')}</Label>
                   <Controller
@@ -295,7 +295,7 @@ export function SignupForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="heightCm">{t('signup.height')}</Label>
                   <Input

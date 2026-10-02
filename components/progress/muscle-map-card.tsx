@@ -10,10 +10,11 @@ import { BODY_OUTLINE_PATHS, BODY_VIEWBOX, REGION_PATHS } from './body-paths';
 // Fill ramp for the four heat levels. Sequential warm ramp (amber to deep
 // red) validated for CVD and normal-vision separation in both themes; the
 // gray 'none' state is deliberately desaturated so untouched reads as absent.
+// Opacity grades intensity within a level so more sets paint deeper.
 const LEVEL_FILL: Record<HeatLevel, string> = {
-  none: 'fill-muted',
-  low: 'fill-amber-300',
-  optimal: 'fill-orange-500 dark:fill-orange-400',
+  none: 'fill-muted opacity-60',
+  low: 'fill-amber-300 opacity-70',
+  optimal: 'fill-orange-500 dark:fill-orange-400 opacity-90',
   high: 'fill-red-700 dark:fill-red-500',
 };
 
@@ -45,6 +46,13 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
     });
   }
 
+  // Intensity within a level: opacity grows with set count so heavier weeks
+  // paint deeper without adding new legend bands.
+  function regionOpacity(region: MuscleMapRegion): number {
+    if (region.level === 'none' || region.sets <= 0) return 1;
+    return Math.min(1, 0.55 + region.sets / 24);
+  }
+
   function renderView(view: BodyView) {
     return (
       <svg
@@ -66,6 +74,7 @@ export function MuscleMapCard({ regions, weekLabel }: Props) {
               d={REGION_PATHS[view][region.regionId]}
               className={`${LEVEL_FILL[region.level]} stroke-background cursor-pointer focus:outline-none focus-visible:stroke-ring`}
               strokeWidth={2}
+              opacity={regionOpacity(region)}
               role="img"
               aria-label={regionLabel(region)}
               tabIndex={0}

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DayRunner } from '@/components/challenges/day-runner';
 import { restFor, requiredTasksForDay } from '@/lib/challenge-rules';
 import { bestFor, streakFor } from '@/lib/challenge-progress';
+import { blockNameForDay } from '@/lib/challenge-blueprint';
 
 export default async function ChallengeDayPage({
   params,
@@ -26,6 +27,8 @@ export default async function ChallengeDayPage({
   });
   if (!challenge || challenge.days.length === 0) notFound();
   const day = challenge.days[0]!;
+  const totalDays = await db.challengeDay.count({ where: { challengeId: challenge.id } });
+  const blockName = blockNameForDay(dayNumber, totalDays);
   let enrollment = await db.enrollment.findUnique({
     where: { userId_challengeId: { userId: session.userId, challengeId: challenge.id } },
   });
@@ -77,6 +80,9 @@ export default async function ChallengeDayPage({
     return (
       <main className="flex-1 px-4 py-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
+          {blockName && (
+            <p className="font-display text-xs tracking-[0.3em] text-volt">{blockName}</p>
+          )}
           <h1 className="text-2xl font-bold tracking-tight">Day {dayNumber}</h1>
           <Card className="border-volt/40">
             <CardContent className="p-6 text-center">
@@ -113,6 +119,9 @@ export default async function ChallengeDayPage({
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <div>
+          {blockName && (
+            <p className="font-display text-xs tracking-[0.3em] text-volt">{blockName}</p>
+          )}
           <h1 className="text-2xl font-bold tracking-tight">
             Day {day.dayNumber}
             {practice && <span className="ml-2 text-base font-medium text-muted-foreground">Practice</span>}

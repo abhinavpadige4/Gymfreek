@@ -35,7 +35,7 @@ import { roundWeight, toDisplayWeight, unitLabel } from '@/lib/units';
 import { computeLoadingTable } from '@/lib/loading-table';
 import { ExerciseGoalCard, type GoalView } from '@/components/progress/exercise-goal-card';
 import { MuscleMapCard } from '@/components/progress/muscle-map-card';
-import type { MuscleMapRegion } from '@/lib/muscle-map';
+import { buildMuscleMap, type MuscleMapRegion } from '@/lib/muscle-map';
 import { VolumeTargetEditor } from '@/components/progress/volume-target-editor';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
 
@@ -439,10 +439,13 @@ export function ProgressDashboard({
         </Card>
       )}
 
-      {/* Muscle heat map (issue #299): same week as the landmarks card */}
-      {volumeLandmarks && muscleMap.length > 0 && (
-        <MuscleMapCard regions={muscleMap} weekLabel={weekLabel(volumeLandmarks.weekKey)} />
-      )}
+      {/* Muscle heat map (issue #299): same week as the landmarks card.
+          Always rendered so front/back silhouettes show even with no data;
+          gray means untouched, deeper colour means more sets. */}
+      <MuscleMapCard
+        regions={muscleMap.length > 0 ? muscleMap : buildMuscleMap({})}
+        weekLabel={volumeLandmarks ? weekLabel(volumeLandmarks.weekKey) : 'This week'}
+      />
 
       {/* Volume landmarks: latest week vs the MEV/MRV band */}
       {volumeLandmarks && landmarkRows.length > 0 && (

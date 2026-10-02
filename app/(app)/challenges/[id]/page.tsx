@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChallengeJoinButton } from '@/components/challenges/challenge-join-button';
 import { CHALLENGE_DAY_CAP_SEC } from '@/lib/challenge-rules';
 import { streakFor } from '@/lib/challenge-progress';
+import { blockNameForDay } from '@/lib/challenge-blueprint';
+import { buildActivityDays } from '@/lib/activity';
+import { StreakShowcase } from '@/components/challenges/streak-showcase';
 
 export default async function ChallengeDetailPage({
   params,
@@ -51,7 +54,7 @@ export default async function ChallengeDetailPage({
           challengeId: challenge.id,
           durationSec: { lte: CHALLENGE_DAY_CAP_SEC, gt: 0 },
         },
-        select: { challengeDayId: true, durationSec: true },
+        select: { challengeDayId: true, durationSec: true, startedAt: true },
       })
     : [];
   const bestByDay = new Map<string, number>();
@@ -68,7 +71,8 @@ export default async function ChallengeDetailPage({
 
   return (
     <main className="flex-1 px-4 py-6">
-      <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      <div className="mx-auto flex max-w-4xl flex-col gap-4">
+        <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <Card className="overflow-hidden border-volt/40">
           <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-6">
             <div>
@@ -121,6 +125,16 @@ export default async function ChallengeDetailPage({
             </Link>
           </div>
         </Card>
+        <StreakShowcase
+          days={buildActivityDays(
+            bestSessions.map((s) => s.startedAt),
+            12,
+          )}
+          streak={enrollment?.status === 'CANCELLED' ? 0 : (enrollment?.streakCount ?? 0)}
+          currentDay={enrollment?.currentDay ?? 1}
+          totalDays={challenge.days.length}
+        />
+        </div>
         {enrollment && enrollment.status !== 'CANCELLED' &&
           (() => {
             const active = enrollment.status === 'ACTIVE';
@@ -146,8 +160,7 @@ export default async function ChallengeDetailPage({
                   <li><span className="font-bold text-volt">3</span> Record each move</li>
                 </ol>
                 <p className="text-sm font-semibold" aria-live="polite">
-                  Streak {enrollment.streakCount} · Day {enrollment.currentDay} of{' '}
-                  {challenge.days.length}
+                  Day {enrollment.currentDay} of {challenge.days.length}
                 </p>
                 {Array.from({ length: Math.ceil(challenge.days.length / 10) }, (_, b) => {
                   const start = b * 10 + 1;
@@ -172,18 +185,19 @@ export default async function ChallengeDetailPage({
                       (active && n === enrollment.currentDay && !midnightLocked) ||
                       canOpen(n, dayByNumber.get(n)),
                   ).length;
+                  const blockName = blockNameForDay(start, challenge.days.length);
                   return (
                     <Card key={b} className={isCurrentBlock ? 'border-volt/60' : undefined}>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm">
-                          Days {start}-{end}
+                          {blockName ? `Block ${b + 1} - ${blockName}` : `Days ${start}-${end}`}
                           <span className="ml-2 font-normal text-muted-foreground">
-                            {openCount}/{end - start + 1} open
+                            Days {start}-{end} · {openCount}/{end - start + 1} open
                           </span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-5 gap-2" role="list" aria-label={`Days ${start} to ${end}`}>
+                        <div className="grid grid-cols-5 gap-2" role="list" aria-label={blockName ?? `Days ${start} to ${end}`}>
                           {Array.from({ length: end - start + 1 }, (_, i) => {
                             const n = start + i;
                             const d = dayByNumber.get(n);

@@ -184,6 +184,16 @@ export const BLOCKS: Block[] = [
   },
 ];
 
+// Day number (1-based) -> block title. Seed order guarantees 10 days per
+// block, so the title derives from the constant, never from stored DB rows
+// (older seeds carry older names). Single-block challenges get no name.
+// ponytail: fixed 10-day blocks, parameterize daysPerBlock if that changes.
+export function blockNameForDay(dayNumber: number, totalDays: number): string | undefined {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1) return undefined;
+  if (!Number.isInteger(totalDays) || totalDays <= 10) return undefined;
+  return BLOCKS[Math.floor((dayNumber - 1) / 10)]?.title;
+}
+
 // Free trial: the first 5 movements of Block 01 Day 1. Price 0 joins free
 // through the existing demo verify path, no payment keys needed.
 export const TRIAL_BLOCK: Block = {
