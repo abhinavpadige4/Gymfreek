@@ -67,9 +67,9 @@ export function NavLinks() {
 
   return (
     <>
-      {/* Desktop: single tab row under the header */}
+      {/* Desktop: full-width single tab row under the header */}
       <nav className="hidden border-b border-border bg-background/95 backdrop-blur md:block">
-        <div className="mx-auto flex max-w-3xl items-stretch gap-1 px-3 py-2">
+        <div className="flex items-stretch gap-1 px-4 py-2">
           {LINKS.map((link) => renderStop(link, false))}
         </div>
       </nav>
