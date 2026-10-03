@@ -72,8 +72,8 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
-      <CardContent className="flex flex-col gap-4 p-6">
+    <Card className="w-full rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
+      <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="font-display text-4xl tracking-wide">
             100<span className="text-volt">X</span>U
@@ -156,7 +156,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="min-h-tap w-full text-base"
+            className="min-h-tap w-full bg-gradient-to-r from-volt to-[#ff7a1a] text-base font-bold text-white hover:opacity-90"
             disabled={isSubmitting}
           >
             {isSubmitting ? t('login.submitting') : t('login.submit')}
@@ -170,6 +170,17 @@ export function LoginForm() {
             >
               {t('login.createAccount')}
             </Link>
+          </p>
+          <p className="text-center text-xs leading-relaxed text-muted-foreground">
+            {t('login.agreeBefore')}
+            <Link href="/terms" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">
+              {t('signup.consentTerms')}
+            </Link>
+            {t('login.agreeAnd')}
+            <Link href="/privacy" target="_blank" className="font-medium text-volt underline-offset-4 hover:underline">
+              {t('signup.consentPrivacy')}
+            </Link>
+            .
           </p>
         </form>
       </CardContent>

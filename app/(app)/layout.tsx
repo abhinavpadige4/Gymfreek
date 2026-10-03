@@ -1,17 +1,11 @@
 import { LogoutButton } from '@/components/auth/logout-button';
-import { LandingMenu } from '@/components/landing/landing-menu';
-import { NavLinks } from '@/components/shared/nav-links';
-import { OfflineIndicator } from '@/components/shared/offline-indicator';
+import { SiteHeader } from '@/components/shared/site-header';
 import { SyncBootstrap } from '@/components/shared/sync-bootstrap';
-import { ThemeToggle } from '@/components/shared/theme-toggle';
-import { LanguageSelector } from '@/components/shared/language-selector';
 import { getCurrentSession } from '@/lib/auth';
 import { db } from '@/lib/db';
-import Image from 'next/image';
-import Link from 'next/link';
 
-// Layout for app routes. The landing page (/) is public, so logged-out
-// visitors get a slim marketing header instead of the app chrome. Blocked
+// Layout for app routes. One navbar everywhere: the public landing gets the
+// same sticky brand bar as the app, in logged-out form. Blocked
 // accounts get a suspended screen (API routes reject them separately via
 // requireApiUserId; logout stays available so they can leave).
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col">
-        <LandingMenu />
+        <SiteHeader loggedIn={false} />
         {children}
       </div>
     );
@@ -52,26 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen flex-col">
       <SyncBootstrap />
-      <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
-          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="100XU home">
-            <Image
-              src="/icons/icon-192.png"
-              alt="100XU"
-              width={64}
-              height={64}
-              className="h-8 w-8 rounded-md"
-            />
-          </Link>
-          <div className="flex min-w-0 items-center gap-0.5 sm:gap-2">
-            <OfflineIndicator />
-            <LanguageSelector />
-            <ThemeToggle />
-            <LogoutButton />
-          </div>
-        </div>
-        <NavLinks />
-      </header>
+      <SiteHeader loggedIn />
       {children}
       {/* Spacer so the fixed mobile dock never covers page content */}
       <div className="h-20 md:hidden" aria-hidden />

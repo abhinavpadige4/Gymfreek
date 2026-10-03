@@ -1,13 +1,12 @@
-import { LanguageSelector } from '@/components/shared/language-selector';
+import { SiteHeader } from '@/components/shared/site-header';
 
-// Layout for authentication routes: no navbar, fullscreen.
+// Layout for authentication routes: the same sticky brand bar as everywhere
+// else, in logged-out form, above the centered card.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen">
-      <div className="absolute right-3 top-3 z-10">
-        <LanguageSelector showLabel />
-      </div>
-      {children}
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader loggedIn={false} />
+      <div className="relative flex flex-1 flex-col">{children}</div>
     </div>
   );
 }

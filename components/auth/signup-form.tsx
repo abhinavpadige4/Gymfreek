@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { Bandage, BarChart3, CalendarDays, Eye, EyeOff, HeartPulse, Lock, Mail, Ruler, Target, User, Weight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +47,7 @@ export function SignupForm() {
   const t = useTranslations('auth');
   const common = useTranslations('common');
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -107,11 +107,20 @@ export function SignupForm() {
     },
   });
 
-  async function next() {
+  async function next1() {
     const ok = await trigger(['displayName', 'email', 'password']);
     if (ok) {
       setServerError(null);
       setStep(2);
+      window.scrollTo({ top: 0 });
+    }
+  }
+
+  async function next2() {
+    const ok = await trigger(['sex', 'dateOfBirth', 'heightCm', 'bodyweight', 'weeklyFrequency']);
+    if (ok) {
+      setServerError(null);
+      setStep(3);
       window.scrollTo({ top: 0 });
     }
   }
@@ -162,7 +171,7 @@ export function SignupForm() {
   };
 
   return (
-    <Card className="w-full max-w-md rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
+    <Card className="w-full rounded-2xl shadow-[0_0_60px_-20px_hsl(22_92%_49%/0.4)]">
       <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="font-display text-4xl tracking-wide">
@@ -170,17 +179,27 @@ export function SignupForm() {
           </p>
           <h1 className="text-2xl font-bold tracking-tight">{t('signup.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('signup.description')}</p>
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            {step === 1 ? t('signup.stepAccount') : t('signup.stepProfile')}
-          </p>
-          <div className="flex items-center gap-1.5" aria-hidden>
-            {[1, 2].map((n) => (
-              <span
-                key={n}
-                className={`h-1.5 rounded-full transition-all duration-200 ${step >= n ? 'w-8 bg-volt' : 'w-4 bg-muted'}`}
-              />
+          <ol className="mt-1 flex w-full items-center justify-center gap-1 sm:gap-2" aria-label="Signup progress">
+            {[
+              { n: 1 as const, label: t('signup.stepOne') },
+              { n: 2 as const, label: t('signup.stepTwo') },
+              { n: 3 as const, label: t('signup.stepThree') },
+            ].map((s, i, arr) => (
+              <li key={s.n} className="flex min-w-0 items-center gap-1 sm:gap-2" aria-current={step === s.n ? 'step' : undefined}>
+                <span
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-200 ${step >= s.n ? 'bg-volt text-black' : 'bg-muted text-muted-foreground'}`}
+                >
+                  {s.n}
+                </span>
+                <span className={`truncate text-xs font-medium ${step >= s.n ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  {s.label}
+                </span>
+                {i < arr.length - 1 && (
+                  <span aria-hidden className={`mx-1 h-0.5 w-6 rounded-full sm:w-10 ${step > s.n ? 'bg-volt' : 'bg-muted'}`} />
+                )}
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <div key={step} className="animate-auth-step-in flex flex-col gap-4">
@@ -253,7 +272,11 @@ export function SignupForm() {
                 )}
               </div>
 
-              <Button type="button" onClick={next} className="min-h-tap w-full text-base">
+              <Button
+                type="button"
+                onClick={next1}
+                className="min-h-tap w-full bg-gradient-to-r from-volt to-[#ff7a1a] text-base font-bold text-white hover:opacity-90"
+              >
                 {t('signup.continue')}
               </Button>
 
@@ -267,7 +290,7 @@ export function SignupForm() {
                 </Link>
               </p>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -292,12 +315,15 @@ export function SignupForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">{t('signup.dateOfBirth')}</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    className="min-h-tap"
-                    {...register('dateOfBirth')}
-                  />
+                  <div className="relative">
+                    <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      className="min-h-tap pl-10"
+                      {...register('dateOfBirth')}
+                    />
+                  </div>
                   {errors.dateOfBirth && (
                     <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>
                   )}
@@ -307,24 +333,32 @@ export function SignupForm() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="heightCm">{t('signup.height')}</Label>
-                  <Input
-                    id="heightCm"
-                    type="number"
-                    className="min-h-tap"
-                    {...register('heightCm', { valueAsNumber: true })}
-                  />
+                  <div className="relative">
+                    <Ruler className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="heightCm"
+                      type="number"
+                      placeholder="e.g. 175"
+                      className="min-h-tap pl-10"
+                      {...register('heightCm', { valueAsNumber: true })}
+                    />
+                  </div>
                   {errors.heightCm && (
                     <p className="text-sm text-destructive">{errors.heightCm.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bodyweight">{t('signup.weight')}</Label>
-                  <Input
-                    id="bodyweight"
-                    type="number"
-                    className="min-h-tap"
-                    {...register('bodyweight', { valueAsNumber: true })}
-                  />
+                  <div className="relative">
+                    <Weight className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="bodyweight"
+                      type="number"
+                      placeholder="e.g. 70"
+                      className="min-h-tap pl-10"
+                      {...register('bodyweight', { valueAsNumber: true })}
+                    />
+                  </div>
                   {errors.bodyweight && (
                     <p className="text-sm text-destructive">{errors.bodyweight.message}</p>
                   )}
@@ -386,24 +420,47 @@ export function SignupForm() {
                 )}
               </div>
 
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="min-h-tap"
+                >
+                  {t('signup.back')}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={next2}
+                  className="min-h-tap flex-1 bg-gradient-to-r from-volt to-[#ff7a1a] text-base font-bold text-white hover:opacity-90"
+                >
+                  {t('signup.continue')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
               <div className="space-y-2">
                 <Label>{t('signup.goal')}</Label>
                 <Controller
                   control={control}
                   name="goal"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="min-h-tap">
-                        <SelectValue placeholder={t('signup.goal')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {GOALS.map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {goalLabels[g]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="min-h-tap pl-10">
+                          <SelectValue placeholder={t('signup.goal')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GOALS.map((g) => (
+                            <SelectItem key={g} value={g}>
+                              {goalLabels[g]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Target className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    </div>
                   )}
                 />
                 {errors.goal && <p className="text-sm text-destructive">{errors.goal.message}</p>}
@@ -415,18 +472,21 @@ export function SignupForm() {
                   control={control}
                   name="experienceLevel"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="min-h-tap">
-                        <SelectValue placeholder={t('signup.experience')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EXPERIENCE.map((e) => (
-                          <SelectItem key={e} value={e}>
-                            {expLabels[e]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="min-h-tap pl-10">
+                          <SelectValue placeholder={t('signup.experience')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {EXPERIENCE.map((e) => (
+                            <SelectItem key={e} value={e}>
+                              {expLabels[e]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <BarChart3 className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    </div>
                   )}
                 />
                 {errors.experienceLevel && (
@@ -436,22 +496,28 @@ export function SignupForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="medicalConditions">{t('signup.medical')}</Label>
-                <Input
-                  id="medicalConditions"
-                  placeholder={t('signup.medicalPlaceholder')}
-                  className="min-h-tap"
-                  {...register('medicalConditions')}
-                />
+                <div className="relative">
+                  <HeartPulse className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="medicalConditions"
+                    placeholder={t('signup.medicalPlaceholder')}
+                    className="min-h-tap pl-10"
+                    {...register('medicalConditions')}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="injuries">{t('signup.injuries')}</Label>
-                <Input
-                  id="injuries"
-                  placeholder={t('signup.injuriesPlaceholder')}
-                  className="min-h-tap"
-                  {...register('injuries')}
-                />
+                <div className="relative">
+                  <Bandage className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="injuries"
+                    placeholder={t('signup.injuriesPlaceholder')}
+                    className="min-h-tap pl-10"
+                    {...register('injuries')}
+                  />
+                </div>
               </div>
 
               {serverError && (
@@ -494,12 +560,16 @@ export function SignupForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="min-h-tap"
                 >
                   {t('signup.back')}
                 </Button>
-                <Button type="submit" className="min-h-tap flex-1 text-base" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="min-h-tap flex-1 bg-gradient-to-r from-volt to-[#ff7a1a] text-base font-bold text-white hover:opacity-90"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? t('signup.submitting') : t('signup.submit')}
                 </Button>
               </div>
