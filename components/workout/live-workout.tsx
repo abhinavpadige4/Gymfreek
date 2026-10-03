@@ -359,7 +359,7 @@ export function LiveWorkout({
     try {
       const s = analyzer.summary();
       const durationSec = Math.round((Date.now() - startedAtRef.current) / 1000);
-      await fetch('/api/ai/results', {
+      const saveRes = await fetch('/api/ai/results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -382,6 +382,11 @@ export function LiveWorkout({
           ],
         }),
       });
+      if (!saveRes.ok) {
+        setError('Could not save the workout. Your reps are kept - try Finish again.');
+        setStatus('running');
+        return;
+      }
       const coachRes = await fetch('/api/ai/summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -504,6 +509,17 @@ export function LiveWorkout({
       {status === 'running' && !framed && (
         <p className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-sm text-amber-500">
           Get your full body in frame.
+        </p>
+      )}
+      {status === 'running' && (
+        <p className="flex items-center gap-2 text-xs" aria-live="polite">
+          <span
+            aria-hidden
+            className={`size-2 rounded-full ${framed ? 'bg-[#35C759]' : 'bg-amber-500'}`}
+          />
+          <span className={framed ? 'font-semibold text-[#35C759]' : 'text-amber-500'}>
+            {framed ? 'Tracking - every rep is being counted' : 'Not tracking yet - adjust your framing'}
+          </span>
         </p>
       )}
       {status === 'idle' || status === 'error' ? (

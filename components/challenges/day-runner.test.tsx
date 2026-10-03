@@ -138,6 +138,51 @@ describe('DayRunner guided flow', () => {
     );
   });
 
+  it('keeps local progress and offers retry when the save is rejected', async () => {
+    const user = setupUser();
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Day is locked.' }),
+    } as Response);
+    renderRunner(1, 20);
+
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await logFullMove(user);
+    expect(await screen.findByText('Day is locked.')).toBeInTheDocument();
+    // Progress kept for retry, not wiped.
+    expect(sessionStorage.getItem('100xu-sess-d1')).not.toBeNull();
+    const retry = await screen.findByRole('button', { name: 'Retry save' });
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ valid: true }),
+    } as Response);
+    await user.click(retry);
+    expect(await screen.findByText(/VALID\. Next opens 00:00 UTC/)).toBeInTheDocument();
+    expect(sessionStorage.getItem('100xu-sess-d1')).toBeNull();
+  });
+
+  it('shows a rest overlay on move completion and skips into the next move', async () => {
+    const user = setupUser();
+    renderRunner(2, 60);
+
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await logFullMove(user);
+    expect(await screen.findByRole('dialog', { name: 'Rest' })).toBeInTheDocument();
+    expect(screen.getByText('DONE Box Step-Overs')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Skip rest' }));
+    expect(await screen.findByText('Move 2 of 2', {}, { timeout: 5000 })).toBeInTheDocument();
+  });
+
+  it('labels tap-counted moves so camera expectations stay honest', async () => {
+    const user = setupUser();
+    renderRunner();
+
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    expect(
+      screen.getByText('Tap counting for this move - each tap logs 10 reps (1 of 10 rounds).'),
+    ).toBeInTheDocument();
+  });
+
   it('saves practice replays as free workouts without the challenge', async () => {
     const user = setupUser();
     renderRunner(1, 20, true);

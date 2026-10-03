@@ -29,10 +29,9 @@ function mmss(totalSec: number): string {
 }
 
 interface SessionRecord {
-  reps: number;
-  restSec: number;
-  durationSec: number;
-  recordedAt: number;
+  reps?: number[];
+  elapsed?: number;
+  restEndsAt?: number;
 }
 
 // Guided day flow: one movement per screen, two actions only (Technique,
@@ -65,15 +64,20 @@ export function DayRunner({
   const [reps, setReps] = useState<number[]>(() => tasks.map(() => 0));
   const [step, setStep] = useState(0);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [restLeft, setRestLeft] = useState(0);
+  // Rest is timestamp-anchored (endsAt), never a decrement counter: background
+  // throttling or a remount cannot drift it, and expiry auto-advances.
+  const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [doneMsg, setDoneMsg] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [badge, setBadge] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   // Bumps to re-render the sound status after mute/test taps.
   const [voiceTick, setVoiceTick] = useState(0);
   const startRef = useRef(0);
-  const doneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repsRef = useRef<number[]>([]);
+  repsRef.current = reps;
   const voiceStatus = voiceService.status();
   const voiceHint =
     voiceStatus === 'muted'
@@ -101,17 +105,17 @@ export function DayRunner({
     setVoiceTick((t) => t + 1);
   }
 
-  function readSession(): { reps?: number[]; elapsed?: number } | null {
+  function readSession(): SessionRecord | null {
     try {
       const raw = sessionStorage.getItem(key);
       if (!raw) return null;
-      return JSON.parse(raw) as { reps?: number[]; elapsed?: number };
+      return JSON.parse(raw) as SessionRecord;
     } catch {
       return null;
     }
   }
 
-  // Resume temp progress on entry.
+  // Resume temp progress on entry (including an in-progress rest).
   useEffect(() => {
     const p = readSession();
     if (!p) return;
@@ -123,6 +127,13 @@ export function DayRunner({
         setStarted(true);
         startRef.current = Date.now() - (p.elapsed ?? 0) * 1000;
       }
+      if (typeof p.restEndsAt === 'number' && p.restEndsAt > Date.now()) {
+        setRestEndsAt(p.restEndsAt);
+        const finished = p.reps.findIndex((r) => r >= REPS_PER_TASK);
+        if (finished !== -1) {
+          setDoneMsg(`DONE ${tasks[finished]?.exerciseName ?? ''}`);
+        }
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
@@ -130,15 +141,26 @@ export function DayRunner({
   useEffect(() => {
     if (!started) return;
     try {
-      sessionStorage.setItem(key, JSON.stringify({ reps, elapsed }));
+      sessionStorage.setItem(key, JSON.stringify({ reps, elapsed, restEndsAt }));
     } catch {
       // storage full, ignore
     }
-  }, [reps, elapsed, started, key]);
+  }, [reps, elapsed, restEndsAt, started, key]);
 
-  useEffect(() => () => {
-    if (doneTimer.current) clearTimeout(doneTimer.current);
-  }, []);
+  // Rest clock: poll while a rest is active, then hand the next variation
+  // over automatically. Timestamp-anchored, so background throttling only
+  // delays the tick, never the math.
+  useEffect(() => {
+    if (restEndsAt == null) return;
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, [restEndsAt]);
+
+  useEffect(() => {
+    if (restEndsAt == null || Date.now() < restEndsAt) return;
+    advanceFromRest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restEndsAt, now]);
 
   const need = Math.min(requiredTasks, tasks.length);
   const doneCount = useMemo(() => reps.filter((r) => r >= REPS_PER_TASK).length, [reps]);
@@ -153,11 +175,9 @@ export function DayRunner({
     return () => clearInterval(t);
   }, [started]);
 
-  useEffect(() => {
-    if (restLeft <= 0) return;
-    const t = setTimeout(() => setRestLeft((v) => v - 1), 1000);
-    return () => clearTimeout(t);
-  }, [restLeft]);
+  // Seconds left on the current rest, derived from the anchored end time.
+  const restLeft = restEndsAt == null ? 0 : Math.max(0, Math.ceil((restEndsAt - now) / 1000));
+  const resting = restEndsAt != null && restLeft > 0;
 
   function start() {
     startRef.current = Date.now() - elapsed * 1000;
@@ -172,19 +192,14 @@ export function DayRunner({
     setReps(next);
     setCameraOpen(false);
     if (value < REPS_PER_TASK) return;
-    // Auto DONE: announce, rest, then move on with no taps.
+    // Move complete: the rest screen takes over directly, and rest expiry
+    // advances to the next variation with no further taps.
     const name = tasks[index]?.exerciseName ?? '';
     const msg = `DONE ${name}`;
     setDoneMsg(msg);
     voiceService.speak(msg);
     const done = next.filter((r) => r >= REPS_PER_TASK).length;
-    if (done < need) setRestLeft(restSec);
-    if (doneTimer.current) clearTimeout(doneTimer.current);
-    doneTimer.current = setTimeout(() => {
-      setDoneMsg(null);
-      const nxt = next.findIndex((r) => r < REPS_PER_TASK);
-      if (nxt !== -1) setStep(nxt);
-    }, 1800);
+    if (done < need) setRestEndsAt(Date.now() + restSec * 1000);
   }
 
   // One tap logs one round (10 of the 10x10): ten deliberate taps finish a
@@ -195,15 +210,27 @@ export function DayRunner({
 
   // Redo a finished move: clears this session's count, bests stay (server history).
   function redoMove(index: number) {
-    if (doneTimer.current) clearTimeout(doneTimer.current);
+    setRestEndsAt(null);
     setDoneMsg(null);
     setCameraOpen(false);
     setReps((prev) => prev.map((v, j) => (j === index ? 0 : v)));
     setStep(index);
   }
 
+  function advanceFromRest() {
+    setRestEndsAt(null);
+    setDoneMsg(null);
+    const nxt = repsRef.current.findIndex((r) => r < REPS_PER_TASK);
+    if (nxt !== -1) setStep(nxt);
+  }
+
+  function skipRest() {
+    advanceFromRest();
+  }
+
   async function finish() {
     setSaving(true);
+    setSaveFailed(false);
     setResult(null);
     const durationSec = Math.floor((Date.now() - startRef.current) / 1000);
     try {
@@ -225,6 +252,14 @@ export function DayRunner({
           })),
         }),
       });
+      if (!res.ok) {
+        // Server did NOT store: keep local progress and offer retry instead
+        // of wiping it. (2xx always stores, even when the attempt is invalid.)
+        const err = (await res.json().catch(() => null)) as { error?: string } | null;
+        setSaveFailed(true);
+        setResult(err?.error ?? 'Save failed on the server. Your reps are kept - retry.');
+        return;
+      }
       const data = (await res.json().catch(() => null)) as {
         valid?: boolean;
         awardedBlock?: number | null;
@@ -245,9 +280,19 @@ export function DayRunner({
               ? `Done ${mmss(durationSec)} UTC - VALID. Next opens 00:00 UTC.`
               : `Stored. ${capEnforced ? 'Over 55:00 or incomplete - redo.' : 'Incomplete - finish all moves.'}`,
       );
+    } catch {
+      // Network throw: nothing reached the server, keep everything, retry.
+      setSaveFailed(true);
+      setResult('Save failed - check connection. Your reps are kept - retry.');
     } finally {
       setSaving(false);
     }
+  }
+
+  function retrySave() {
+    setSaveFailed(false);
+    setResult(null);
+    void finish();
   }
 
   // Auto-finish: no manual tap once every move hits 10x10.
@@ -286,15 +331,48 @@ export function DayRunner({
         </p>
       </div>
       <Progress value={tasks.length === 0 ? 0 : (doneCount / need) * 100} />
-      {restLeft > 0 && (
-        <p className="rounded-md border border-volt/40 bg-volt/10 p-3 text-center text-lg font-semibold tabular-nums">
-          Rest {mmss(restLeft)} UTC
-        </p>
-      )}
-      {doneMsg && (
+      {doneMsg && !resting && (
         <p className="rounded-md border border-[#35C759]/50 bg-[#35C759]/10 p-3 text-center font-bold text-[#35C759]" aria-live="polite">
           {doneMsg}
         </p>
+      )}
+      {/* Rest takes over the screen directly: countdown, then the next
+          variation starts by itself. Skip jumps ahead, +30s extends. */}
+      {resting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" role="dialog" aria-label="Rest">
+          <div className="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-volt/40 bg-card p-6 text-center">
+            {doneMsg && (
+              <p className="text-sm font-bold text-[#35C759]" aria-live="polite">
+                {doneMsg}
+              </p>
+            )}
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Rest - next move starts automatically
+            </p>
+            <p className="font-display text-6xl tabular-nums text-volt" aria-live="polite">
+              {mmss(restLeft)}
+            </p>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+              <div
+                className="h-full rounded-full bg-volt transition-[width]"
+                style={{ width: `${restSec > 0 ? Math.min(100, (restLeft / restSec) * 100) : 0}%` }}
+              />
+            </div>
+            <div className="flex w-full gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-tap flex-1"
+                onClick={() => setRestEndsAt((e) => (e == null ? e : e + 30_000))}
+              >
+                +30s
+              </Button>
+              <Button type="button" className="min-h-tap flex-1" onClick={skipRest}>
+                Skip rest
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       <Card className="border-volt/60">
@@ -387,6 +465,11 @@ export function DayRunner({
                   </Button>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {supported
+                  ? 'Camera counts your reps on this device - keep your full body in frame.'
+                  : 'Tap counting for this move - each tap logs 10 reps (1 of 10 rounds).'}
+              </p>
               {cameraOpen && supported && (
                 <div className="rounded-lg border border-border p-3">
                   <LiveWorkout
@@ -433,6 +516,11 @@ export function DayRunner({
 
       {saving && <p className="text-sm text-muted-foreground">Saving...</p>}
       {result && <p className="text-sm text-muted-foreground">{result}</p>}
+      {saveFailed && !saving && (
+        <Button type="button" onClick={retrySave} className="min-h-tap w-full">
+          Retry save
+        </Button>
+      )}
 
       <AnimatePresence>
         {badge && (
