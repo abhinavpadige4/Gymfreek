@@ -18,6 +18,7 @@ export const exercises = {
   noMatchDescription: 'Aucun nom d’exercice ne correspond à « {query} ». Essayez une autre recherche.',
   restSeconds: 'repos {seconds} s',
   editTitle: 'Modifier l’exercice',
+  openDetail: 'Ouvrir les détails de l’exercice',
   addTitle: 'Ajouter un exercice',
   formDescription: 'Saisissez le nom, le groupe musculaire et la catégorie.',
   muscleGroup: 'Groupe musculaire',

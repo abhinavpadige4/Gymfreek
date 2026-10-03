@@ -17,6 +17,7 @@ export const exercises = {
   noMatchDescription: 'Упражнений по запросу «{query}» нет. Измените запрос.',
   restSeconds: 'отдых {seconds} с',
   editTitle: 'Изменить упражнение',
+  openDetail: 'Открыть детали упражнения',
   addTitle: 'Добавить упражнение',
   formDescription: 'Укажите название, группу мышц и категорию.',
   muscleGroup: 'Группа мышц',

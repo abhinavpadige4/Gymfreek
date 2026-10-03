@@ -14,6 +14,7 @@ export const exercises = {
   noMatchDescription: 'No exercise name matches “{query}”. Try a different search.',
   restSeconds: 'rest {seconds}s',
   editTitle: 'Edit exercise',
+  openDetail: 'Open exercise details',
   addTitle: 'Add an exercise',
   formDescription: 'Enter the name, muscle group and category.',
   muscleGroup: 'Muscle group',

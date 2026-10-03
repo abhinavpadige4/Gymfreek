@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Search } from 'lucide-react';
+import { Plus, Pencil, Search, ChevronRight } from 'lucide-react';
 import type { EquipmentType, Exercise, ExerciseCategory, MuscleGroup } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -213,8 +214,13 @@ function ExerciseRow({ exercise, onEdit }: { exercise: Exercise; onEdit: () => v
           compact
         />
         <div className="min-w-0 flex-1 basis-40 py-0.5">
-          <p className="line-clamp-2 text-sm font-medium leading-snug">
-            {displayName}{' '}
+          <p className="text-sm font-medium leading-snug">
+            <Link
+              href={`/exercises/${exercise.id}`}
+              className="line-clamp-2 underline-offset-4 hover:text-volt hover:underline"
+            >
+              {displayName}
+            </Link>{' '}
             {aiReady && (
               <span className="ml-1 inline-flex items-center gap-1 whitespace-nowrap rounded-sm border border-volt/40 bg-volt/10 px-1.5 py-px align-middle text-[10px] font-bold tracking-wider text-volt">
                 <span aria-hidden="true" className="size-1 rounded-full bg-volt" />
@@ -240,6 +246,17 @@ function ExerciseRow({ exercise, onEdit }: { exercise: Exercise; onEdit: () => v
           )}
         </div>
         <div className="-mb-2 -mr-2 -mt-4 flex w-full shrink-0 items-center justify-end sm:-mt-2 sm:w-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            aria-label={t('openDetail')}
+            className="min-h-tap min-w-tap"
+          >
+            <Link href={`/exercises/${exercise.id}`}>
+              <ChevronRight className="size-4" />
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             size="icon"
