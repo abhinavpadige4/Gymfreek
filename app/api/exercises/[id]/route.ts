@@ -43,9 +43,9 @@ export async function DELETE(_req: Request, props: Params) {
   try {
     const userId = await requireApiUserId();
 
-    // Check whether the exercise is used in an active program or in sets.
-    // If so, we refuse to avoid breaking the data. The user must first remove
-    // the exercise from the programs or create a variant.
+    // Removal from the catalog: hard-delete when nothing references the
+    // exercise, otherwise archive it (hide from every picker) so programs
+    // and logged history keep working. Either way the catalog row is gone.
     const usage = await db.exercise.findFirst({
       where: { id: params.id, userId },
       select: {
@@ -54,14 +54,15 @@ export async function DELETE(_req: Request, props: Params) {
     });
     if (!usage) throw new ApiError(404, 'Exercise not found.');
     if (usage._count.programExercises > 0 || usage._count.sets > 0) {
-      throw new ApiError(
-        409,
-        'Exercise used in a program or in history. Remove it first.',
-      );
+      await db.exercise.update({
+        where: { id: params.id, userId },
+        data: { archivedAt: new Date() },
+      });
+      return NextResponse.json({ ok: true, archived: true });
     }
 
     await db.exercise.delete({ where: { id: params.id, userId } });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, archived: false });
   } catch (err) {
     return handleApiError(err);
   }

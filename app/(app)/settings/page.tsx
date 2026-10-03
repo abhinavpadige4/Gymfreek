@@ -37,7 +37,7 @@ export default async function SettingsPage() {
       include: { exerciseConfigs: true },
     }),
     db.exercise.findMany({
-      where: { userId: auth.userId },
+      where: { userId: auth.userId, archivedAt: null },
       orderBy: { name: 'asc' },
     }),
   ]);

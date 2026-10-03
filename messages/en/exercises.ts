@@ -31,7 +31,7 @@ export const exercises = {
   deleteError: 'Could not delete the exercise.',
   deleteTitle: 'Delete this exercise?',
   deleteDescription:
-    '{name} will be removed from the catalog. It cannot be deleted while used in a program or training history.',
+    '{name} will be removed from your catalog. Programs and logged history keep working.',
   deleting: 'Deleting...',
   media: {
     button: 'Technique',

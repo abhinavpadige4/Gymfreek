@@ -191,6 +191,10 @@ model Exercise {
   usesBodyweight    Boolean                @default(false)
   // Determines which saved-gym inventory constrains suggested loads.
   equipmentType     EquipmentType          @default(OTHER)
+  // Soft delete (removal from the catalog): set when the user deletes an
+  // exercise that is still referenced by programs or history. Listed flows
+  // filter it out; stored rows keep working so history never breaks.
+  archivedAt        DateTime?
   createdAt         DateTime               @default(now())
   programExercises  ProgramExercise[]
   sets              Set[]

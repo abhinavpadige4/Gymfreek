@@ -32,7 +32,7 @@ export default async function ProgramDetailPage(props: Props) {
   if (!program) notFound();
 
   const exercisesCatalog = await db.exercise.findMany({
-    where: { userId: session.userId },
+    where: { userId: session.userId, archivedAt: null },
     orderBy: [{ muscleGroup: 'asc' }, { name: 'asc' }],
   });
 

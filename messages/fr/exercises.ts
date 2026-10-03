@@ -35,7 +35,7 @@ export const exercises = {
   deleteError: 'Impossible de supprimer l’exercice.',
   deleteTitle: 'Supprimer cet exercice ?',
   deleteDescription:
-    '{name} sera retiré du catalogue. Il ne peut pas être supprimé tant qu’il est utilisé dans un programme ou dans l’historique.',
+    '{name} sera retiré de votre catalogue. Les programmes et l’historique continuent de fonctionner.',
   deleting: 'Suppression...',
   media: {
     button: 'Technique',

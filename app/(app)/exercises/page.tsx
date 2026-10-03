@@ -6,7 +6,7 @@ import { isVisibleExercise } from '@/lib/basic-exercises';
 export default async function ExercisesPage() {
   const session = await requireSession();
   const exercises = await db.exercise.findMany({
-    where: { userId: session.userId },
+    where: { userId: session.userId, archivedAt: null },
     orderBy: [{ muscleGroup: 'asc' }, { name: 'asc' }],
   });
 
