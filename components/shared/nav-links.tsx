@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dumbbell,
@@ -39,6 +39,19 @@ export function NavLinks() {
   const t = useTranslations('navigation');
   const [moreOpen, setMoreOpen] = useState(false);
 
+  // The sheet must never get stuck open: close on navigation and on Escape.
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [moreOpen]);
+
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
   const moreActive = MORE.some((l) => isActive(l.href));
@@ -54,8 +67,8 @@ export function NavLinks() {
 
   return (
     <>
-      {/* Desktop: top row under the header */}
-      <nav className="hidden border-t border-border bg-background/95 backdrop-blur md:block">
+      {/* Desktop: tab row under the header */}
+      <nav className="hidden border-b border-border bg-background/95 backdrop-blur md:block">
         <div className="mx-auto flex max-w-3xl items-stretch gap-1 px-3 py-2">
           {[...PRIMARY, ...MORE].map((link) => {
             const active = isActive(link.href);
@@ -78,12 +91,22 @@ export function NavLinks() {
         </div>
       </nav>
 
-      {/* Mobile: fixed bottom dock with safe-area padding */}
+      {/* Mobile: fixed bottom dock with safe-area padding. Body-level fixed
+          (never inside a blurred ancestor) so it pins to the viewport. */}
+      {moreOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          tabIndex={-1}
+          onClick={() => setMoreOpen(false)}
+          className="fixed inset-0 z-30 cursor-default bg-black/60 md:hidden"
+        />
+      )}
       <nav
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden"
       >
         {moreOpen && (
-          <div className="grid grid-cols-2 gap-1 border-b border-border p-3">
+          <div className="grid grid-cols-2 gap-1 border-b border-border bg-background p-3">
             {MORE.map((link) => {
               const active = isActive(link.href);
               const Icon = link.icon;

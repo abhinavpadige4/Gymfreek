@@ -17,9 +17,16 @@ const LANDING_LINKS = [
 // session-aware on the right. Logged in: controls + app nav (top row on
 // desktop, bottom dock on phones via NavLinks). Logged out: section links
 // plus Log in / Join actions. Auth pages render the logged-out variant.
+//
+// The mobile dock must stay OUTSIDE the backdrop-blur header: filter effects
+// make an ancestor the containing block for fixed descendants, which would
+// glue the "fixed" dock to the header instead of the viewport.
 export function SiteHeader({ loggedIn }: { loggedIn: boolean }) {
+  // Sticky wrapper carries position; the blur lives on the inner header only
+  // (see NavLinks for why the fixed mobile dock must avoid blurred ancestors).
   return (
-    <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+    <div className="sticky top-0 z-10">
+    <header className="border-b border-border bg-background/95 backdrop-blur">
       <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="100XU home">
           <Image
@@ -64,7 +71,8 @@ export function SiteHeader({ loggedIn }: { loggedIn: boolean }) {
           </div>
         )}
       </div>
-      {loggedIn && <NavLinks />}
     </header>
+    {loggedIn && <NavLinks />}
+    </div>
   );
 }

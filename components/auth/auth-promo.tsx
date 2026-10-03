@@ -60,14 +60,17 @@ export async function AuthPromo({ variant }: { variant: 'signup' | 'login' }) {
         <div className="relative overflow-hidden rounded-3xl border border-volt/20 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
           <Image
             src="/landing/hero-girl.png"
-            alt=""
-            aria-hidden="true"
+            alt="Athlete training at sunrise"
             width={1145}
             height={1374}
             sizes="(max-width: 1024px) 0px, 480px"
-            className="aspect-[5/4] w-full object-cover object-top"
+            className="aspect-[5/6] max-h-[520px] w-full object-cover object-top"
           />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+          <p className="absolute bottom-4 left-5 right-5 font-display text-xl tracking-wide text-white">
+            {t('promo.titleA')}{' '}
+            <span className="text-volt">{t('promo.titleB')}</span>
+          </p>
         </div>
       </div>
     </>
