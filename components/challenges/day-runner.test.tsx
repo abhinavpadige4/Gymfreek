@@ -173,6 +173,19 @@ describe('DayRunner guided flow', () => {
     expect(await screen.findByText('Move 2 of 2', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
+  it('caps rest extensions at two per rest', async () => {
+    const user = setupUser();
+    renderRunner(2, 60);
+
+    await user.click(screen.getByRole('button', { name: 'Start Day 1' }));
+    await logFullMove(user);
+    const extend = await screen.findByRole('button', { name: '+30s' });
+    await user.click(extend);
+    await user.click(screen.getByRole('button', { name: '+30s (1 left)' }));
+    const capped = screen.getByRole('button', { name: '+30s (0 left)' });
+    expect(capped).toBeDisabled();
+  });
+
   it('labels tap-counted moves so camera expectations stay honest', async () => {
     const user = setupUser();
     renderRunner();

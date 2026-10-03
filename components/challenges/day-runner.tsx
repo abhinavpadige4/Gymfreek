@@ -67,6 +67,8 @@ export function DayRunner({
   // Rest is timestamp-anchored (endsAt), never a decrement counter: background
   // throttling or a remount cannot drift it, and expiry auto-advances.
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
+  // +30s extensions granted for the current rest only, capped at two.
+  const [restBonusCount, setRestBonusCount] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [doneMsg, setDoneMsg] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
@@ -199,7 +201,10 @@ export function DayRunner({
     setDoneMsg(msg);
     voiceService.speak(msg);
     const done = next.filter((r) => r >= REPS_PER_TASK).length;
-    if (done < need) setRestEndsAt(Date.now() + restSec * 1000);
+    if (done < need) {
+      setRestEndsAt(Date.now() + restSec * 1000);
+      setRestBonusCount(0);
+    }
   }
 
   // One tap logs one round (10 of the 10x10): ten deliberate taps finish a
@@ -211,6 +216,7 @@ export function DayRunner({
   // Redo a finished move: clears this session's count, bests stay (server history).
   function redoMove(index: number) {
     setRestEndsAt(null);
+    setRestBonusCount(0);
     setDoneMsg(null);
     setCameraOpen(false);
     setReps((prev) => prev.map((v, j) => (j === index ? 0 : v)));
@@ -219,9 +225,16 @@ export function DayRunner({
 
   function advanceFromRest() {
     setRestEndsAt(null);
+    setRestBonusCount(0);
     setDoneMsg(null);
     const nxt = repsRef.current.findIndex((r) => r < REPS_PER_TASK);
     if (nxt !== -1) setStep(nxt);
+  }
+
+  function extendRest() {
+    if (restBonusCount >= 2) return;
+    setRestBonusCount((c) => c + 1);
+    setRestEndsAt((e) => (e == null ? e : e + 30_000));
   }
 
   function skipRest() {
@@ -363,9 +376,11 @@ export function DayRunner({
                 type="button"
                 variant="outline"
                 className="min-h-tap flex-1"
-                onClick={() => setRestEndsAt((e) => (e == null ? e : e + 30_000))}
+                onClick={extendRest}
+                disabled={restBonusCount >= 2}
+                title={restBonusCount >= 2 ? 'Maximum 2 extensions per rest' : undefined}
               >
-                +30s
+                +30s{restBonusCount > 0 ? ` (${2 - restBonusCount} left)` : ''}
               </Button>
               <Button type="button" className="min-h-tap flex-1" onClick={skipRest}>
                 Skip rest
