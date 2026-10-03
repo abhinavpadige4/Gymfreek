@@ -304,7 +304,7 @@ export function SignupForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="heightCm">{t('signup.height')}</Label>
                   <Input
@@ -329,60 +329,61 @@ export function SignupForm() {
                     <p className="text-sm text-destructive">{errors.bodyweight.message}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label>{t('signup.frequency')}</Label>
-                  <Controller
-                    control={control}
-                    name="weeklyFrequency"
-                    render={({ field }) => {
-                      const value = typeof field.value === 'number' ? field.value : 3;
-                      const clamp = (n: number) => field.onChange(Math.min(14, Math.max(1, n)));
-                      return (
-                        <div className="flex flex-col gap-2">
-                          <div className="grid grid-cols-7 gap-1.5" role="group" aria-label={t('signup.frequency')}>
-                            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                              <button
-                                key={n}
-                                type="button"
-                                aria-pressed={value === n}
-                                onClick={() => field.onChange(n)}
-                                className={`min-h-tap rounded-lg text-sm font-bold tabular-nums transition-all duration-150 active:scale-95 ${value === n ? 'scale-105 bg-volt text-black shadow' : 'border border-border text-muted-foreground hover:border-volt/60 hover:text-foreground'}`}
-                              >
-                                {n}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('signup.frequency')}</Label>
+                <Controller
+                  control={control}
+                  name="weeklyFrequency"
+                  render={({ field }) => {
+                    const value = typeof field.value === 'number' ? field.value : 3;
+                    const clamp = (n: number) => field.onChange(Math.min(14, Math.max(1, n)));
+                    return (
+                      <div className="flex flex-col gap-2 rounded-xl border border-border p-2">
+                        <div className="grid grid-cols-7 gap-1" role="group" aria-label={t('signup.frequency')}>
+                          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                             <button
+                              key={n}
                               type="button"
-                              onClick={() => clamp(value - 1)}
-                              disabled={value <= 1}
-                              aria-label="Fewer days"
-                              className="flex min-h-tap min-w-tap items-center justify-center rounded-lg border border-border text-lg font-bold transition-all active:scale-95 disabled:opacity-40"
+                              aria-pressed={value === n}
+                              onClick={() => field.onChange(n)}
+                              className={`flex h-11 items-center justify-center rounded-lg text-base font-bold tabular-nums transition-all duration-150 active:scale-95 ${value === n ? 'bg-volt text-black shadow' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
                             >
-                              -
+                              {n}
                             </button>
-                            <p className="text-sm tabular-nums text-muted-foreground" aria-live="polite">
-                              {value} / week{value > 7 ? ' (double sessions)' : ''}
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => clamp(value + 1)}
-                              disabled={value >= 14}
-                              aria-label="More days"
-                              className="flex min-h-tap min-w-tap items-center justify-center rounded-lg border border-border text-lg font-bold transition-all active:scale-95 disabled:opacity-40"
-                            >
-                              +
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      );
-                    }}
-                  />
-                  {errors.weeklyFrequency && (
-                    <p className="text-sm text-destructive">{errors.weeklyFrequency.message}</p>
-                  )}
-                </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => clamp(value - 1)}
+                            disabled={value <= 1}
+                            aria-label="Fewer days"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-xl font-bold transition-all active:scale-95 disabled:opacity-40"
+                          >
+                            -
+                          </button>
+                          <p className="min-w-0 flex-1 truncate rounded-lg bg-muted px-2 py-2.5 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+                            {value} / week{value > 7 ? ' (double sessions)' : ''}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => clamp(value + 1)}
+                            disabled={value >= 14}
+                            aria-label="More days"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-xl font-bold transition-all active:scale-95 disabled:opacity-40"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+                {errors.weeklyFrequency && (
+                  <p className="text-sm text-destructive">{errors.weeklyFrequency.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">

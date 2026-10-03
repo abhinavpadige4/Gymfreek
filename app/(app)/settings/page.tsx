@@ -56,8 +56,8 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent className="text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">{common('fields.email')}</span>
-              <span className="font-medium">{auth.email}</span>
+              <span className="shrink-0 text-muted-foreground">{common('fields.email')}</span>
+              <span className="min-w-0 truncate font-medium">{auth.email}</span>
             </div>
           </CardContent>
         </Card>

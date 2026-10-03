@@ -331,11 +331,11 @@ export function DayRunner({
             </div>
           </div>
 
-          <div key={voiceTick} className="flex items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground" aria-live="polite">
+          <div key={voiceTick} className="flex flex-wrap items-center justify-between gap-2">
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground" aria-live="polite">
               {voiceHint || 'Sound on'}
             </p>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2">
               {voiceStatus === 'muted' && (
                 <Button type="button" variant="outline" size="sm" onClick={unmute}>
                   Sound on

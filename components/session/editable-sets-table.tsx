@@ -365,6 +365,9 @@ export function EditableSetsTable({
           </Select>
         </div>
       )}
+      <p className="text-xs text-muted-foreground sm:hidden" aria-hidden="true">
+        Swipe sideways for RIR, 1RM and row actions
+      </p>
       <div data-testid="editable-sets-scroll" className="overflow-x-auto overscroll-x-contain">
         <div data-testid="editable-sets-grid" className="min-w-[31rem]">
           <div className="grid grid-cols-[2.5rem_minmax(5rem,1fr)_4.5rem_4rem_5rem_3.25rem] items-center gap-1 border-b border-border bg-muted/30 px-2 py-2 text-center text-[0.6875rem] font-medium uppercase text-muted-foreground">

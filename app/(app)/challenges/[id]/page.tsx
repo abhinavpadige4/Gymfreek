@@ -70,9 +70,9 @@ export default async function ChallengeDetailPage({
   }
 
   return (
-    <main className="flex-1 px-4 pb-28 pt-4 sm:py-6 lg:pb-6">
+    <main className="flex-1 px-4 pb-6 pt-4 sm:py-6">
       <div className="mx-auto flex max-w-4xl flex-col gap-4">
-        <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_340px]">
+        <div className="grid min-w-0 items-stretch gap-4 lg:grid-cols-[1fr_340px]">
         <Card className="h-full overflow-hidden border-volt/40">
           <div className="flex flex-col gap-4 bg-gradient-to-br from-volt/25 via-card to-card p-4 sm:p-6">
             <div className="min-w-0">
@@ -100,10 +100,10 @@ export default async function ChallengeDetailPage({
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-volt/40 bg-volt/10 p-4">
+            <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-volt/40 bg-volt/10 p-4">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Entry - one time</p>
-                <p className="font-display text-3xl tabular-nums text-volt sm:text-4xl">
+                <p className="whitespace-nowrap font-display text-2xl tabular-nums text-volt sm:text-4xl">
                   {challenge.pricePaise === 0
                     ? 'Free'
                     : `Rs ${(challenge.pricePaise / 100).toLocaleString('en-IN')}`}

@@ -241,18 +241,18 @@ export function AvatarShare({
         <button
           type="button"
           aria-label="Open share card"
-          className="relative shrink-0 overflow-hidden rounded-full border border-volt/50 p-1 transition-transform hover:scale-105"
+          className="relative aspect-square w-[88px] shrink-0 self-center justify-self-center overflow-hidden rounded-full border border-volt/50 p-1 transition-transform hover:scale-105 sm:w-[104px]"
         >
           <img
             src={avatarUrl(seed)}
             alt={name}
             width={88}
             height={88}
-            className="h-20 w-20 rounded-full object-cover object-top sm:h-24 sm:w-24"
+            className="h-full w-full rounded-full object-cover object-top"
           />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm overflow-hidden border-volt/40 p-0">
+      <DialogContent className="max-w-[calc(100vw-2rem)] overflow-hidden border-volt/40 p-0 sm:max-w-sm">
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

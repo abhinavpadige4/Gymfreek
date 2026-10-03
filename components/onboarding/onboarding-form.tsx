@@ -90,7 +90,7 @@ export function OnboardingForm({ initial }: Props) {
               onChange={(v) => set('avatarSeed', v)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="instagram">Instagram</Label>
               <Input
@@ -119,7 +119,7 @@ export function OnboardingForm({ initial }: Props) {
               placeholder="Your name"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="dob">Date of birth</Label>
               <Input
@@ -143,7 +143,7 @@ export function OnboardingForm({ initial }: Props) {
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="grid gap-2">
               <Label htmlFor="height">Height (cm)</Label>
               <Input

@@ -275,7 +275,7 @@ export function ProgressDashboard({
           {exerciseChartData.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">{t('noExerciseData')}</p>
           ) : (
-            <div className="h-64 w-full">
+            <div className="h-56 w-full min-w-0 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={exerciseChartData}
@@ -382,7 +382,7 @@ export function ProgressDashboard({
           {weeklyChartData.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">{t('noWeeklyData')}</p>
           ) : (
-            <div className="h-72 w-full">
+            <div className="h-60 w-full min-w-0 sm:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={weeklyChartData}
@@ -399,7 +399,7 @@ export function ProgressDashboard({
                       fontSize: 12,
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend wrapperStyle={{ fontSize: 11, maxHeight: 64, overflowY: 'auto' }} />
                   {presentMuscleGroups.map((group) => (
                     <Bar
                       key={group}

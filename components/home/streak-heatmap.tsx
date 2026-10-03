@@ -65,15 +65,15 @@ export function ActivityHeatGrid({ days }: { days: ActivityDay[] }) {
 export function StreakHeatmap({ days, streak }: { days: ActivityDay[]; streak: number }) {
   const activeDays = days.filter((d) => d.count > 0).length;
   return (
-    <Card className="border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+    <Card className="min-w-0 overflow-hidden border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <span
-            className={`flex size-11 items-center justify-center rounded-full ${streak > 0 ? 'bg-volt text-black' : 'bg-muted text-muted-foreground'}`}
+            className={`flex size-11 shrink-0 items-center justify-center rounded-full ${streak > 0 ? 'bg-volt text-black' : 'bg-muted text-muted-foreground'}`}
           >
             <Flame className="size-6" aria-hidden />
           </span>
-          <div>
+          <div className="min-w-0">
             <CardTitle className="font-display text-3xl tabular-nums">
               {streak}
               <span className="ml-2 align-middle text-sm font-normal text-muted-foreground">

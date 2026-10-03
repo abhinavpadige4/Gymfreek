@@ -69,7 +69,7 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ id
         <Link href={`/challenges/${challenge.slug}`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
           Back to challenge
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">{challenge.title} - Leaderboard</h1>
+        <h1 className="break-words text-2xl font-bold tracking-tight">{challenge.title} - Leaderboard</h1>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Ranked by VALID days, then total best time</CardTitle>
@@ -77,18 +77,18 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ id
           <CardContent>
             <ol className="flex flex-col gap-2">
               {rows.map((r, i) => (
-                <li key={`${r.name}-${i}`} className="flex items-center justify-between gap-2 text-sm">
+                <li key={`${r.name}-${i}`} className="flex min-w-0 items-center justify-between gap-2 text-sm">
                   <span className="flex min-w-0 items-center gap-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.avatar} alt="" width={28} height={28} className="size-7 shrink-0 rounded-full bg-muted object-contain" loading="lazy" />
-                    <span className="truncate">
+                    <span className="min-w-0 flex-1 truncate">
                       #{i + 1} {r.name}
-                      <span className="ml-2 rounded-sm border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                        {r.bracket}
-                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-sm border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                      {r.bracket}
                     </span>
                   </span>
-                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                  <span className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">
                     {r.days}d - {Math.floor(r.total / 60)}m
                   </span>
                 </li>

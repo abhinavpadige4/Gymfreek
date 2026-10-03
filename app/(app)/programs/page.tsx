@@ -73,13 +73,13 @@ export default async function ProgramsPage() {
                     >
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-3">
-                          <CardTitle className="font-display text-xl tracking-wide">
+                          <CardTitle className="min-w-0 flex-1 break-words font-display text-xl tracking-wide">
                             {getTrainingDisplayName(p.name, locale)}
                           </CardTitle>
                           {p.isActive ? (
-                            <Badge>{t('active')}</Badge>
+                            <Badge className="shrink-0">{t('active')}</Badge>
                           ) : (
-                            <Badge variant="secondary">{common('states.inactive')}</Badge>
+                            <Badge variant="secondary" className="shrink-0">{common('states.inactive')}</Badge>
                           )}
                         </div>
                         <CardDescription className="text-xs">

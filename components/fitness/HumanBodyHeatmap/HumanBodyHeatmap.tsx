@@ -208,25 +208,7 @@ export function HumanBodyHeatmap({
           </svg>
 
           {hoveredDef && hoveredDef.group && hoveredStat && hover && (
-            <div
-              className={styles.tooltip}
-              style={{ left: Math.min(Math.max(hover.x + 14, 8), 220), top: Math.max(hover.y - 10, 8) }}
-              role="status"
-            >
-              <strong>{hoveredDef.label.toUpperCase()}</strong>
-              <div className={styles.tooltipRow}>
-                <span>Intensity</span>
-                <strong>{hoveredStat.intensity}%</strong>
-              </div>
-              <div className={styles.tooltipRow}>
-                <span>Reps</span>
-                <strong>{hoveredStat.reps.toLocaleString('en-US')}</strong>
-              </div>
-              <div className={styles.tooltipRow}>
-                <span>Sets</span>
-                <strong>{hoveredStat.sets}</strong>
-              </div>
-            </div>
+            <TooltipBubble x={hover.x} y={hover.y} label={hoveredDef.label} stat={hoveredStat} stageRef={stageRef} />
           )}
 
           {!hasSignal && (
@@ -284,8 +266,43 @@ export function HumanBodyHeatmap({
   );
 }
 
-function periodLabel(period: HeatPeriod): string {
-  if (period === 'TODAY') return 'today';
+// Hover tooltip clamped inside the stage so right-side muscles never push
+// it past the card edge on narrow phones.
+function TooltipBubble({
+  x,
+  y,
+  label,
+  stat,
+  stageRef,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  stat: { intensity: number; reps: number; sets: number };
+  stageRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const stageW = stageRef.current?.clientWidth ?? 320;
+  const left = Math.min(Math.max(x + 14, 8), Math.max(8, stageW - 186));
+  return (
+    <div className={styles.tooltip} style={{ left, top: Math.max(y - 10, 8) }} role="status">
+      <strong>{label.toUpperCase()}</strong>
+      <div className={styles.tooltipRow}>
+        <span>Intensity</span>
+        <strong>{stat.intensity}%</strong>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span>Reps</span>
+        <strong>{stat.reps.toLocaleString('en-US')}</strong>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span>Sets</span>
+        <strong>{stat.sets}</strong>
+      </div>
+    </div>
+  );
+}
+
+function periodLabel(period: HeatPeriod): string {  if (period === 'TODAY') return 'today';
   if (period === '7D') return 'last 7 days';
   if (period === '30D') return 'last 30 days';
   return 'all time';

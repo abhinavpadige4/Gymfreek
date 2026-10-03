@@ -154,9 +154,9 @@ export default async function ChallengesPage() {
                 <p className="font-display text-xl tracking-wide">
                   100<span className="text-volt">X</span>U
                 </p>
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-3xl tracking-tight">{featured.title}</h2>
+                    <h2 className="min-w-0 break-words font-display text-3xl tracking-tight">{featured.title}</h2>
                     {byId.get(featured.id) && (
                       <StatusBadge status={byId.get(featured.id)!.status} />
                     )}

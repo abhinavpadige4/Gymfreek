@@ -28,7 +28,7 @@ export function StreakShowcase({
   const pct =
     currentDay != null && totalDays ? Math.min(100, Math.round((currentDay / totalDays) * 100)) : null;
   return (
-    <Card className="flex h-full flex-col border-volt/40 bg-gradient-to-br from-volt/15 via-card to-card shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+    <Card className="flex h-full min-w-0 flex-col overflow-hidden border-volt/40 bg-gradient-to-br from-volt/15 via-card to-card shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <span
@@ -55,10 +55,8 @@ export function StreakShowcase({
           </div>
         )}
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-2">
-        <div className="max-w-full overflow-x-auto">
-          <ActivityHeatGrid days={days} />
-        </div>
+      <CardContent className="flex min-w-0 flex-1 flex-col gap-2">
+        <ActivityHeatGrid days={days} />
         <Link href="/history" className="text-xs font-semibold text-volt underline-offset-4 hover:underline">
           View workout history
         </Link>

@@ -132,8 +132,8 @@ export default async function DashboardPage() {
   const dayStreak = currentDayStreak(activityDates);
 
   return (
-    <main className="flex-1 px-4 py-6">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <main className="flex-1 overflow-x-hidden px-4 py-6">
+      <div className="mx-auto flex min-w-0 max-w-5xl flex-col gap-6">
         {/* STATS - first so progress is visible without scrolling */}
         <div>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -145,10 +145,10 @@ export default async function DashboardPage() {
               { label: t('statReps'), value: format.number(totalReps) },
               { label: t('statMinutes'), value: format.number(activeMinutes) },
             ].map((s) => (
-              <Card key={s.label}>
-                <CardContent className="flex flex-col gap-1 p-3 sm:p-4">
-                  <span className="font-display text-2xl text-volt sm:text-3xl">{s.value}</span>
-                  <span className="text-[11px] uppercase tracking-widest text-muted-foreground sm:text-xs">
+              <Card key={s.label} className="min-w-0 overflow-hidden">
+                <CardContent className="flex min-w-0 flex-col gap-1 p-3 sm:p-4">
+                  <span className="truncate font-display text-2xl tabular-nums text-volt sm:text-3xl">{s.value}</span>
+                  <span className="truncate text-[11px] uppercase tracking-widest text-muted-foreground sm:text-xs">
                     {s.label}
                   </span>
                 </CardContent>
@@ -158,12 +158,12 @@ export default async function DashboardPage() {
         </div>
 
         {/* HERO */}
-        <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
-          <div className="flex flex-col items-start gap-3">
+        <div className="grid min-w-0 items-center gap-6 lg:grid-cols-[1fr_auto]">
+          <div className="flex min-w-0 flex-col items-start gap-3">
             <p className="font-display text-sm tracking-[0.3em] text-muted-foreground">
               {t('welcomeBack')}
             </p>
-            <h1 className="font-display text-4xl tracking-tight sm:text-5xl">
+            <h1 className="w-full break-all font-display text-4xl tracking-tight sm:text-5xl">
               {t('greeting', { name: displayName })}
             </h1>
             <p className="text-muted-foreground">{t('heroSubtitle')}</p>
@@ -183,8 +183,8 @@ export default async function DashboardPage() {
         <BadgeShelf badges={badgeAwards} />
 
         {/* CHALLENGE + STREAK - side by side so the fire is visible */}
-        <div className="grid items-stretch gap-4 md:grid-cols-2">
-        <Card className="h-full border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
+        <div className="grid min-w-0 items-stretch gap-4 md:grid-cols-2">
+        <Card className="h-full min-w-0 border-volt/40 shadow-[0_0_80px_-30px_hsl(22_92%_49%/0.6)]">
           <CardHeader className="pb-3">
             <p className="font-display text-sm tracking-[0.3em] text-volt">
               {t('challengeEyebrow')}
